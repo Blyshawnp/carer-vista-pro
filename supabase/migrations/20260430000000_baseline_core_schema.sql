@@ -1166,6 +1166,8 @@ begin
 end;
 $$;
 
+drop function if exists public.claim_open_shift(uuid);
+
 create or replace function public.claim_open_shift(p_shift_id uuid)
 returns boolean
 language plpgsql
