@@ -256,7 +256,7 @@ export default function InviteForm({
               required
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              placeholder="Jane Smith"
+              placeholder="Full name"
               className={inputCls}
             />
           </Field>

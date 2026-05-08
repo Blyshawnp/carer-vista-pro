@@ -1,10 +1,10 @@
-# Cleanup Test Data
+# Cleanup Non-Production Data
 
-Use this when you want to remove test shifts, clients, caregivers, messages, notifications, and related app data from Supabase while keeping your own admin account.
+Use this when you want to remove non-production shifts, clients, caregivers, messages, notifications, and related app data from Supabase while keeping one admin account.
 
 Run this from **Supabase Dashboard > SQL Editor**.
 
-## 1. Find Your IDs
+## 1. Find IDs
 
 First find your organization ID and your admin profile ID:
 
@@ -17,11 +17,11 @@ order by created_at;
 Copy:
 
 - your `organization_id`
-- your admin profile `id`
+- the admin profile `id` to keep
 
 ## 2. Run The Cleanup
 
-Replace `PASTE_ORGANIZATION_ID_HERE` and `PASTE_YOUR_ADMIN_PROFILE_ID_HERE`, then run:
+Replace `PASTE_ORGANIZATION_ID_HERE` and `PASTE_ADMIN_PROFILE_ID_TO_KEEP_HERE`, then run:
 
 ```sql
 begin;
@@ -29,7 +29,7 @@ begin;
 do $$
 declare
   target_org uuid := 'PASTE_ORGANIZATION_ID_HERE';
-  keep_admin uuid := 'PASTE_YOUR_ADMIN_PROFILE_ID_HERE';
+  keep_admin uuid := 'PASTE_ADMIN_PROFILE_ID_TO_KEEP_HERE';
 begin
   delete from public.checkout_flags where organization_id = target_org;
   delete from public.shift_location_pings where organization_id = target_org;
@@ -85,19 +85,19 @@ end $$;
 commit;
 ```
 
-## 3. Delete Test Auth Users
+## 3. Delete Temporary Auth Users
 
 The SQL removes app rows, but Supabase Auth users may still exist.
 
-Go to **Supabase Dashboard > Authentication > Users** and delete the test users there, especially any `@noemail.local` accounts.
+Go to **Supabase Dashboard > Authentication > Users** and delete temporary users created during testing.
 
-## 4. Delete Uploaded Test Files
+## 4. Delete Uploaded Non-Production Files
 
-If you uploaded test files or avatars, also check **Supabase Dashboard > Storage**.
+If you uploaded non-production files or avatars, also check **Supabase Dashboard > Storage**.
 
 Look in these buckets:
 
 - `avatars`
 - `client-documents`
 
-Delete test files manually from those buckets.
+Delete non-production files manually from those buckets.

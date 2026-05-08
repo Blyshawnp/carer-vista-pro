@@ -43,6 +43,10 @@ export async function middleware(request: NextRequest) {
     path.startsWith("/login") ||
     path.startsWith("/auth") ||
     path.startsWith("/accept-invite") ||
+    path.startsWith("/setup") ||
+    path === "/terms" ||
+    path === "/privacy" ||
+    path === "/emergency-disclaimer" ||
     path === "/manifest.json" ||
     path === "/sw.js" ||
     path === "/home/manifest.json" ||

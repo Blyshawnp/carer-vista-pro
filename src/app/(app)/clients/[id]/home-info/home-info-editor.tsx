@@ -165,15 +165,15 @@ export default function HomeInfoEditor({
   return (
     <form onSubmit={save} className="space-y-4">
       <Card title="Emergency contact">
-        <Field label="Name" value={ec1Name} onChange={setEc1Name} placeholder="Sarah Smith" />
-        <Field label="Phone" type="tel" value={ec1Phone} onChange={setEc1Phone} placeholder="555-123-4567" />
-        <Field label="Relationship" value={ec1Rel} onChange={setEc1Rel} placeholder="Daughter" />
+        <Field label="Name" value={ec1Name} onChange={setEc1Name} placeholder="Emergency contact name" />
+        <Field label="Phone" type="tel" value={ec1Phone} onChange={setEc1Phone} placeholder="Phone number" />
+        <Field label="Relationship" value={ec1Rel} onChange={setEc1Rel} placeholder="Relationship" />
       </Card>
 
       <Card title="Emergency contact 2 (optional)">
-        <Field label="Name" value={ec2Name} onChange={setEc2Name} placeholder="John Smith" />
-        <Field label="Phone" type="tel" value={ec2Phone} onChange={setEc2Phone} placeholder="555-987-6543" />
-        <Field label="Relationship" value={ec2Rel} onChange={setEc2Rel} placeholder="Son" />
+        <Field label="Name" value={ec2Name} onChange={setEc2Name} placeholder="Emergency contact name" />
+        <Field label="Phone" type="tel" value={ec2Phone} onChange={setEc2Phone} placeholder="Phone number" />
+        <Field label="Relationship" value={ec2Rel} onChange={setEc2Rel} placeholder="Relationship" />
       </Card>
 
       <Card title="Allergies" subtitle="Add what caregivers should know about. Tag each by severity.">
@@ -186,15 +186,15 @@ export default function HomeInfoEditor({
       </Card>
 
       <Card title="Preferred hospital">
-        <Field label="Name" value={hospName} onChange={setHospName} placeholder="St. Luke's Hospital" />
-        <Field label="Address" value={hospAddr} onChange={setHospAddr} placeholder="801 Ostrum St, Bethlehem, PA" />
-        <Field label="Phone" type="tel" value={hospPhone} onChange={setHospPhone} placeholder="610-555-1234" />
+        <Field label="Name" value={hospName} onChange={setHospName} placeholder="Preferred hospital name" />
+        <Field label="Address" value={hospAddr} onChange={setHospAddr} placeholder="Hospital address" />
+        <Field label="Phone" type="tel" value={hospPhone} onChange={setHospPhone} placeholder="Hospital phone" />
       </Card>
 
       <Card title="Primary physician">
-        <Field label="Name" value={physName} onChange={setPhysName} placeholder="Dr. Patel" />
-        <Field label="Address" value={physAddr} onChange={setPhysAddr} placeholder="100 Main St, Allentown, PA" />
-        <Field label="Phone" type="tel" value={physPhone} onChange={setPhysPhone} placeholder="610-555-5678" />
+        <Field label="Name" value={physName} onChange={setPhysName} placeholder="Primary physician name" />
+        <Field label="Address" value={physAddr} onChange={setPhysAddr} placeholder="Physician address" />
+        <Field label="Phone" type="tel" value={physPhone} onChange={setPhysPhone} placeholder="Physician phone" />
       </Card>
 
       <Card title="Emergency devices & locations" subtitle="Where to find safety items in the home. Caregivers see these on every shift.">
@@ -213,7 +213,7 @@ export default function HomeInfoEditor({
         )}
 
         <Toggle
-          label="Has medical alert button (e.g. Life Alert)"
+          label="Has medical alert button"
           checked={hasMedical}
           onChange={setHasMedical}
         />
@@ -222,7 +222,7 @@ export default function HomeInfoEditor({
             label="Medical alert location"
             value={medicalLoc}
             onChange={setMedicalLoc}
-            placeholder="Worn around neck"
+            placeholder="Where it is kept or worn"
           />
         )}
 
@@ -255,7 +255,7 @@ export default function HomeInfoEditor({
       <Card title="Wi-Fi" subtitle={canEditWifi ? undefined : "Only admins can edit Wi-Fi credentials."}>
         {canEditWifi ? (
           <>
-            <Field label="Network name (SSID)" value={wifiSsid} onChange={setWifiSsid} placeholder="HomeNetwork" />
+            <Field label="Network name (SSID)" value={wifiSsid} onChange={setWifiSsid} placeholder="Wi-Fi network name" />
             <div>
               <span className="block text-xs font-medium text-ink-700 mb-1.5 tracking-wide uppercase">
                 Password
@@ -534,7 +534,7 @@ function AllergyManager({
             label="Notes (optional)"
             value={allergyNotes}
             onChange={setAllergyNotes}
-            placeholder="Carries EpiPen in handbag"
+            placeholder="Where medication or instructions are kept"
           />
           <div className="flex gap-2">
             <button

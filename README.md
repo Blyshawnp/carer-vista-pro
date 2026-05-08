@@ -1,6 +1,6 @@
-# Caregiver App
+# Carer Vista Pro
 
-Next.js 15 + Supabase PWA for managing a family caregiver schedule.
+Next.js 15 + Supabase PWA for caregiver coordination.
 Installs as an Android app via Bubblewrap, as a PWA on iPhone via Safari.
 
 ## First-time setup
@@ -27,11 +27,12 @@ Copy the example env file:
 cp .env.local.example .env.local
 ```
 
-Open `.env.local` and fill in your two values from
+Open `.env.local` and fill in your values from
 **Supabase Dashboard → Project Settings → API**:
 
 - `NEXT_PUBLIC_SUPABASE_URL` → "Project URL"
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` → "Project API keys" → `anon` `public` key
+- `SUPABASE_SERVICE_ROLE_KEY` → service role key, server-only
 
 ### 4. Run the dev server
 
@@ -41,20 +42,31 @@ npm run dev
 
 Open http://localhost:3000
 
-You should be redirected to /login. Sign in with the email + password you
-created in Supabase Authentication > Users. After login you should land on
-/dashboard and see your name, role, and organization pulled live from the
-database.
+You should be redirected to `/login`. Create the first account, confirm email if
+required by your Supabase Auth settings, then complete `/setup` to create a blank
+organization, owner/admin profile, first care recipient, and optional invitations.
 
 If that works, the entire stack is correctly wired up.
 
-## What's in this starter
+## Public deployment notes
+
+- Do not commit `.env.local`, service-role keys, screenshots with real data, or
+  private Supabase project references.
+- Use a new Supabase project for public deployments.
+- Apply the full base schema and migrations before releasing. This repository's
+  current migration folder includes incremental migrations plus public onboarding
+  fields, but it may still need a complete baseline schema export for a new blank
+  Supabase project.
+- Terms, Privacy Policy, Emergency Disclaimer, and Data Deletion links are exposed
+  from Help. Replace the placeholder legal copy before production release.
+
+## What's in this app
 
 - Next.js 15 (App Router) + React 19 + TypeScript
 - Supabase auth via @supabase/ssr (cookie-based sessions)
 - Middleware that refreshes sessions and protects routes
 - Login page (email + password)
-- Dashboard server component reading from RLS-protected `profiles` table
+- First-run setup flow for new public deployments
 - Sign-out flow
 - Tailwind CSS 3 with custom theme:
   - Fraunces (serif) for display headings
@@ -62,27 +74,16 @@ If that works, the entire stack is correctly wired up.
   - Warm cream / forest green / terracotta palette
 - PWA manifest (ready for icon files)
 
-## Next features (we'll build these next)
-
-- Schedule view (upcoming shifts for the org)
-- Check-in / check-out with geofence verification
-- To-do list per shift
-- Master to-do template management
-- Pay summary (uses the `shift_pay_details` view)
-- Caregiver-to-caregiver messaging
-
 ## Folder structure
 
 ```
 src/
   app/
     layout.tsx            # Root layout, fonts
-    page.tsx              # Redirect to /dashboard
+    page.tsx              # Redirect to /home
     globals.css           # Tailwind + base styles
     login/page.tsx        # Sign-in page
-    dashboard/
-      page.tsx            # Server component: profile data
-      sign-out-button.tsx # Client component: sign out
+    setup/page.tsx        # First-run setup
     auth/callback/route.ts # OAuth/magic link callback
   lib/
     supabase/

@@ -141,7 +141,7 @@ export default function AcceptInviteForm({
               type="tel"
               value={phone}
               onChange={setPhone}
-              placeholder="555-123-4567"
+              placeholder="Phone number"
               autoComplete="tel"
             />
 

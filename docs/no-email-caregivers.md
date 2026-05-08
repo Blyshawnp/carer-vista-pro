@@ -5,9 +5,9 @@
 On the **Invite** screen, admins can toggle between "Has email" and "No email."
 The "No email" path:
 
-1. Admin types a username (letters/numbers only), e.g. `jane`
-2. The system creates a placeholder login: `jane@noemail.local`
-3. Admin sets a password (auto-generated as memorable like `BraveOtter47`)
+1. Admin types a short username (letters/numbers only)
+2. The system creates a placeholder login using that username and the private `@noemail.local` suffix
+3. Admin sets a password
 4. Submitting creates the user account immediately and prepares an SMS with the
    credentials, ready to send to the caregiver
 5. Caregiver opens the app, types the username and password from the SMS, signs in
@@ -51,7 +51,7 @@ Twilio is the standard option. Sign up at twilio.com, buy a phone number
 
 - Account SID
 - Auth Token
-- Twilio phone number (in +15555555555 format)
+- Twilio phone number (in E.164 format)
 
 ### Step 2: Configure Supabase
 

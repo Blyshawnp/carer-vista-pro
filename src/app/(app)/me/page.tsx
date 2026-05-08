@@ -25,7 +25,7 @@ export default async function MePage() {
   const { data: profile } = await supabase
     .from("profiles")
     .select(
-      "id, full_name, role, email, phone, language, avatar_url, avatar_color, bio, vehicle_1_make_model, vehicle_1_color, vehicle_2_make_model, vehicle_2_color, organizations(name)"
+      "id, full_name, role, email, phone, language, avatar_url, avatar_color, owner_role_label, bio, vehicle_1_make_model, vehicle_1_color, vehicle_2_make_model, vehicle_2_color, organizations(name)"
     )
     .eq("id", user.id)
     .single<{
@@ -37,6 +37,7 @@ export default async function MePage() {
       language: Lang | null;
       avatar_url: string | null;
       avatar_color: string | null;
+      owner_role_label: string | null;
       bio: string | null;
       vehicle_1_make_model: string | null;
       vehicle_1_color: string | null;
@@ -113,6 +114,7 @@ export default async function MePage() {
     admin: "Administrator",
     client: "Client",
     caregiver: "Caregiver",
+    family: "Family Member",
   };
 
   const showPay =
@@ -144,7 +146,7 @@ export default async function MePage() {
               {profile?.full_name}
             </h2>
             <p className="text-sm text-forest-600">
-              {roleCopy[profile?.role ?? ""] ?? profile?.role}
+              {profile?.owner_role_label ?? roleCopy[profile?.role ?? ""] ?? profile?.role}
             </p>
             {profile && (
               <div className="mt-2">

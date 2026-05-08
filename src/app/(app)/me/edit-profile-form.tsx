@@ -97,7 +97,7 @@ export default function EditProfileForm({
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
           className="w-full px-3 py-2 bg-white border border-cream-200 rounded-xl text-sm focus:outline-none focus:border-forest-500"
-          placeholder="555-123-4567"
+          placeholder="Phone number"
         />
       </label>
       <label className="block">

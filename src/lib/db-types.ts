@@ -19,7 +19,8 @@ export type ProfileRow = {
   phone: string | null;
   role: Role;
   is_active: boolean;
-  organization_id: string;
+  organization_id: string | null;
+  owner_role_label: string | null;
   avatar_url: string | null;
   avatar_color: string | null;
   bio: string | null;

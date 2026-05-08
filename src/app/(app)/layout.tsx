@@ -14,11 +14,11 @@ type ProfileWithOrg = {
   id: string;
   full_name: string;
   role: Role;
-  organization_id: string;
+  organization_id: string | null;
   language: Lang | null;
   avatar_url: string | null;
   avatar_color: string | null;
-  organizations: { name: string } | null;
+  organizations: { name: string; onboarding_complete: boolean | null } | null;
 };
 
 type ActiveShiftRow = {
@@ -59,10 +59,14 @@ export default async function AppLayout({
   const { data: profile } = await supabase
     .from("profiles")
     .select(
-      "id, full_name, role, organization_id, language, avatar_url, avatar_color, organizations(name)"
+      "id, full_name, role, organization_id, language, avatar_url, avatar_color, organizations(name, onboarding_complete)"
     )
     .eq("id", user.id)
     .single<ProfileWithOrg>();
+
+  if (!profile?.organization_id || profile.organizations?.onboarding_complete === false) {
+    redirect("/setup");
+  }
 
   const lang: Lang = profile?.language === "es" ? "es" : "en";
 

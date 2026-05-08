@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
-type Role = "admin" | "client" | "caregiver" | "family" | "family";
+type Role = "admin" | "client" | "caregiver" | "family";
 
 export default async function HelpPage() {
   const supabase = await createClient();
@@ -154,6 +154,15 @@ export default async function HelpPage() {
             <li>Caregivers can see all home info needed to do their work, but never edit Wi-Fi or sensitive admin settings.</li>
             <li>Admins can do everything in their org.</li>
             <li>Clients can edit emergency contacts, allergies, notes — but not Wi-Fi password.</li>
+          </ul>
+        </Section>
+
+        <Section title="Legal & data">
+          <ul className="text-sm text-ink-700 space-y-1.5 list-disc pl-5">
+            <li><Link href="/terms" className="text-forest-600 hover:underline">Terms</Link></li>
+            <li><Link href="/privacy" className="text-forest-600 hover:underline">Privacy Policy</Link></li>
+            <li><Link href="/emergency-disclaimer" className="text-forest-600 hover:underline">Emergency Disclaimer</Link></li>
+            <li><Link href="/account/delete" className="text-forest-600 hover:underline">Data Deletion</Link></li>
           </ul>
         </Section>
 
