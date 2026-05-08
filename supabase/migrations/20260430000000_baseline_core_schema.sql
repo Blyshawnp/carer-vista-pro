@@ -419,11 +419,44 @@ begin
 end;
 $$;
 
+create or replace function public.set_check_in_organization_id()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  shift_org_id uuid;
+begin
+  select s.organization_id
+  into shift_org_id
+  from public.shifts s
+  where s.id = new.shift_id;
+
+  if shift_org_id is null then
+    raise exception 'shift_id % does not reference an existing shift', new.shift_id;
+  end if;
+
+  if new.organization_id is not null and new.organization_id <> shift_org_id then
+    raise exception 'check-in organization_id must match the related shift';
+  end if;
+
+  new.organization_id := shift_org_id;
+  return new;
+end;
+$$;
+
 drop trigger if exists prevent_unsafe_self_profile_update on public.profiles;
 create trigger prevent_unsafe_self_profile_update
 before update on public.profiles
 for each row
 execute function public.prevent_unsafe_self_profile_update();
+
+drop trigger if exists check_ins_set_organization_id on public.check_ins;
+create trigger check_ins_set_organization_id
+before insert or update of shift_id, organization_id on public.check_ins
+for each row
+execute function public.set_check_in_organization_id();
 
 do $$
 declare
@@ -457,6 +490,8 @@ create index if not exists clients_org_name_idx on public.clients (organization_
 create index if not exists shifts_org_start_idx on public.shifts (organization_id, scheduled_start);
 create index if not exists shifts_caregiver_start_idx on public.shifts (caregiver_id, scheduled_start);
 create index if not exists shifts_client_start_idx on public.shifts (client_id, scheduled_start);
+create index if not exists check_ins_org_idx on public.check_ins (organization_id);
+create unique index if not exists check_ins_shift_key on public.check_ins (shift_id);
 create index if not exists check_ins_shift_idx on public.check_ins (shift_id);
 create index if not exists check_ins_caregiver_idx on public.check_ins (caregiver_id, check_in_time desc);
 create index if not exists shift_todos_shift_sort_idx on public.shift_todos (shift_id, sort_order);
