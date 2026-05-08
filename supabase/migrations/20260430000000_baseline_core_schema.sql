@@ -153,6 +153,59 @@ create table if not exists public.check_ins (
   updated_at timestamptz not null default now()
 );
 
+alter table public.check_ins
+  add column if not exists organization_id uuid;
+
+update public.check_ins ci
+set organization_id = s.organization_id
+from public.shifts s
+where ci.shift_id = s.id
+  and ci.organization_id is null;
+
+do $do$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'check_ins_organization_id_fkey'
+      and conrelid = 'public.check_ins'::regclass
+  ) then
+    alter table public.check_ins
+      add constraint check_ins_organization_id_fkey
+      foreign key (organization_id)
+      references public.organizations(id)
+      on delete cascade
+      not valid;
+  end if;
+
+  if exists (
+    select 1
+    from pg_constraint
+    where conname = 'check_ins_organization_id_fkey'
+      and conrelid = 'public.check_ins'::regclass
+      and not convalidated
+  ) and not exists (
+    select 1
+    from public.check_ins ci
+    left join public.organizations o on o.id = ci.organization_id
+    where ci.organization_id is not null
+      and o.id is null
+  ) then
+    alter table public.check_ins
+      validate constraint check_ins_organization_id_fkey;
+  end if;
+
+  if not exists (
+    select 1
+    from public.check_ins
+    where organization_id is null
+  ) then
+    alter table public.check_ins
+      alter column organization_id set not null;
+  end if;
+end
+$do$;
+
 create table if not exists public.todo_templates (
   id uuid primary key default gen_random_uuid(),
   organization_id uuid not null references public.organizations(id) on delete cascade,
