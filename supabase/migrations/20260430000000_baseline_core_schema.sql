@@ -265,7 +265,10 @@ create table if not exists public.invitations (
   full_name text not null,
   email text not null,
   role text not null,
-  token text not null default encode(gen_random_bytes(32), 'hex'),
+  token text not null default (
+    replace(gen_random_uuid()::text, '-', '') ||
+    replace(gen_random_uuid()::text, '-', '')
+  ),
   status text not null default 'pending',
   invited_by uuid null references public.profiles(id) on delete set null,
   created_by uuid null references public.profiles(id) on delete set null,
