@@ -1,20 +1,13 @@
 begin;
 
-alter table if exists public.check_ins
+alter table public.check_ins
   add column if not exists organization_id uuid;
 
-do $do$
-begin
-  if to_regclass('public.check_ins') is not null
-     and to_regclass('public.shifts') is not null then
-    update public.check_ins ci
-    set organization_id = s.organization_id
-    from public.shifts s
-    where ci.shift_id = s.id
-      and ci.organization_id is null;
-  end if;
-end
-$do$;
+update public.check_ins ci
+set organization_id = s.organization_id
+from public.shifts s
+where ci.shift_id = s.id
+  and ci.organization_id is null;
 
 do $do$
 begin
@@ -120,7 +113,7 @@ begin
   if to_regclass('public.check_ins') is not null then
     drop trigger if exists check_ins_set_organization_id on public.check_ins;
     create trigger check_ins_set_organization_id
-    before insert or update of shift_id, organization_id on public.check_ins
+    before insert or update on public.check_ins
     for each row
     execute function public.set_check_in_organization_id();
   end if;

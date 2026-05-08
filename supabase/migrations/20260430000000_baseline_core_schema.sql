@@ -454,7 +454,7 @@ execute function public.prevent_unsafe_self_profile_update();
 
 drop trigger if exists check_ins_set_organization_id on public.check_ins;
 create trigger check_ins_set_organization_id
-before insert or update of shift_id, organization_id on public.check_ins
+before insert or update on public.check_ins
 for each row
 execute function public.set_check_in_organization_id();
 
