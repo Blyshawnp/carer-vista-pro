@@ -1081,6 +1081,8 @@ as $$
   limit 1
 $$;
 
+drop function if exists public.accept_invitation(text, text);
+
 create or replace function public.accept_invitation(
   invitation_token text,
   invited_phone text default null
@@ -1202,6 +1204,8 @@ begin
 end;
 $$;
 
+drop function if exists public.mark_shift_viewed(uuid);
+
 create or replace function public.mark_shift_viewed(p_shift_id uuid)
 returns boolean
 language plpgsql
@@ -1219,6 +1223,8 @@ begin
   return found;
 end;
 $$;
+
+drop function if exists public.generate_recurring_shifts(uuid);
 
 create or replace function public.generate_recurring_shifts(p_template_id uuid default null)
 returns integer
