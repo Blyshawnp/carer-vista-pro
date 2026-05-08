@@ -1045,6 +1045,8 @@ using (
   and (caregiver_id = auth.uid() or public.is_admin() or public.is_client())
 );
 
+drop function if exists public.get_invitation_by_token(text);
+
 create or replace function public.get_invitation_by_token(invitation_token text)
 returns table (
   id uuid,
