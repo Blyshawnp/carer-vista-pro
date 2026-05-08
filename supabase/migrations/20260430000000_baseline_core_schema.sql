@@ -369,6 +369,59 @@ create table if not exists public.shift_location_pings (
   created_at timestamptz not null default now()
 );
 
+alter table public.shift_location_pings
+  add column if not exists organization_id uuid;
+
+update public.shift_location_pings lp
+set organization_id = s.organization_id
+from public.shifts s
+where lp.shift_id = s.id
+  and lp.organization_id is null;
+
+do $do$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'shift_location_pings_organization_id_fkey'
+      and conrelid = 'public.shift_location_pings'::regclass
+  ) then
+    alter table public.shift_location_pings
+      add constraint shift_location_pings_organization_id_fkey
+      foreign key (organization_id)
+      references public.organizations(id)
+      on delete cascade
+      not valid;
+  end if;
+
+  if exists (
+    select 1
+    from pg_constraint
+    where conname = 'shift_location_pings_organization_id_fkey'
+      and conrelid = 'public.shift_location_pings'::regclass
+      and not convalidated
+  ) and not exists (
+    select 1
+    from public.shift_location_pings lp
+    left join public.organizations o on o.id = lp.organization_id
+    where lp.organization_id is not null
+      and o.id is null
+  ) then
+    alter table public.shift_location_pings
+      validate constraint shift_location_pings_organization_id_fkey;
+  end if;
+
+  if not exists (
+    select 1
+    from public.shift_location_pings
+    where organization_id is null
+  ) then
+    alter table public.shift_location_pings
+      alter column organization_id set not null;
+  end if;
+end
+$do$;
+
 create or replace function public.current_org_id()
 returns uuid
 language sql
@@ -499,6 +552,37 @@ begin
 end;
 $$;
 
+create or replace function public.set_shift_location_ping_organization_id()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  shift_org_id uuid;
+begin
+  if new.shift_id is null then
+    return new;
+  end if;
+
+  select s.organization_id
+  into shift_org_id
+  from public.shifts s
+  where s.id = new.shift_id;
+
+  if shift_org_id is null then
+    return new;
+  end if;
+
+  if new.organization_id is not null and new.organization_id <> shift_org_id then
+    raise exception 'location ping organization_id must match the related shift';
+  end if;
+
+  new.organization_id := shift_org_id;
+  return new;
+end;
+$$;
+
 drop trigger if exists prevent_unsafe_self_profile_update on public.profiles;
 create trigger prevent_unsafe_self_profile_update
 before update on public.profiles
@@ -510,6 +594,12 @@ create trigger check_ins_set_organization_id
 before insert or update on public.check_ins
 for each row
 execute function public.set_check_in_organization_id();
+
+drop trigger if exists shift_location_pings_set_organization_id on public.shift_location_pings;
+create trigger shift_location_pings_set_organization_id
+before insert or update on public.shift_location_pings
+for each row
+execute function public.set_shift_location_ping_organization_id();
 
 do $$
 declare
@@ -555,6 +645,7 @@ create index if not exists caregiver_rates_lookup_idx on public.caregiver_rates 
 create index if not exists recurring_shift_templates_org_active_idx on public.recurring_shift_templates (organization_id, is_active, is_paused);
 create index if not exists pay_periods_org_period_idx on public.pay_periods (organization_id, period_start desc);
 create index if not exists pay_period_snapshots_caregiver_idx on public.pay_period_snapshots (caregiver_id, created_at desc);
+create index if not exists shift_location_pings_org_idx on public.shift_location_pings (organization_id);
 create index if not exists shift_location_pings_check_in_recorded_idx on public.shift_location_pings (check_in_id, recorded_at desc);
 create index if not exists holidays_lookup_idx on public.holidays (holiday_date, organization_id);
 
