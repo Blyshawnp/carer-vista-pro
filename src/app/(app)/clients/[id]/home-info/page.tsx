@@ -2,6 +2,7 @@ import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import HomeInfoEditor from "./home-info-editor";
+import ClientUsersManager from "./client-users-manager";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -53,6 +54,14 @@ type Document = {
   created_at: string;
 };
 
+type UserOption = {
+  id: string;
+  full_name: string;
+  email: string;
+  role: "admin" | "client" | "caregiver" | "family";
+  is_active: boolean;
+};
+
 export default async function HomeInfoPage({
   params,
 }: {
@@ -72,6 +81,7 @@ export default async function HomeInfoPage({
     .single<{ role: "admin" | "client" | "caregiver" | "family" }>();
 
   if (!profile) redirect("/me");
+  const canManage = profile.role === "admin";
 
   const { data: client, error: clientError } = await supabase
     .from("clients")
@@ -133,6 +143,26 @@ export default async function HomeInfoPage({
     documents = [];
   }
 
+  let users: UserOption[] = [];
+  let assignedUserIds: string[] = [];
+  if (canManage) {
+    const [{ data: usersData }, { data: assignmentsData }] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("id, full_name, email, role, is_active")
+        .eq("organization_id", client.organization_id)
+        .order("full_name"),
+      supabase
+        .from("client_user_assignments")
+        .select("user_id")
+        .eq("client_id", client.id)
+        .eq("is_active", true),
+    ]);
+
+    users = (usersData ?? []) as UserOption[];
+    assignedUserIds = (assignmentsData ?? []).map((row) => row.user_id as string);
+  }
+
   return (
     <main className="px-5 py-6 max-w-2xl mx-auto">
       <header className="mb-6">
@@ -154,8 +184,15 @@ export default async function HomeInfoPage({
         client={client}
         allergies={allergies}
         documents={documents}
-        canEditWifi={profile.role === "admin" || profile.role === "client"}
+        canEditWifi={canManage}
       />
+      {canManage && (
+        <ClientUsersManager
+          clientId={client.id}
+          users={users}
+          assignedUserIds={assignedUserIds}
+        />
+      )}
     </main>
   );
 }

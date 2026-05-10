@@ -1,15 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Manrope } from "next/font/google";
+import { Manrope } from "next/font/google";
 import Script from "next/script";
 import OfflineIndicator from "@/components/offline-indicator";
 import "./globals.css";
-
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  variable: "--font-fraunces",
-  axes: ["SOFT", "WONK", "opsz"],
-  display: "swap",
-});
 
 const manrope = Manrope({
   subsets: ["latin"],
@@ -69,7 +62,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${manrope.variable}`}>
+    <html lang="en" className={manrope.variable}>
       <body>
         <OfflineIndicator />
         {children}

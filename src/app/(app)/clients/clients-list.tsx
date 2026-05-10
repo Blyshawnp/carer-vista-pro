@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { getCurrentPosition } from "@/lib/geo";
 import { MapPinIcon } from "@/components/icons";
@@ -27,8 +28,16 @@ export default function ClientsList({
       <div className="bg-white rounded-3xl p-10 shadow-soft text-center grain-overlay">
         <p className="font-display text-lg mb-1">No clients yet</p>
         <p className="text-sm text-ink-500">
-          No clients are currently visible for your account.
+          No care recipients are currently visible for your account.
         </p>
+        {canManage && (
+          <Link
+            href="/clients/new"
+            className="mt-4 inline-flex bg-forest-600 hover:bg-forest-700 text-cream-50 px-4 py-2.5 rounded-xl text-sm font-medium transition"
+          >
+            Add client
+          </Link>
+        )}
       </div>
     );
   }

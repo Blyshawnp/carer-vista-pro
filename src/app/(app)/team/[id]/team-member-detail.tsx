@@ -330,7 +330,8 @@ export default function TeamMemberDetail({
         </section>
       )}
 
-      {(person.role === "caregiver" ||
+      {(person.role === "admin" ||
+        person.role === "caregiver" ||
         person.role === "client" ||
         person.role === "family") && (
         <section className="bg-white rounded-3xl shadow-soft p-5 mb-4 grain-overlay">

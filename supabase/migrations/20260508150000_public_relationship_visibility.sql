@@ -74,6 +74,15 @@ using (
   )
 );
 
+drop policy if exists "admins clients manage clients" on public.clients;
+drop policy if exists "admins manage clients" on public.clients;
+create policy "admins manage clients"
+on public.clients
+for all
+to authenticated
+using (organization_id = public.current_org_id() and public.is_admin())
+with check (organization_id = public.current_org_id() and public.is_admin());
+
 drop policy if exists "incident org members can view allowed incidents" on public.incidents;
 create policy "incident org members can view allowed incidents"
 on public.incidents

@@ -11,15 +11,18 @@
   }
   body {
     @apply bg-cream-100 text-ink-900 font-sans antialiased;
-    font-feature-settings: "ss01", "cv11";
+    font-feature-settings: normal;
+    font-variant-ligatures: none;
+    text-rendering: optimizeLegibility;
     /* Allow vertical scroll but prevent horizontal swipe gestures (iOS back) */
     overscroll-behavior-x: contain;
     /* Improve touch responsiveness */
     touch-action: manipulation;
   }
   h1, h2, h3, h4 {
-    @apply font-display tracking-tight;
-    font-feature-settings: "ss01";
+    @apply font-display tracking-normal;
+    font-feature-settings: normal;
+    font-variant-ligatures: none;
   }
   /* Don't let buttons/links show the blue iOS tap flash */
   button, a, [role="button"] {

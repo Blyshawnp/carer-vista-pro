@@ -17,6 +17,7 @@ export default async function ClientsPage() {
     .single<{ role: "admin" | "client" | "caregiver" | "family"; organization_id: string }>();
 
   if (!profile) redirect("/me");
+  const canManage = profile.role === "admin";
 
   const { data: clients } = await supabase
     .from("clients")
@@ -32,17 +33,29 @@ export default async function ClientsPage() {
         >
           ← Back
         </Link>
-        <h1 className="font-display text-3xl text-ink-900">Clients</h1>
-        <p className="text-ink-500 text-sm">
-          {profile.role === "admin" || profile.role === "client"
-            ? "Set the address and geofence for each client"
-            : "Clients and care recipients connected to you"}
-        </p>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h1 className="font-display text-3xl text-ink-900">Clients</h1>
+            <p className="text-ink-500 text-sm">
+              {canManage
+                ? "Care recipients in this care circle"
+                : "Clients and care recipients connected to you"}
+            </p>
+          </div>
+          {canManage && (
+            <Link
+              href="/clients/new"
+              className="shrink-0 bg-forest-600 hover:bg-forest-700 text-cream-50 px-4 py-2.5 rounded-xl text-sm font-medium transition"
+            >
+              Add client
+            </Link>
+          )}
+        </div>
       </header>
 
       <ClientsList
         clients={clients ?? []}
-        canManage={profile.role === "admin" || profile.role === "client"}
+        canManage={canManage}
       />
     </main>
   );

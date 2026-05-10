@@ -31,7 +31,7 @@ const config: Config = {
         },
       },
       fontFamily: {
-        display: ["var(--font-fraunces)", "ui-serif", "Georgia", "serif"],
+        display: ["var(--font-manrope)", "ui-sans-serif", "system-ui", "sans-serif"],
         sans: ["var(--font-manrope)", "ui-sans-serif", "system-ui", "sans-serif"],
       },
       boxShadow: {

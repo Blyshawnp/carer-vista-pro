@@ -1,0 +1,100 @@
+import { NextResponse } from "next/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
+
+type CreateClientRequest = {
+  fullName?: string;
+  address?: string;
+  homeNotes?: string;
+  emergencyName?: string;
+  emergencyPhone?: string;
+  emergencyRelationship?: string;
+};
+
+export async function POST(request: Request) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const payload = (await request.json()) as CreateClientRequest;
+  const fullName = payload.fullName?.trim();
+
+  if (!fullName) {
+    return NextResponse.json({ error: "Client name is required." }, { status: 400 });
+  }
+
+  const admin = createAdminClient();
+  const { data: profile } = await admin
+    .from("profiles")
+    .select("id, organization_id, role, owner_role, is_owner")
+    .eq("id", user.id)
+    .maybeSingle<{
+      id: string;
+      organization_id: string | null;
+      role: string;
+      owner_role: string | null;
+      is_owner: boolean | null;
+    }>();
+
+  if (!profile?.organization_id) {
+    return NextResponse.json({ error: "Complete setup before adding clients." }, { status: 400 });
+  }
+
+  if (profile.role !== "admin") {
+    return NextResponse.json({ error: "Admin access required." }, { status: 403 });
+  }
+
+  const { data: client, error: clientError } = await admin
+    .from("clients")
+    .insert({
+      organization_id: profile.organization_id,
+      full_name: fullName,
+      address: clean(payload.address),
+      home_notes: clean(payload.homeNotes),
+      emergency_contact_1_name: clean(payload.emergencyName),
+      emergency_contact_1_phone: clean(payload.emergencyPhone),
+      emergency_contact_1_relationship: clean(payload.emergencyRelationship),
+    })
+    .select("id")
+    .single<{ id: string }>();
+
+  if (clientError || !client) {
+    return NextResponse.json(
+      { error: clientError?.message ?? "Could not add client." },
+      { status: 400 }
+    );
+  }
+
+  const relationshipRole =
+    profile.is_owner && (profile.owner_role === "client" || profile.owner_role === "family")
+      ? profile.owner_role
+      : "admin";
+
+  const { error: assignmentError } = await admin
+    .from("client_user_assignments")
+    .insert({
+      organization_id: profile.organization_id,
+      client_id: client.id,
+      user_id: profile.id,
+      relationship_role: relationshipRole,
+      assigned_by: profile.id,
+      is_active: true,
+    });
+
+  if (assignmentError) {
+    await admin.from("clients").delete().eq("id", client.id);
+    return NextResponse.json({ error: assignmentError.message }, { status: 400 });
+  }
+
+  return NextResponse.json({ id: client.id });
+}
+
+function clean(value?: string) {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : null;
+}
