@@ -16,7 +16,7 @@ export default async function ClientsPage() {
     .eq("id", user.id)
     .single<{ role: "admin" | "client" | "caregiver" | "family"; organization_id: string }>();
 
-  if (!profile || (profile.role === "caregiver" || profile.role === "family")) redirect("/me");
+  if (!profile) redirect("/me");
 
   const { data: clients } = await supabase
     .from("clients")
@@ -34,11 +34,16 @@ export default async function ClientsPage() {
         </Link>
         <h1 className="font-display text-3xl text-ink-900">Clients</h1>
         <p className="text-ink-500 text-sm">
-          Set the address and geofence for each client
+          {profile.role === "admin" || profile.role === "client"
+            ? "Set the address and geofence for each client"
+            : "Clients and care recipients connected to you"}
         </p>
       </header>
 
-      <ClientsList clients={clients ?? []} />
+      <ClientsList
+        clients={clients ?? []}
+        canManage={profile.role === "admin" || profile.role === "client"}
+      />
     </main>
   );
 }

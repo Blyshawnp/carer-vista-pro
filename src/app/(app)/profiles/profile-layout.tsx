@@ -32,10 +32,12 @@ export default function ProfileLayout({
   profile,
   viewerRole,
   caregiverStats,
+  assignedClients,
 }: {
   profile: ProfileData;
   viewerRole: string;
   caregiverStats: { upcomingShifts: number; activeNow: boolean } | null;
+  assignedClients: Array<{ id: string; full_name: string }>;
 }) {
   const canShowContact =
     viewerRole === "admin" ||
@@ -138,6 +140,15 @@ export default function ProfileLayout({
                 <h2 className="text-[10px] uppercase tracking-[0.2em] text-ink-400 font-bold">Client / Family Context</h2>
                 <div className="bg-cream-50 rounded-2xl p-4 text-sm text-ink-700">
                   This profile is used for care-team communication and family/client visibility.
+                </div>
+              </section>
+            )}
+
+            {assignedClients.length > 0 && (
+              <section className="space-y-4">
+                <h2 className="text-[10px] uppercase tracking-[0.2em] text-ink-400 font-bold">Assigned Clients</h2>
+                <div className="bg-cream-50 rounded-2xl p-4 text-sm text-ink-700">
+                  {assignedClients.map((client) => client.full_name).join(", ")}
                 </div>
               </section>
             )}

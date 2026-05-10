@@ -163,6 +163,9 @@ export default async function HelpPage() {
             <li><Link href="/privacy" className="text-forest-600 hover:underline">Privacy Policy</Link></li>
             <li><Link href="/emergency-disclaimer" className="text-forest-600 hover:underline">Emergency Disclaimer</Link></li>
             <li><Link href="/account/delete" className="text-forest-600 hover:underline">Data Deletion</Link></li>
+            {role === "admin" && (
+              <li><Link href="/account/deletion-requests" className="text-forest-600 hover:underline">Data Deletion Requests</Link></li>
+            )}
           </ul>
         </Section>
 

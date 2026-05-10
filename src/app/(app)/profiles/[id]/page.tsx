@@ -47,5 +47,27 @@ export default async function ProfilePage({ params }: { params: Promise<{ id: st
     };
   }
 
-  return <ProfileLayout profile={profile} viewerRole={viewer.role} caregiverStats={caregiverStats} />;
+  const { data: assignedClients } = await supabase
+    .from("client_user_assignments")
+    .select("clients(id, full_name)")
+    .eq("user_id", profile.id)
+    .eq("is_active", true);
+
+  const clients = (assignedClients ?? []).flatMap((row) => {
+    const value = row.clients as
+      | { id: string; full_name: string }
+      | Array<{ id: string; full_name: string }>
+      | null;
+    if (!value) return [];
+    return Array.isArray(value) ? value : [value];
+  });
+
+  return (
+    <ProfileLayout
+      profile={profile}
+      viewerRole={viewer.role}
+      caregiverStats={caregiverStats}
+      assignedClients={clients}
+    />
+  );
 }

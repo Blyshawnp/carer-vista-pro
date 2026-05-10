@@ -71,7 +71,7 @@ export default async function HomeInfoPage({
     .eq("id", user.id)
     .single<{ role: "admin" | "client" | "caregiver" | "family" }>();
 
-  if (!profile || (profile.role === "caregiver" || profile.role === "family")) redirect("/me");
+  if (!profile) redirect("/me");
 
   const { data: client, error: clientError } = await supabase
     .from("clients")
@@ -154,7 +154,7 @@ export default async function HomeInfoPage({
         client={client}
         allergies={allergies}
         documents={documents}
-        canEditWifi={profile.role === "admin"}
+        canEditWifi={profile.role === "admin" || profile.role === "client"}
       />
     </main>
   );

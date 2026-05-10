@@ -68,6 +68,23 @@ export async function POST(request: Request) {
     clientId = shift.client_id ?? clientId;
   }
 
+  if (clientId && reporter.role === "caregiver") {
+    const { data: assignment } = await admin
+      .from("client_user_assignments")
+      .select("id")
+      .eq("client_id", clientId)
+      .eq("user_id", reporter.id)
+      .eq("is_active", true)
+      .maybeSingle();
+
+    if (!assignment && !payload.shiftId) {
+      return NextResponse.json(
+        { error: "You can only report incidents for assigned clients." },
+        { status: 403 }
+      );
+    }
+  }
+
   const { data: incident, error } = await admin
     .from("incidents")
     .insert({
@@ -86,7 +103,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error?.message ?? "Could not create incident." }, { status: 500 });
   }
 
-  const { data: recipients } = await admin
+  let recipientsQuery = admin
     .from("profiles")
     .select("id")
     .eq("organization_id", reporter.organization_id)
@@ -94,9 +111,24 @@ export async function POST(request: Request) {
     .neq("id", reporter.id)
     .in("role", ["admin", "client", "family"]);
 
-  const rows = (recipients ?? []).map((recipient) => ({
+  const { data: recipients } = await recipientsQuery;
+  const recipientIds = new Set((recipients ?? []).map((recipient) => recipient.id));
+
+  if (clientId) {
+    const { data: assigned } = await admin
+      .from("client_user_assignments")
+      .select("user_id")
+      .eq("client_id", clientId)
+      .eq("is_active", true);
+
+    for (const row of assigned ?? []) {
+      if (row.user_id !== reporter.id) recipientIds.add(row.user_id);
+    }
+  }
+
+  const rows = Array.from(recipientIds).map((recipientId) => ({
     organization_id: reporter.organization_id,
-    recipient_id: recipient.id,
+    recipient_id: recipientId,
     kind: severity === "urgent" ? "incident_urgent" : "incident_reported",
     title: severity === "urgent" ? "Urgent incident reported" : "Incident reported",
     body: `${reporter.full_name}: ${title}`,

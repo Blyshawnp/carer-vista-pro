@@ -63,11 +63,26 @@ export default async function TeamMemberPage({
     .eq("caregiver_id", id)
     .gte("scheduled_end", new Date().toISOString());
 
+  const { data: clients } = await supabase
+    .from("clients")
+    .select("id, full_name")
+    .eq("organization_id", viewer.organization_id)
+    .order("full_name");
+
+  const { data: assignments } = await supabase
+    .from("client_user_assignments")
+    .select("client_id")
+    .eq("organization_id", viewer.organization_id)
+    .eq("user_id", id)
+    .eq("is_active", true);
+
   return (
     <TeamMemberDetail
       person={person}
       currentRate={currentRate}
       upcomingShiftCount={upcomingCount ?? 0}
+      clients={clients ?? []}
+      assignedClientIds={(assignments ?? []).map((row) => row.client_id)}
     />
   );
 }

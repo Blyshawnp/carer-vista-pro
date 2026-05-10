@@ -24,14 +24,23 @@ type Rate = {
   effective_to: string | null;
 };
 
+type ClientOption = {
+  id: string;
+  full_name: string;
+};
+
 export default function TeamMemberDetail({
   person,
   currentRate,
   upcomingShiftCount,
+  clients,
+  assignedClientIds,
 }: {
   person: Person;
   currentRate: Rate | null;
   upcomingShiftCount: number;
+  clients: ClientOption[];
+  assignedClientIds: string[];
 }) {
   const router = useRouter();
   const [editingRate, setEditingRate] = useState(false);
@@ -41,6 +50,10 @@ export default function TeamMemberDetail({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [selectedClientIds, setSelectedClientIds] = useState(
+    new Set(assignedClientIds)
+  );
+  const [savingAssignments, setSavingAssignments] = useState(false);
 
   // Password reset state for no-email accounts
   const [showResetCreds, setShowResetCreds] = useState(false);
@@ -156,10 +169,38 @@ export default function TeamMemberDetail({
     router.refresh();
   }
 
+  async function saveAssignments() {
+    setError(null);
+    setSavingAssignments(true);
+
+    const response = await fetch("/api/client-assignments", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userId: person.id,
+        clientIds: Array.from(selectedClientIds),
+      }),
+    });
+
+    const result = (await response.json()) as { error?: string };
+
+    if (!response.ok) {
+      setError(result.error ?? "Could not save assignments.");
+      setSavingAssignments(false);
+      return;
+    }
+
+    setSavingAssignments(false);
+    router.refresh();
+  }
+
   const roleCopy: Record<string, string> = {
     admin: "Administrator",
     client: "Client",
     caregiver: "Caregiver",
+    family: "Family",
   };
 
   return (
@@ -285,6 +326,61 @@ export default function TeamMemberDetail({
                 </div>
               </div>
             )}
+          </div>
+        </section>
+      )}
+
+      {(person.role === "caregiver" ||
+        person.role === "client" ||
+        person.role === "family") && (
+        <section className="bg-white rounded-3xl shadow-soft p-5 mb-4 grain-overlay">
+          <div className="relative">
+            <h2 className="font-display text-base text-ink-900 mb-1">
+              Client assignments
+            </h2>
+            <p className="text-xs text-ink-500 mb-3">
+              Controls which clients this person can see and work with.
+            </p>
+            {clients.length === 0 ? (
+              <p className="text-sm text-ink-500">No clients in this care circle.</p>
+            ) : (
+              <div className="space-y-2">
+                {clients.map((client) => {
+                  const checked = selectedClientIds.has(client.id);
+                  return (
+                    <label
+                      key={client.id}
+                      className="flex items-center gap-3 bg-cream-50 rounded-xl px-3 py-2 text-sm"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={(event) => {
+                          const next = new Set(selectedClientIds);
+                          if (event.target.checked) {
+                            next.add(client.id);
+                          } else {
+                            next.delete(client.id);
+                          }
+                          setSelectedClientIds(next);
+                        }}
+                        className="h-4 w-4 accent-forest-600"
+                      />
+                      <span className="font-medium text-ink-800">
+                        {client.full_name}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+            <button
+              onClick={saveAssignments}
+              disabled={savingAssignments}
+              className="mt-3 w-full bg-forest-600 hover:bg-forest-700 text-cream-50 py-2.5 rounded-xl text-sm font-medium transition disabled:opacity-50"
+            >
+              {savingAssignments ? "Saving..." : "Save assignments"}
+            </button>
           </div>
         </section>
       )}
