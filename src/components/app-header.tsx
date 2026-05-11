@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import NotificationBell from "./notification-bell";
-import { StarOfLifeIcon } from "./icons";
 import UserAvatar from "./user-avatar";
 import type { Role } from "@/lib/db-types";
 import { getFirstName } from "@/lib/name";
@@ -50,13 +50,20 @@ export default function AppHeader({
 
       <div className="flex items-center gap-2 shrink-0">
         <Link
-          href="/emergency"
+          href="/emergency?report=1"
           aria-label="Emergency Info"
           title="Emergency Info"
           data-role={role}
-          className="relative w-12 h-12 rounded-full bg-red-600 text-white grid place-items-center border border-red-300 shadow-[0_0_10px_rgba(239,68,68,0.34)] transition-transform transition-shadow transition-colors duration-150 hover:scale-[1.05] hover:bg-red-500 hover:shadow-[0_0_14px_rgba(239,68,68,0.48)] active:scale-95 active:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-cream-100"
+          className="relative w-12 h-12 rounded-full bg-[#FF0000] text-white grid place-items-center border border-red-300 shadow-[0_0_10px_rgba(255,0,0,0.34)] transition-transform transition-shadow transition-colors duration-150 hover:scale-[1.05] hover:shadow-[0_0_14px_rgba(255,0,0,0.48)] active:scale-95 active:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-cream-100 motion-safe:animate-pulse"
         >
-          <StarOfLifeIcon size={24} />
+          <span aria-hidden className="absolute inset-0 rounded-full bg-white/10 animate-ping" />
+          <Image
+            src="/icons/emergency.png"
+            alt=""
+            width={24}
+            height={24}
+            className="relative z-10 block"
+          />
         </Link>
         {userId && (
           <NotificationBell initialCount={notificationCount} userId={userId} />

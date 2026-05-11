@@ -143,6 +143,18 @@ export type ShiftTodoRow = {
   sort_order: number;
 };
 
+export type IncidentReportRow = {
+  id: string;
+  organization_id: string;
+  shift_id: string | null;
+  client_id: string | null;
+  reported_by: string;
+  category: string;
+  description: string;
+  created_at: string;
+  updated_at: string;
+};
+
 /**
  * A single shift joined with its related rows. We always select these joins
  * the same way so this shape captures the common result.

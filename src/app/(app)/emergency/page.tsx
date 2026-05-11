@@ -1,8 +1,10 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import EmergencyPanel from "@/components/emergency-panel";
-import { StarOfLifeIcon, ArrowRightIcon } from "@/components/icons";
+import { ArrowRightIcon } from "@/components/icons";
+import IncidentReportModal from "./incident-report-modal";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -17,6 +19,13 @@ type ClientFull = {
   primary_physician_name: string | null;
   primary_physician_address: string | null;
   primary_physician_phone: string | null;
+};
+
+type ClientBundle = ClientFull & {
+  contacts: EmergencyContact[];
+  medications: Medication[];
+  allergies: Allergy[];
+  safetyItems: SafetyItem[];
 };
 
 type EmergencyContact = {
@@ -57,7 +66,23 @@ type Allergy = {
   notes: string | null;
 };
 
-export default async function EmergencyPage() {
+type IncidentReport = {
+  id: string;
+  category: string;
+  description: string;
+  created_at: string;
+  client_id: string | null;
+  shift_id: string | null;
+  profiles: { full_name: string | null } | null;
+  clients: { full_name: string | null } | null;
+};
+
+export default async function EmergencyPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ report?: string }>;
+}) {
+  const { report } = (await searchParams) ?? {};
   const supabase = await createClient();
   const {
     data: { user },
@@ -78,6 +103,21 @@ export default async function EmergencyPage() {
     .order("full_name");
 
   const clients = (clientsRaw ?? []) as ClientFull[];
+  const canFileIncident = profile?.role !== "family";
+
+  let activeShiftClientId: string | null = null;
+  let activeShiftId: string | null = null;
+  if (profile?.role === "caregiver") {
+    const { data: activeShift } = await supabase
+      .from("shifts")
+      .select("id, client_id, check_ins!inner(id, check_in_time, check_out_time)")
+      .eq("caregiver_id", user.id)
+      .not("check_ins.check_in_time", "is", null)
+      .is("check_ins.check_out_time", null)
+      .maybeSingle<{ id: string; client_id: string | null }>();
+    activeShiftId = activeShift?.id ?? null;
+    activeShiftClientId = activeShift?.client_id ?? null;
+  }
 
   let allContacts: EmergencyContact[] = [];
   try {
@@ -123,6 +163,26 @@ export default async function EmergencyPage() {
     allSafetyItems = [];
   }
 
+  let incidentReports: IncidentReport[] = [];
+  try {
+    const { data } = await supabase
+      .from("incident_reports")
+      .select("id, category, description, created_at, client_id, shift_id, profiles:reported_by(full_name), clients(full_name)")
+      .order("created_at", { ascending: false })
+      .limit(12);
+    incidentReports = (data ?? []) as IncidentReport[];
+  } catch {
+    incidentReports = [];
+  }
+
+  const clientBundles: ClientBundle[] = clients.map((client) => ({
+    ...client,
+    contacts: allContacts.filter((contact) => contact.client_id === client.id),
+    medications: allMedications.filter((medication) => medication.client_id === client.id),
+    allergies: allAllergies.filter((allergy) => allergy.client_id === client.id),
+    safetyItems: allSafetyItems.filter((item) => item.client_id === client.id),
+  }));
+
   const { data: urgentIncidents } = await supabase
     .from("incidents")
     .select("id, title")
@@ -140,9 +200,9 @@ export default async function EmergencyPage() {
           ← Back
         </Link>
         <div className="flex items-center gap-3">
-          <span className="relative w-14 h-14 rounded-2xl bg-red-600 text-cream-50 grid place-items-center shrink-0 shadow-xl ring-4 ring-red-200/80">
-            <span className="absolute inset-0 rounded-2xl bg-red-500/30 animate-ping" />
-            <StarOfLifeIcon size={30} className="relative" />
+          <span className="relative w-14 h-14 rounded-full bg-[#FF0000] grid place-items-center shrink-0 shadow-xl ring-4 ring-red-200/80 overflow-hidden">
+            <span className="absolute inset-0 rounded-full bg-white/10 animate-ping" />
+            <Image src="/icons/emergency.png" alt="" width={30} height={30} className="relative z-10" />
           </span>
           <div>
             <h1 className="font-display text-3xl text-ink-900 leading-tight">
@@ -164,7 +224,7 @@ export default async function EmergencyPage() {
               className="flex items-center justify-between bg-terracotta-500 text-white p-5 rounded-[2rem] shadow-lg animate-pulse border-2 border-white/20"
             >
               <div className="flex items-center gap-3 min-w-0">
-                 <StarOfLifeIcon size={24} className="shrink-0" />
+                 <Image src="/icons/emergency.png" alt="" width={24} height={24} className="shrink-0" />
                  <div className="min-w-0">
                     <p className="text-[10px] uppercase tracking-widest font-bold opacity-80 leading-none mb-1">Active Urgent Incident</p>
                     <p className="font-display text-lg truncate leading-none">{inc.title}</p>
@@ -186,24 +246,36 @@ export default async function EmergencyPage() {
         <p className="font-display text-4xl">Call 911</p>
       </a>
 
-      <section className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-5">
-        <Link
-          href="/incidents"
-          className="bg-terracotta-600 hover:bg-terracotta-500 text-cream-50 rounded-2xl shadow-soft px-4 py-3 transition active:scale-[0.99] border border-terracotta-400/30"
-        >
-          <span className="block font-medium">Report an incident</span>
-          <span className="block text-xs text-cream-50/80">Create a care or safety report</span>
-        </Link>
-        {profile?.role !== "caregiver" && (
-          <Link
-            href="/incidents"
-            className="bg-white hover:bg-cream-50 rounded-2xl shadow-soft px-4 py-3 transition active:scale-[0.99]"
-          >
-            <span className="block font-medium text-ink-900">Incident history</span>
-            <span className="block text-xs text-ink-500">Review submitted reports</span>
-          </Link>
-        )}
-      </section>
+      {(canFileIncident || profile?.role !== "caregiver") && (
+        <section className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-5">
+          {canFileIncident && (
+            <Link
+              href="/emergency?report=1"
+              className="bg-terracotta-600 hover:bg-terracotta-500 text-cream-50 rounded-2xl shadow-soft px-4 py-3 transition active:scale-[0.99] border border-terracotta-400/30"
+            >
+              <span className="block font-medium">Report an incident</span>
+              <span className="block text-xs text-cream-50/80">Create a care or safety report</span>
+            </Link>
+          )}
+          {profile?.role !== "caregiver" && (
+            <Link
+              href="/incidents"
+              className="bg-white hover:bg-cream-50 rounded-2xl shadow-soft px-4 py-3 transition active:scale-[0.99]"
+            >
+              <span className="block font-medium text-ink-900">Incident history</span>
+              <span className="block text-xs text-ink-500">Review submitted reports</span>
+            </Link>
+          )}
+        </section>
+      )}
+
+      <IncidentReportModal
+        clients={clientBundles}
+        defaultClientId={activeShiftClientId}
+        currentShiftId={activeShiftId}
+        openByDefault={report === "1"}
+        canFile={canFileIncident}
+      />
 
       <div className="bg-white rounded-2xl shadow-soft p-4 mb-6">
         <p className="text-[10px] uppercase tracking-[0.18em] text-ink-400 font-bold mb-1">
@@ -229,19 +301,7 @@ export default async function EmergencyPage() {
       ) : (
         <div id="emergency-info" className="space-y-4">
           <h2 className="text-[10px] uppercase tracking-[0.2em] text-ink-400 font-bold px-1">Client Medical Info</h2>
-          {clients.map((client) => {
-            const clientContacts = allContacts.filter(
-              (contact) => contact.client_id === client.id
-            );
-            const clientMedications = allMedications.filter(
-              (medication) => medication.client_id === client.id
-            );
-            const clientAllergies = allAllergies.filter(
-              (a) => a.client_id === client.id
-            );
-            const clientSafetyItems = allSafetyItems.filter(
-              (item) => item.client_id === client.id
-            );
+          {clientBundles.map((client) => {
             return (
               <div key={client.id}>
                 <div className="flex items-baseline justify-between mb-1.5 px-1">
@@ -261,15 +321,34 @@ export default async function EmergencyPage() {
                 </div>
                 <EmergencyPanel
                   info={client}
-                  contacts={clientContacts}
-                  medications={clientMedications}
-                  allergies={clientAllergies}
-                  safetyItems={clientSafetyItems}
+                  contacts={client.contacts}
+                  medications={client.medications}
+                  allergies={client.allergies}
+                  safetyItems={client.safetyItems}
                 />
               </div>
             );
           })}
         </div>
+      )}
+
+      {incidentReports.length > 0 && (
+        <section className="mt-6">
+          <h2 className="text-[10px] uppercase tracking-[0.2em] text-ink-400 font-bold px-1 mb-2">
+            Recent incident reports
+          </h2>
+          <ul className="space-y-2">
+            {incidentReports.map((report) => (
+              <li key={report.id} className="bg-white rounded-2xl shadow-soft p-4">
+                <p className="font-medium text-ink-900">{report.category}</p>
+                <p className="text-sm text-ink-500 mt-1 line-clamp-2">{report.description}</p>
+                <p className="text-xs text-ink-400 mt-2">
+                  {report.profiles?.full_name ?? "Reporter"} · {report.clients?.full_name ?? "No client"} · {new Date(report.created_at).toLocaleDateString()}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
     </main>
   );

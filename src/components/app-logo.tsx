@@ -20,14 +20,14 @@ export default function AppLogo({
       aria-label="Carer Vista Pro home"
       className={`flex items-center gap-3 min-w-0 ${className}`}
     >
-      <span className="relative shrink-0 w-12 h-12 rounded-[1rem] bg-white/95 ring-1 ring-forest-200 shadow-soft overflow-hidden p-1.5">
+      <span className="relative shrink-0 w-12 h-12 overflow-hidden">
         <Image
-          src="/icon-192.png"
+          src="/icon.png"
           alt=""
           fill
           sizes="48px"
           priority
-          className="object-contain"
+          className="object-contain drop-shadow-[0_1px_1px_rgba(0,0,0,0.12)]"
         />
       </span>
       {showText && (
