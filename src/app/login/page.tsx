@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import AppLogo from "@/components/app-logo";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -85,14 +86,10 @@ export default function LoginPage() {
       <div className="relative w-full max-w-sm">
         {/* Brand */}
         <div className="mb-8 text-center">
-          <img
-            src="/icon-192.png"
-            alt="Carer Vista Pro"
-            className="w-24 h-24 object-contain mx-auto mb-4 drop-shadow"
-          />
-          <h1 className="font-display text-4xl text-ink-900 mb-1.5">
-            Carer Vista Pro
-          </h1>
+          <div className="mx-auto mb-4 inline-flex">
+            <AppLogo href="/login" showText={false} className="justify-center" />
+          </div>
+          <h1 className="font-display text-4xl text-ink-900 mb-1.5">Carer Vista Pro</h1>
           <p className="text-ink-500 text-sm">
             {mode === "signin" ? "Sign in to your account" : "Create your public deployment account"}
           </p>
