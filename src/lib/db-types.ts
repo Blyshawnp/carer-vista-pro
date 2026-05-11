@@ -39,6 +39,7 @@ export type ClientRow = {
   street_address_2: string | null;
   city: string | null;
   state: string | null;
+  state_or_region: string | null;
   postal_code: string | null;
   country: string | null;
   latitude: number | null;

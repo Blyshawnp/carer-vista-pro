@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { lookupAddress } from "@/lib/address-lookup";
+import {
+  buildAddressQuery,
+  normalizeCountry,
+} from "@/lib/address";
 
 type CreateClientRequest = {
   fullName?: string;
@@ -9,6 +14,7 @@ type CreateClientRequest = {
   streetAddress2?: string;
   city?: string;
   state?: string;
+  stateOrRegion?: string;
   postalCode?: string;
   country?: string;
   latitude?: number | null;
@@ -63,13 +69,14 @@ export async function POST(request: Request) {
     .insert({
       organization_id: profile.organization_id,
       full_name: fullName,
-      address: formatAddress(payload),
+      address: null,
       street_address_1: clean(payload.streetAddress1),
       street_address_2: clean(payload.streetAddress2),
       city: clean(payload.city),
-      state: clean(payload.state),
+      state: clean(payload.stateOrRegion ?? payload.state),
+      state_or_region: clean(payload.stateOrRegion ?? payload.state),
       postal_code: clean(payload.postalCode),
-      country: clean(payload.country) ?? "US",
+      country: normalizeCountry(payload.country),
       latitude: normalizeNumber(payload.latitude),
       longitude: normalizeNumber(payload.longitude),
       geofence_radius_meters: normalizeRadius(payload.geofenceRadiusMeters),
@@ -83,8 +90,8 @@ export async function POST(request: Request) {
           : "unknown",
       location_set_at:
         normalizeNumber(payload.latitude) != null && normalizeNumber(payload.longitude) != null
-          ? new Date().toISOString()
-          : null,
+        ? new Date().toISOString()
+        : null,
     })
     .select("id")
     .single<{ id: string }>();
@@ -117,6 +124,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: assignmentError.message }, { status: 400 });
   }
 
+  await maybeBackfillGeocode(admin, client.id, payload).catch(() => null);
+
   return NextResponse.json({ id: client.id });
 }
 
@@ -135,18 +144,38 @@ function normalizeRadius(value?: number) {
     : 150;
 }
 
-function formatAddress(payload: CreateClientRequest) {
-  const parts = [
-    clean(payload.streetAddress1),
-    clean(payload.streetAddress2),
-    clean(payload.city),
-    clean(payload.state),
-    clean(payload.postalCode),
-    clean(payload.country) ?? "US",
-  ].filter(Boolean);
-
-  if (parts.length > 0) {
-    return parts.join(", ");
+async function maybeBackfillGeocode(
+  admin: ReturnType<typeof createAdminClient>,
+  clientId: string,
+  payload: CreateClientRequest
+) {
+  if (normalizeNumber(payload.latitude) != null && normalizeNumber(payload.longitude) != null) {
+    return;
   }
-  return clean(payload.address);
+
+  const lookup = await lookupAddress({
+    street_address_1: payload.streetAddress1 ?? null,
+    street_address_2: payload.streetAddress2 ?? null,
+    city: payload.city ?? null,
+    state_or_region: payload.stateOrRegion ?? payload.state ?? null,
+    postal_code: payload.postalCode ?? null,
+    country: payload.country ?? null,
+  });
+
+  if (!lookup?.latitude || !lookup.longitude) {
+    return;
+  }
+
+  await admin
+    .from("clients")
+    .update({
+      formatted_address: lookup.formattedAddress,
+      address: lookup.formattedAddress,
+      latitude: lookup.latitude,
+      longitude: lookup.longitude,
+      geofence_radius_meters: 150,
+      location_source: lookup.source,
+      location_set_at: new Date().toISOString(),
+    })
+    .eq("id", clientId);
 }

@@ -23,6 +23,7 @@ type ClientHomeInfo = {
   street_address_2: string | null;
   city: string | null;
   state: string | null;
+  state_or_region: string | null;
   postal_code: string | null;
   country: string | null;
   latitude: number | null;
@@ -100,7 +101,7 @@ export default async function HomeInfoPage({
   const { data: client, error: clientError } = await supabase
     .from("clients")
     .select(
-      "id, full_name, organization_id, address, formatted_address, street_address_1, street_address_2, city, state, postal_code, country, latitude, longitude, geofence_radius_meters, location_set_at, location_source, wifi_ssid, wifi_password, home_notes, preferred_hospital_name, preferred_hospital_address, preferred_hospital_phone, primary_physician_name, primary_physician_address, primary_physician_phone, show_medications_to_caregivers, show_allergies_to_caregivers"
+      "id, full_name, organization_id, address, formatted_address, street_address_1, street_address_2, city, state, state_or_region, postal_code, country, latitude, longitude, geofence_radius_meters, location_set_at, location_source, wifi_ssid, wifi_password, home_notes, preferred_hospital_name, preferred_hospital_address, preferred_hospital_phone, primary_physician_name, primary_physician_address, primary_physician_phone, show_medications_to_caregivers, show_allergies_to_caregivers"
     )
     .eq("id", id)
     .single<ClientHomeInfo>();
