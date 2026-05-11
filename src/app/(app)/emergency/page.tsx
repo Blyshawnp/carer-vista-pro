@@ -205,6 +205,23 @@ export default async function EmergencyPage() {
         )}
       </section>
 
+      <div className="bg-white rounded-2xl shadow-soft p-4 mb-6">
+        <p className="text-[10px] uppercase tracking-[0.18em] text-ink-400 font-bold mb-1">
+          Emergency note
+        </p>
+        <p className="text-sm text-ink-700">
+          This app is for care coordination only. In a medical, safety, fire,
+          police, or life-threatening emergency, call your local emergency number
+          immediately.
+        </p>
+        <Link
+          href="/emergency-disclaimer"
+          className="inline-block mt-2 text-sm text-forest-600 hover:underline font-medium"
+        >
+          Read the full disclaimer
+        </Link>
+      </div>
+
       {clients.length === 0 ? (
         <div className="bg-white rounded-3xl p-8 shadow-soft text-center grain-overlay">
           <p className="text-sm text-ink-500">No clients to show.</p>

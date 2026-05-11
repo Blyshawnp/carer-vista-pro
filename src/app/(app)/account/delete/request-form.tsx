@@ -50,8 +50,10 @@ export default function AccountDeletionForm({
             Request received
           </h2>
           <p className="text-sm text-ink-700">
-            Your deletion request has been recorded. An administrator should review and
-            process it according to your published data deletion policy.
+            Your deletion request has been recorded. An administrator should
+            review and process it according to the published data deletion
+            policy. Some records may still be retained where required for legal,
+            audit, billing, safety, or care-coordination reasons.
           </p>
         </div>
       </section>

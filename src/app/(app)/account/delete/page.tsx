@@ -39,6 +39,19 @@ export default async function AccountDeletePage() {
         </p>
       </header>
 
+      <section className="bg-white rounded-3xl shadow-soft p-5 grain-overlay mb-4">
+        <div className="relative space-y-2 text-sm text-ink-700">
+          <p>
+            Some records may need to be retained for audit, legal, billing,
+            safety, or care-coordination history where applicable.
+          </p>
+          <p>
+            You can review the full privacy policy from the Help screen before
+            submitting your request.
+          </p>
+        </div>
+      </section>
+
       <AccountDeletionForm
         email={profile?.email ?? user.email ?? ""}
         organizationId={profile?.organization_id ?? null}

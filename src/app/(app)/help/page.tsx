@@ -6,6 +6,8 @@ export const dynamic = "force-dynamic";
 
 type Role = "admin" | "client" | "caregiver" | "family";
 
+const LAST_UPDATED = "May 11, 2026";
+
 export default async function HelpPage() {
   const supabase = await createClient();
   const {
@@ -32,8 +34,14 @@ export default async function HelpPage() {
         </Link>
         <h1 className="font-display text-3xl text-ink-900">Help</h1>
         <p className="text-ink-500 text-sm">
-          How the app works for {role === "caregiver" ? "caregivers" : role === "admin" ? "admins" : "clients"}.
+          How the app works for{" "}
+          {role === "caregiver"
+            ? "caregivers"
+            : role === "admin"
+              ? "admins"
+              : "clients and family users"}.
         </p>
+        <p className="text-xs text-ink-500 mt-2">Last updated: {LAST_UPDATED}</p>
       </header>
 
       <div className="space-y-3">
@@ -55,7 +63,7 @@ export default async function HelpPage() {
           ) : (
             <ul className="text-sm text-ink-700 space-y-2 list-disc pl-5">
               <li>See who's currently on shift on the <strong>Home</strong> tab.</li>
-              <li>Edit home info, emergency contacts, allergies under <strong>Me → Home info</strong>.</li>
+              <li>Edit home info, emergency contacts, allergies under <strong>Me → Home info</strong> if your role allows it.</li>
               <li>Track pay live and view past invoices under <strong>Me → Payroll</strong>.</li>
             </ul>
           )}
@@ -64,8 +72,8 @@ export default async function HelpPage() {
         <Section title="Check-in and check-out">
           <p className="text-sm text-ink-700 mb-2">
             Check-in uses your phone's location to confirm you're at the
-            client's home. The geofence is a circle around the address (default
-            150 meters).
+            client's home. The geofence is a circle around the saved location
+            (default 150 meters).
           </p>
           {role === "caregiver" ? (
             <ul className="text-sm text-ink-700 space-y-1.5 list-disc pl-5">
@@ -75,7 +83,7 @@ export default async function HelpPage() {
             </ul>
           ) : (
             <ul className="text-sm text-ink-700 space-y-1.5 list-disc pl-5">
-              <li>You can manually check a caregiver in or out from any shift detail page (without geofence enforcement).</li>
+              <li>You can manually check a caregiver in or out from any shift detail page when your role allows it.</li>
               <li>Manual check-ins are flagged with a reason note that's visible on the shift.</li>
               <li>Force check-out from the live shift card if needed.</li>
             </ul>
@@ -94,7 +102,7 @@ export default async function HelpPage() {
             <ul className="text-sm text-ink-700 space-y-1.5 list-disc pl-5">
               <li>The <strong>Payroll</strong> page shows live current-period totals per caregiver.</li>
               <li>Pay periods auto-release at <strong>Friday 9 PM Eastern</strong>. Once released, invoices are locked.</li>
-              <li>Adjust a specific shift's pay (hours, rate, or fixed amount) using <strong>Adjust pay for this shift</strong> on the shift detail page. Changes are logged with a reason.</li>
+              <li>Adjust a specific shift's pay using <strong>Adjust pay for this shift</strong> on the shift detail page. Changes are logged with a reason.</li>
               <li>All amounts round up to the nearest $0.25.</li>
             </ul>
           )}
@@ -140,7 +148,6 @@ export default async function HelpPage() {
               <li>Visit <strong>Me → Clients → Edit home info</strong> to manage everything caregivers see on the shift detail page.</li>
               <li>Add <strong>allergies</strong> with severity (critical, mild, minor) so caregivers can see them at a glance.</li>
               <li>Set the <strong>preferred hospital</strong> and <strong>primary physician</strong> for emergencies.</li>
-              <li>Toggle on <strong>panic buttons</strong> or <strong>medical alerts</strong> and tell caregivers where they are.</li>
               <li>Document the location of the <strong>first aid kit, hypoglycemia kit, fire extinguisher, AED</strong>.</li>
               <li>Upload <strong>PDFs and images</strong> for instructions, emergency info, etc. Categorize each so caregivers find them easily.</li>
               <li>Wi-Fi password is editable by admin only; clients see read-only.</li>
@@ -150,23 +157,24 @@ export default async function HelpPage() {
 
         <Section title="Privacy & access">
           <ul className="text-sm text-ink-700 space-y-1.5 list-disc pl-5">
-            <li>Each role only sees data within their own organization.</li>
-            <li>Caregivers can see all home info needed to do their work, but never edit Wi-Fi or sensitive admin settings.</li>
+            <li>Each role only sees data within its own organization.</li>
+            <li>Caregivers can see the home info needed to do their work, but never edit Wi-Fi or sensitive admin settings.</li>
             <li>Admins can do everything in their org.</li>
-            <li>Clients can edit emergency contacts, allergies, notes — but not Wi-Fi password.</li>
+            <li>Clients and family users can only see information allowed by their assignment and privacy settings.</li>
           </ul>
         </Section>
 
-        <Section title="Legal & data">
-          <ul className="text-sm text-ink-700 space-y-1.5 list-disc pl-5">
-            <li><Link href="/terms" className="text-forest-600 hover:underline">Terms</Link></li>
-            <li><Link href="/privacy" className="text-forest-600 hover:underline">Privacy Policy</Link></li>
-            <li><Link href="/emergency-disclaimer" className="text-forest-600 hover:underline">Emergency Disclaimer</Link></li>
-            <li><Link href="/account/delete" className="text-forest-600 hover:underline">Data Deletion</Link></li>
-            {role === "admin" && (
-              <li><Link href="/account/deletion-requests" className="text-forest-600 hover:underline">Data Deletion Requests</Link></li>
-            )}
-          </ul>
+        <Section title="Legal & Privacy">
+          <div className="grid gap-2 sm:grid-cols-2">
+            <LegalCard href="/terms" title="Terms and Conditions" description="Acceptable use, responsibilities, service limits, and legal boundaries." />
+            <LegalCard href="/privacy" title="Privacy Policy" description="What data is collected, how it is used, and who may access it." />
+            <LegalCard href="/emergency-disclaimer" title="Emergency & Incident Disclaimer" description="Plain-language emergency guidance and limitations." />
+            <LegalCard href="/data-security" title="Data Security Notice" description="How data is protected and what users should do." />
+            <LegalCard href="/account/delete" title="Account & Data Deletion" description="Request deletion of your account and app data." />
+            {role === "admin" ? (
+              <LegalCard href="/account/deletion-requests" title="Deletion Requests" description="Review deletion requests from your care circle." />
+            ) : null}
+          </div>
         </Section>
 
         <Section title="Trouble?">
@@ -193,5 +201,25 @@ function Section({
         {children}
       </div>
     </section>
+  );
+}
+
+function LegalCard({
+  href,
+  title,
+  description,
+}: {
+  href: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="rounded-2xl border border-cream-200 bg-cream-50 hover:bg-white p-4 transition shadow-sm"
+    >
+      <span className="block font-medium text-ink-900">{title}</span>
+      <span className="block text-xs text-ink-500 mt-1">{description}</span>
+    </Link>
   );
 }
