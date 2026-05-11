@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { sendMessageNotificationEmail } from "@/lib/email";
 import { sendPushForNotifications } from "@/lib/web-push";
 
 type SendMessageRequest = {
@@ -103,6 +104,18 @@ export async function POST(request: Request) {
       },
     ]).catch((error) => {
       console.error("[messages-send] push failed after in-app notification", {
+        recipientId: data.recipient_id,
+        error,
+      });
+    });
+
+    void sendMessageNotificationEmail(admin, {
+      senderId: data.sender_id,
+      recipientId: data.recipient_id,
+      conversationLink: data.notification_link,
+      preview: data.notification_body,
+    }).catch((error) => {
+      console.error("[messages-send] email failed after in-app notification", {
         recipientId: data.recipient_id,
         error,
       });

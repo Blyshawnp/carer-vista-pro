@@ -145,7 +145,7 @@ export default function ThreadView({
   }
 
   return (
-    <main className="px-5 py-6 max-w-2xl mx-auto flex flex-col min-h-[calc(100dvh-7rem)]">
+    <main className="px-5 py-6 max-w-2xl mx-auto flex min-h-[calc(100dvh-7rem)] flex-col pb-[calc(7rem+env(safe-area-inset-bottom))]">
       <header className="mb-4">
         <Link
           href="/messages"
@@ -167,7 +167,7 @@ export default function ThreadView({
       </header>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto space-y-2 mb-4 -mx-1 px-1">
+      <div className="flex-1 min-h-0 overflow-y-auto space-y-2 mb-4 -mx-1 px-1 pb-6">
         {messages.length === 0 ? (
           <div className="text-center py-10 text-sm text-ink-500">
             Say hello to {other.full_name.split(" ")[0]}.
@@ -193,23 +193,27 @@ export default function ThreadView({
       )}
 
       {/* Composer */}
-      <form onSubmit={send} className="flex gap-2 sticky bottom-0">
-        <input
-          type="text"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Write a message"
-          maxLength={1000}
-          className="flex-1 px-4 py-3 bg-white border border-cream-200 rounded-2xl text-ink-900 placeholder:text-ink-300 focus:outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-500/20 transition shadow-soft"
-        />
-        <button
-          type="submit"
-          disabled={sending || !text.trim()}
-          className="bg-forest-600 hover:bg-forest-700 disabled:opacity-50 text-cream-50 px-5 rounded-2xl font-medium transition active:scale-[0.99] shadow-soft"
-        >
-          Send
-        </button>
-      </form>
+      <div className="fixed inset-x-0 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-30 px-5">
+        <div className="mx-auto max-w-2xl rounded-[1.25rem] border border-cream-200 bg-white/95 p-2.5 shadow-lifted backdrop-blur">
+          <form onSubmit={send} className="flex gap-2">
+            <input
+              type="text"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Write a message"
+              maxLength={1000}
+              className="flex-1 px-4 py-3 bg-white border border-cream-200 rounded-2xl text-ink-900 placeholder:text-ink-300 focus:outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-500/20 transition shadow-soft"
+            />
+            <button
+              type="submit"
+              disabled={sending || !text.trim()}
+              className="bg-forest-600 hover:bg-forest-700 disabled:opacity-50 text-cream-50 px-5 rounded-2xl font-medium transition active:scale-[0.99] shadow-soft"
+            >
+              Send
+            </button>
+          </form>
+        </div>
+      </div>
     </main>
   );
 }
