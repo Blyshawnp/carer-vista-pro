@@ -5,6 +5,7 @@ import HomeInfoEditor, {
   type Allergy,
   type EmergencyContact,
   type Medication,
+  type MedicationReminder,
   type SafetyItem,
 } from "./home-info-editor";
 import ClientUsersManager from "./client-users-manager";
@@ -116,11 +117,25 @@ export default async function HomeInfoPage({
   try {
     const { data } = await supabase
       .from("client_medications")
-      .select("id, medication_name, dose, schedule_instructions, notes, sort_order")
+      .select("id, medication_name, dose, schedule_instructions, notes, reminder_frequency, remind_caregiver, notify_client_family_when_marked, sort_order")
       .eq("client_id", client.id)
       .order("sort_order", { ascending: true })
       .order("medication_name", { ascending: true });
-    medications = (data ?? []) as Medication[];
+    const baseMedications = (data ?? []) as Omit<Medication, "reminders">[];
+    let reminders: (MedicationReminder & { medication_id: string })[] = [];
+    if (baseMedications.length > 0) {
+      const { data: reminderData } = await supabase
+        .from("client_medication_reminders")
+        .select("id, medication_id, reminder_time, label, notify_caregiver, notify_client_family")
+        .eq("client_id", client.id)
+        .eq("is_active", true)
+        .order("reminder_time", { ascending: true });
+      reminders = (reminderData ?? []) as (MedicationReminder & { medication_id: string })[];
+    }
+    medications = baseMedications.map((medication) => ({
+      ...medication,
+      reminders: reminders.filter((reminder) => reminder.medication_id === medication.id),
+    })) as Medication[];
   } catch {
     medications = [];
   }
@@ -210,6 +225,7 @@ export default async function HomeInfoPage({
         allergies={allergies}
         safetyItems={safetyItems}
         documents={documents}
+        canManage={canManage}
         canEditWifi={canManage}
       />
       {canManage && (

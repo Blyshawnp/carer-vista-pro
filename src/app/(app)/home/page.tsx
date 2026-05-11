@@ -27,6 +27,15 @@ export type AssignedClient = {
   address: string | null;
 };
 
+export type CareActivityItem = {
+  id: string;
+  occurred_at: string;
+  client_name: string | null;
+  title: string;
+  body: string | null;
+  href: string;
+};
+
 export default async function HomePage() {
   const supabase = await createClient();
   const {
@@ -142,6 +151,74 @@ export default async function HomePage() {
     assignedClients = (clientRows ?? []) as AssignedClient[];
   }
 
+  let careActivity: CareActivityItem[] = [];
+  if (profile.role !== "caregiver") {
+    const startOfToday = new Date(now);
+    startOfToday.setHours(0, 0, 0, 0);
+    const { data: visibleClients } = await supabase
+      .from("clients")
+      .select("id, full_name");
+    const clientNames = new Map(
+      ((visibleClients ?? []) as Array<{ id: string; full_name: string }>).map(
+        (client) => [client.id, client.full_name]
+      )
+    );
+
+    const { data: activityRows } = await supabase
+      .from("shift_events")
+      .select("id, event_type, event_time, shift_id, client_id, metadata")
+      .gte("event_time", startOfToday.toISOString())
+      .order("event_time", { ascending: false })
+      .limit(30);
+
+    const { data: medicationRows } = await supabase
+      .from("medication_reminder_events")
+      .select("id, status, marked_at, scheduled_for, shift_id, client_id, note")
+      .gte("scheduled_for", startOfToday.toISOString())
+      .order("scheduled_for", { ascending: false })
+      .limit(30);
+
+    const shiftActivity = ((activityRows ?? []) as Array<{
+      id: string;
+      event_type: string;
+      event_time: string;
+      shift_id: string | null;
+      client_id: string | null;
+      metadata: Record<string, unknown> | null;
+    }>).map((event) => ({
+      id: `shift:${event.id}`,
+      occurred_at: event.event_time,
+      client_name: event.client_id ? clientNames.get(event.client_id) ?? null : null,
+      title: formatCareActivityTitle(event.event_type, event.metadata),
+      body: formatCareActivityBody(event.event_type, event.metadata),
+      href: event.shift_id ? `/schedule/${event.shift_id}` : "/schedule",
+    }));
+
+    const medicationActivity = ((medicationRows ?? []) as Array<{
+      id: string;
+      status: string;
+      marked_at: string | null;
+      scheduled_for: string;
+      shift_id: string | null;
+      client_id: string | null;
+      note: string | null;
+    }>).map((event) => ({
+      id: `med:${event.id}`,
+      occurred_at: event.marked_at ?? event.scheduled_for,
+      client_name: event.client_id ? clientNames.get(event.client_id) ?? null : null,
+      title: `Medication reminder ${formatMedicationStatus(event.status)}`,
+      body: event.note,
+      href: event.shift_id ? `/schedule/${event.shift_id}` : "/clients",
+    }));
+
+    careActivity = [...shiftActivity, ...medicationActivity]
+      .sort(
+        (a, b) =>
+          new Date(b.occurred_at).getTime() - new Date(a.occurred_at).getTime()
+      )
+      .slice(0, 8);
+  }
+
   // For admin/client: list of caregivers currently on shift
   let activeShifts: ActiveShift[] = [];
   if (profile.role !== "caregiver") {
@@ -182,6 +259,7 @@ export default async function HomePage() {
       shifts={shifts}
       activeShifts={activeShifts}
       assignedClients={assignedClients}
+      careActivity={careActivity}
     />
   );
 }
@@ -248,4 +326,67 @@ function mapShiftRow(r: {
 function normalizeRows<T>(value: T[] | T | null | undefined): T[] {
   if (Array.isArray(value)) return value;
   return value ? [value] : [];
+}
+
+function formatCareActivityTitle(
+  eventType: string,
+  metadata: Record<string, unknown> | null
+) {
+  switch (eventType) {
+    case "caregiver_checked_in":
+      return "Caregiver checked in";
+    case "caregiver_checked_out":
+      return "Caregiver checked out";
+    case "task_completed":
+      return "Task completed";
+    case "task_reopened":
+      return "Task reopened";
+    case "medication_reminder_marked":
+      return "Medication reminder updated";
+    case "incident_reported":
+      return "Incident report submitted";
+    case "shift_released":
+      return "Shift released";
+    case "shift_removed":
+      return "Shift removed";
+    default:
+      return eventType.replaceAll("_", " ");
+  }
+}
+
+function formatCareActivityBody(
+  eventType: string,
+  metadata: Record<string, unknown> | null
+) {
+  if (!metadata) return null;
+  const taskName = metadata.task_name;
+  if (
+    (eventType === "task_completed" || eventType === "task_reopened") &&
+    typeof taskName === "string"
+  ) {
+    return taskName;
+  }
+  const medicationName = metadata.medication_name;
+  const label = metadata.label;
+  if (eventType === "medication_reminder_marked") {
+    return [medicationName, label].filter((value) => typeof value === "string").join(" · ") || null;
+  }
+  return null;
+}
+
+function formatMedicationStatus(status: string) {
+  switch (status) {
+    case "taken":
+      return "marked taken";
+    case "skipped":
+      return "skipped";
+    case "refused":
+      return "client declined";
+    case "needs_follow_up":
+      return "needs follow-up";
+    case "reminded":
+      return "reminded";
+    default:
+      return status.replaceAll("_", " ");
+  }
 }

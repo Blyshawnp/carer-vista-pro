@@ -13,6 +13,7 @@ import {
 import type { ShiftRow } from "./page";
 import type { AssignedClient } from "./page";
 import type { ActiveShift } from "./page";
+import type { CareActivityItem } from "./page";
 import { getShiftStatus } from "@/lib/shift-status";
 
 type State =
@@ -58,11 +59,13 @@ export default function HomeContent({
   shifts,
   activeShifts,
   assignedClients,
+  careActivity,
 }: {
   role: "admin" | "client" | "caregiver" | "family";
   shifts: ShiftRow[];
   activeShifts: ActiveShift[];
   assignedClients: AssignedClient[];
+  careActivity: CareActivityItem[];
 }) {
   const [now, setNow] = useState(() => new Date());
 
@@ -109,6 +112,8 @@ export default function HomeContent({
       {role !== "caregiver" && activeShifts.length > 0 && (
         <ActivePanel activeShifts={activeShifts} now={now} />
       )}
+
+      {role !== "caregiver" && <CareActivityPanel items={careActivity} />}
 
       {/* Pending shifts notice (caregivers only) */}
       {pendingShifts.length > 0 && (
@@ -437,6 +442,58 @@ function AssignedClientsPanel({ clients }: { clients: AssignedClient[] }) {
             </li>
           ))}
         </ul>
+      </div>
+    </section>
+  );
+}
+
+function CareActivityPanel({ items }: { items: CareActivityItem[] }) {
+  return (
+    <section className="bg-white rounded-3xl shadow-soft p-5 mb-4 grain-overlay">
+      <div className="relative">
+        <div className="flex items-baseline justify-between mb-3">
+          <h2 className="font-display text-xl text-ink-900">Today&apos;s care</h2>
+          <Link
+            href="/schedule"
+            className="text-xs text-forest-600 font-medium hover:underline"
+          >
+            Schedule
+          </Link>
+        </div>
+        {items.length === 0 ? (
+          <p className="text-sm text-ink-500">
+            No care activity recorded yet today.
+          </p>
+        ) : (
+          <ul className="space-y-2">
+            {items.map((item) => (
+              <li key={item.id}>
+                <Link
+                  href={item.href}
+                  className="block rounded-2xl bg-cream-50 hover:bg-cream-100 px-4 py-3 transition"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="min-w-0">
+                      <span className="block font-medium text-ink-900 truncate">
+                        {item.title}
+                      </span>
+                      <span className="block text-xs text-ink-500 truncate">
+                        {item.client_name ? `${item.client_name} · ` : ""}
+                        {formatTime(new Date(item.occurred_at))}
+                      </span>
+                    </span>
+                    <ArrowRightIcon size={16} className="text-ink-300 shrink-0 mt-0.5" />
+                  </div>
+                  {item.body ? (
+                    <p className="text-xs text-ink-500 mt-1 line-clamp-2">
+                      {item.body}
+                    </p>
+                  ) : null}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </section>
   );

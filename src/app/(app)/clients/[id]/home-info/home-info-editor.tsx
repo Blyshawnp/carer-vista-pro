@@ -38,7 +38,27 @@ export type Medication = {
   dose: string | null;
   schedule_instructions: string | null;
   notes: string | null;
+  reminder_frequency: ReminderFrequency;
+  remind_caregiver: boolean;
+  notify_client_family_when_marked: boolean;
   sort_order: number;
+  reminders: MedicationReminder[];
+};
+
+export type ReminderFrequency =
+  | "once_daily"
+  | "twice_daily"
+  | "three_times_daily"
+  | "four_times_daily"
+  | "custom_times"
+  | "as_needed";
+
+export type MedicationReminder = {
+  id: string;
+  reminder_time: string;
+  label: string | null;
+  notify_caregiver: boolean;
+  notify_client_family: boolean;
 };
 
 export type Allergy = {
@@ -79,6 +99,7 @@ type EditableMedication = Omit<Medication, "dose" | "schedule_instructions" | "n
   dose: string;
   schedule_instructions: string;
   notes: string;
+  reminderTimes: string[];
 };
 type EditableAllergy = Omit<Allergy, "reaction" | "notes"> & {
   reaction: string;
@@ -113,6 +134,7 @@ export default function HomeInfoEditor({
   allergies: initialAllergies,
   safetyItems: initialSafetyItems,
   documents: initialDocs,
+  canManage,
   canEditWifi,
 }: {
   client: ClientHomeInfo;
@@ -121,6 +143,7 @@ export default function HomeInfoEditor({
   allergies: Allergy[];
   safetyItems: SafetyItem[];
   documents: Document[];
+  canManage: boolean;
   canEditWifi: boolean;
 }) {
   const router = useRouter();
@@ -142,6 +165,11 @@ export default function HomeInfoEditor({
       dose: m.dose ?? "",
       schedule_instructions: m.schedule_instructions ?? "",
       notes: m.notes ?? "",
+      reminder_frequency: m.reminder_frequency ?? "as_needed",
+      remind_caregiver: m.remind_caregiver ?? false,
+      notify_client_family_when_marked: m.notify_client_family_when_marked ?? false,
+      reminders: m.reminders ?? [],
+      reminderTimes: (m.reminders ?? []).map((r) => r.reminder_time.slice(0, 5)),
       sort_order: index + 1,
     }))
   );
@@ -181,6 +209,20 @@ export default function HomeInfoEditor({
     () => allergies.filter((a) => a.name.trim()).length,
     [allergies]
   );
+
+  if (!canManage) {
+    return (
+      <ReadOnlyHomeInfo
+        client={client}
+        contacts={initialContacts}
+        medications={initialMedications}
+        allergies={initialAllergies}
+        safetyItems={initialSafetyItems}
+        showMedicationHiddenMessage={!client.show_medications_to_caregivers}
+        showAllergyHiddenMessage={!client.show_allergies_to_caregivers}
+      />
+    );
+  }
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -408,6 +450,22 @@ async function syncNormalizedRows(
   const deleteError = deleteResults.find((result) => result.error)?.error;
   if (deleteError) return deleteError.message;
 
+  const medicationRows = medications
+    .filter((m) => m.medication_name.trim())
+    .map((medication, index) => ({
+      organization_id: organizationId,
+      client_id: clientId,
+      medication_name: medication.medication_name.trim(),
+      dose: medication.dose.trim() || null,
+      schedule_instructions: medication.schedule_instructions.trim() || null,
+      notes: medication.notes.trim() || null,
+      reminder_frequency: medication.reminder_frequency,
+      remind_caregiver: medication.remind_caregiver,
+      notify_client_family_when_marked: medication.notify_client_family_when_marked,
+      sort_order: index + 1,
+      reminderTimes: medication.reminderTimes.filter(Boolean),
+    }));
+
   const insertResults = await Promise.all([
     contacts.length > 0
       ? supabase.from("client_emergency_contacts").insert(
@@ -424,21 +482,7 @@ async function syncNormalizedRows(
           }))
         )
       : Promise.resolve({ error: null }),
-    medications.some((m) => m.medication_name.trim())
-      ? supabase.from("client_medications").insert(
-          medications
-            .filter((m) => m.medication_name.trim())
-            .map((medication, index) => ({
-              organization_id: organizationId,
-              client_id: clientId,
-              medication_name: medication.medication_name.trim(),
-              dose: medication.dose.trim() || null,
-              schedule_instructions: medication.schedule_instructions.trim() || null,
-              notes: medication.notes.trim() || null,
-              sort_order: index + 1,
-            }))
-        )
-      : Promise.resolve({ error: null }),
+    Promise.resolve({ error: null }),
     allergies.some((a) => a.name.trim())
       ? supabase.from("client_allergies").insert(
           allergies
@@ -471,7 +515,41 @@ async function syncNormalizedRows(
       : Promise.resolve({ error: null }),
   ]);
   const insertError = insertResults.find((result) => result.error)?.error;
-  return insertError?.message ?? null;
+  if (insertError) return insertError.message;
+
+  if (medicationRows.length > 0) {
+    const { data: insertedMedications, error: medicationError } = await supabase
+      .from("client_medications")
+      .insert(
+        medicationRows.map(({ reminderTimes, ...row }) => row)
+      )
+      .select("id, medication_name, sort_order");
+
+    if (medicationError) return medicationError.message;
+
+    const reminderRows = (insertedMedications ?? []).flatMap((inserted, index) => {
+      const source = medicationRows[index];
+      if (!source || source.reminder_frequency === "as_needed") return [];
+      return source.reminderTimes.map((time, timeIndex) => ({
+        organization_id: organizationId,
+        client_id: clientId,
+        medication_id: inserted.id,
+        reminder_time: time,
+        label: source.schedule_instructions || defaultReminderLabel(timeIndex),
+        notify_caregiver: source.remind_caregiver,
+        notify_client_family: source.notify_client_family_when_marked,
+      }));
+    });
+
+    if (reminderRows.length > 0) {
+      const { error: reminderError } = await supabase
+        .from("client_medication_reminders")
+        .insert(reminderRows);
+      if (reminderError) return reminderError.message;
+    }
+  }
+
+  return null;
 }
 
 function ContactEditor({
@@ -554,6 +632,11 @@ function MedicationEditor({
             dose: "",
             schedule_instructions: "",
             notes: "",
+            reminder_frequency: "as_needed",
+            remind_caregiver: false,
+            notify_client_family_when_marked: false,
+            reminders: [],
+            reminderTimes: [],
             sort_order: medications.length + 1,
           },
         ])
@@ -566,6 +649,69 @@ function MedicationEditor({
           <Field label="Medication name" value={medication.medication_name} onChange={(value) => update(index, { medication_name: value })} placeholder="Medication name" />
           <Field label="Dose (optional)" value={medication.dose} onChange={(value) => update(index, { dose: value })} placeholder="As entered by family or admin" />
           <Field label="Schedule/instructions (optional)" value={medication.schedule_instructions} onChange={(value) => update(index, { schedule_instructions: value })} placeholder="Reminder timing or storage instructions" />
+          <label className="block">
+            <span className="block text-xs font-medium text-ink-700 mb-1.5 tracking-wide uppercase">
+              Reminder frequency
+            </span>
+            <select
+              value={medication.reminder_frequency}
+              onChange={(e) => {
+                const frequency = e.target.value as ReminderFrequency;
+                update(index, {
+                  reminder_frequency: frequency,
+                  reminderTimes: defaultTimesForFrequency(frequency, medication.reminderTimes),
+                });
+              }}
+              className="w-full px-3 py-2 bg-white border border-cream-200 rounded-xl text-ink-900 focus:outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-500/20 text-sm"
+            >
+              <option value="as_needed">As needed/PRN, no scheduled reminders</option>
+              <option value="once_daily">Once daily</option>
+              <option value="twice_daily">Twice daily</option>
+              <option value="three_times_daily">Three times daily</option>
+              <option value="four_times_daily">Four times daily</option>
+              <option value="custom_times">Custom times</option>
+            </select>
+          </label>
+          {medication.reminder_frequency !== "as_needed" && (
+            <div className="grid grid-cols-2 gap-2">
+              {medication.reminderTimes.map((time, timeIndex) => (
+                <label key={timeIndex} className="block">
+                  <span className="block text-xs font-medium text-ink-700 mb-1.5 tracking-wide uppercase">
+                    Time {timeIndex + 1}
+                  </span>
+                  <input
+                    type="time"
+                    value={time}
+                    onChange={(e) => {
+                      const next = [...medication.reminderTimes];
+                      next[timeIndex] = e.target.value;
+                      update(index, { reminderTimes: next });
+                    }}
+                    className={inputCls}
+                  />
+                </label>
+              ))}
+              {medication.reminder_frequency === "custom_times" && (
+                <button
+                  type="button"
+                  onClick={() => update(index, { reminderTimes: [...medication.reminderTimes, "09:00"] })}
+                  className="col-span-2 bg-white hover:bg-cream-100 text-forest-600 border border-forest-500/30 py-2 rounded-xl text-xs font-medium transition"
+                >
+                  Add time
+                </button>
+              )}
+            </div>
+          )}
+          <Toggle
+            label="Remind caregiver"
+            checked={medication.remind_caregiver}
+            onChange={(value) => update(index, { remind_caregiver: value })}
+          />
+          <Toggle
+            label="Notify client/family when marked"
+            checked={medication.notify_client_family_when_marked}
+            onChange={(value) => update(index, { notify_client_family_when_marked: value })}
+          />
           <Field label="Notes (optional)" value={medication.notes} onChange={(value) => update(index, { notes: value })} placeholder="Additional notes" />
         </div>
       ))}
@@ -801,6 +947,201 @@ function ReadOnly({ label, value }: { label: string; value: string }) {
       <span className="text-sm text-ink-900">{value}</span>
     </div>
   );
+}
+
+function ReadOnlyHomeInfo({
+  client,
+  contacts,
+  medications,
+  allergies,
+  safetyItems,
+  showMedicationHiddenMessage,
+  showAllergyHiddenMessage,
+}: {
+  client: ClientHomeInfo;
+  contacts: EmergencyContact[];
+  medications: Medication[];
+  allergies: Allergy[];
+  safetyItems: SafetyItem[];
+  showMedicationHiddenMessage: boolean;
+  showAllergyHiddenMessage: boolean;
+}) {
+  return (
+    <div className="space-y-4">
+      <Card title="Emergency contacts">
+        {contacts.length === 0 ? (
+          <p className="text-sm text-ink-500">No emergency contacts visible.</p>
+        ) : (
+          contacts.map((contact) => (
+            <div key={contact.id} className="rounded-2xl bg-cream-50 border border-cream-200 px-3 py-2">
+              <div className="flex items-baseline justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-medium text-ink-900 truncate">{contact.name}</p>
+                  <p className="text-xs text-ink-500">{contact.relationship}</p>
+                </div>
+                <a href={`tel:${contact.phone}`} className="text-sm text-forest-600 font-medium hover:underline shrink-0">
+                  {contact.phone}
+                </a>
+              </div>
+              {contact.notes && <p className="text-xs text-ink-500 mt-1">{contact.notes}</p>}
+            </div>
+          ))
+        )}
+      </Card>
+
+      <Card title="Medications">
+        {showMedicationHiddenMessage ? (
+          <p className="text-sm text-ink-500">Medication details are hidden by the client/admin.</p>
+        ) : medications.length === 0 ? (
+          <p className="text-sm text-ink-500">No medications visible.</p>
+        ) : (
+          medications.map((medication) => (
+            <div key={medication.id} className="rounded-2xl bg-cream-50 border border-cream-200 px-3 py-2">
+              <p className="font-medium text-ink-900">{medication.medication_name}</p>
+              {medication.dose && <p className="text-xs text-ink-500">Dose: {medication.dose}</p>}
+              {medication.schedule_instructions && <p className="text-xs text-ink-500">{medication.schedule_instructions}</p>}
+              {medication.reminders.length > 0 && (
+                <p className="text-xs text-ink-500">
+                  Reminders: {medication.reminders.map((r) => r.reminder_time.slice(0, 5)).join(", ")}
+                </p>
+              )}
+              {medication.notes && <p className="text-xs text-ink-500">{medication.notes}</p>}
+            </div>
+          ))
+        )}
+      </Card>
+
+      <Card title="Allergies">
+        {showAllergyHiddenMessage ? (
+          <p className="text-sm text-ink-500">Allergy details are hidden by the client/admin.</p>
+        ) : allergies.length === 0 ? (
+          <p className="text-sm text-ink-500">No allergies visible.</p>
+        ) : (
+          allergies.map((allergy) => (
+            <div key={allergy.id} className="rounded-2xl bg-cream-50 border border-cream-200 px-3 py-2">
+              <p className="font-medium text-ink-900">{allergy.name}</p>
+              {allergy.reaction && <p className="text-xs text-ink-500">Reaction: {allergy.reaction}</p>}
+              {allergy.severity && <p className="text-xs text-ink-500">Severity: {allergy.severity}</p>}
+              {allergy.notes && <p className="text-xs text-ink-500">{allergy.notes}</p>}
+            </div>
+          ))
+        )}
+      </Card>
+
+      <Card title="Emergency & Safety Items">
+        {safetyItems.length === 0 ? (
+          <p className="text-sm text-ink-500">No safety items visible.</p>
+        ) : (
+          safetyItems.map((item) => (
+            <ReadOnly
+              key={item.id}
+              label={item.label}
+              value={item.notes ? `${item.value_location} · ${item.notes}` : item.value_location}
+            />
+          ))
+        )}
+      </Card>
+
+      <Card title="Home notes">
+        <ReadOnly label="Preferred hospital" value={client.preferred_hospital_name || "Not set"} />
+        <ReadOnly label="Primary physician" value={client.primary_physician_name || "Not set"} />
+        {client.home_notes ? (
+          <p className="text-sm text-ink-700 whitespace-pre-wrap">{client.home_notes}</p>
+        ) : (
+          <p className="text-sm text-ink-500">No home notes visible.</p>
+        )}
+      </Card>
+
+      <CorrectionRequestForm clientId={client.id} organizationId={client.organization_id} />
+    </div>
+  );
+}
+
+function CorrectionRequestForm({
+  clientId,
+  organizationId,
+}: {
+  clientId: string;
+  organizationId: string;
+}) {
+  const [category, setCategory] = useState("other");
+  const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!message.trim()) return;
+    setSubmitting(true);
+    setStatus(null);
+    const response = await fetch("/api/client-info-corrections", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ clientId, organizationId, category, message }),
+    });
+    const result = (await response.json().catch(() => null)) as { error?: string } | null;
+    setSubmitting(false);
+    if (!response.ok) {
+      setStatus(result?.error ?? "Could not send correction request.");
+      return;
+    }
+    setMessage("");
+    setCategory("other");
+    setStatus("Correction request sent.");
+  }
+
+  return (
+    <form onSubmit={submit} className="bg-white rounded-3xl shadow-soft p-5 grain-overlay space-y-3">
+      <div className="relative">
+        <h2 className="font-display text-base text-ink-900 mb-1">Suggest correction</h2>
+        <p className="text-xs text-ink-500 mb-3">Report info that looks outdated or incorrect.</p>
+        <select
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          className="w-full px-3 py-2 bg-cream-50 border border-cream-200 rounded-xl text-sm mb-3"
+        >
+          <option value="emergency_contact">Emergency contact</option>
+          <option value="medication">Medication</option>
+          <option value="allergy">Allergy</option>
+          <option value="safety_item">Safety item</option>
+          <option value="address">Address</option>
+          <option value="home_note">Home note</option>
+          <option value="other">Other</option>
+        </select>
+        <textarea
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          rows={3}
+          placeholder="Describe what should be reviewed"
+          className="w-full px-3 py-2 bg-cream-50 border border-cream-200 rounded-xl text-sm resize-none"
+        />
+        {status && <p className="text-xs text-forest-600 mt-2">{status}</p>}
+        <button
+          type="submit"
+          disabled={submitting || !message.trim()}
+          className="mt-3 w-full bg-forest-600 hover:bg-forest-700 text-cream-50 py-2.5 rounded-xl text-sm font-medium transition disabled:opacity-50"
+        >
+          {submitting ? "Sending..." : "Report info issue"}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+function defaultTimesForFrequency(
+  frequency: ReminderFrequency,
+  current: string[]
+) {
+  if (frequency === "as_needed") return [];
+  if (frequency === "once_daily") return [current[0] ?? "09:00"];
+  if (frequency === "twice_daily") return [current[0] ?? "09:00", current[1] ?? "18:00"];
+  if (frequency === "three_times_daily") return [current[0] ?? "08:00", current[1] ?? "14:00", current[2] ?? "20:00"];
+  if (frequency === "four_times_daily") return [current[0] ?? "08:00", current[1] ?? "12:00", current[2] ?? "17:00", current[3] ?? "21:00"];
+  return current.length > 0 ? current : ["09:00"];
+}
+
+function defaultReminderLabel(index: number) {
+  return ["Morning", "Midday", "Evening", "Bedtime"][index] ?? `Reminder ${index + 1}`;
 }
 
 function DocumentManager({

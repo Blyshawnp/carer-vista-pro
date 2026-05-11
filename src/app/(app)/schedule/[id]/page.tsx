@@ -18,6 +18,10 @@ import CancelReleaseButton from "./cancel-release-button";
 import PayOverrideButton from "./pay-override-button";
 import HandoffNote from "./handoff-note";
 import ShiftViewMarker from "./shift-view-marker";
+import MedicationReminderPanel, {
+  type ShiftMedication,
+  type ShiftMedicationReminder,
+} from "./medication-reminder-panel";
 import TasksView from "@/app/(app)/tasks/tasks-view";
 import { getUserLanguage } from "@/lib/get-user-language";
 import { t as tr } from "@/lib/i18n";
@@ -307,6 +311,11 @@ export default async function ShiftDetailPage({
     }
   }
 
+  const canEdit = profile?.role === "admin" || profile?.role === "client";
+  const isAssignedCaregiver =
+    profile?.role === "caregiver" && profile.id === shift.caregiver_id;
+  const isCaregiver = profile?.role === "caregiver";
+
   const todos = shift.shift_todos ?? [];
   const { data: categoryRows } = await supabase
     .from("task_categories")
@@ -315,6 +324,46 @@ export default async function ShiftDetailPage({
     .eq("is_active", true)
     .order("sort_order", { ascending: true })
     .order("label", { ascending: true });
+
+  let medications: ShiftMedication[] = [];
+  if (shift.client_id && (canEdit || isAssignedCaregiver)) {
+    const { data: medicationRows } = await supabase
+      .from("client_medications")
+      .select(
+        "id, medication_name, dose, schedule_instructions, reminder_frequency, sort_order"
+      )
+      .eq("client_id", shift.client_id)
+      .order("sort_order", { ascending: true })
+      .order("medication_name", { ascending: true });
+
+    const baseMedications = (medicationRows ?? []) as Array<
+      Omit<ShiftMedication, "reminders"> & { sort_order?: number | null }
+    >;
+    const medicationIds = baseMedications.map((medication) => medication.id);
+    let reminderRows: Array<ShiftMedicationReminder & { medication_id: string }> = [];
+    if (medicationIds.length > 0) {
+      const { data: reminders } = await supabase
+        .from("client_medication_reminders")
+        .select("id, medication_id, reminder_time, label")
+        .in("medication_id", medicationIds)
+        .eq("is_active", true)
+        .order("reminder_time", { ascending: true });
+      reminderRows = (reminders ?? []) as Array<
+        ShiftMedicationReminder & { medication_id: string }
+      >;
+    }
+
+    medications = baseMedications.map((medication) => ({
+      id: medication.id,
+      medication_name: medication.medication_name,
+      dose: medication.dose,
+      schedule_instructions: medication.schedule_instructions,
+      reminder_frequency: medication.reminder_frequency,
+      reminders: reminderRows.filter(
+        (reminder) => reminder.medication_id === medication.id
+      ),
+    }));
+  }
 
   const todosDone = todos.filter((t) => t.is_completed).length;
   const shiftStatus = getShiftStatus(
@@ -328,10 +377,6 @@ export default async function ShiftDetailPage({
     checkIn
   );
 
-  const canEdit = profile?.role === "admin" || profile?.role === "client";
-  const isAssignedCaregiver =
-    profile?.role === "caregiver" && profile.id === shift.caregiver_id;
-  const isCaregiver = profile?.role === "caregiver";
   const canShowClientDetails = !isCaregiver || isAssignedCaregiver;
   const isReleased = !!shift.is_released;
   const isOpenShift = !shift.caregiver_id && !isReleased;
@@ -602,6 +647,15 @@ export default async function ShiftDetailPage({
           leaveNote: tr("shift.leaveHandoffNote", lang),
         }}
       />
+
+      {shift.client_id && (
+        <MedicationReminderPanel
+          shiftId={id}
+          clientId={shift.client_id}
+          medications={medications}
+          canMark={canEdit || isAssignedCaregiver}
+        />
+      )}
 
       {/* Read receipt indicator for admin/client/family */}
       {canEdit && shift.caregiver_id && (
