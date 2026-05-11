@@ -4,7 +4,7 @@ import AcceptInviteForm from "./accept-invite-form";
 
 type Invitation = {
   id: string;
-  email: string;
+  email: string | null;
   full_name: string;
   role: "admin" | "client" | "caregiver" | "family";
   organization_id: string;

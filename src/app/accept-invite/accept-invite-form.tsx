@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 
 type Invitation = {
   id: string;
-  email: string;
+  email: string | null;
   full_name: string;
   role: "admin" | "client" | "caregiver" | "family";
   organization_id: string;
@@ -22,6 +22,7 @@ export default function AcceptInviteForm({
   token: string;
 }) {
   const router = useRouter();
+  const [email, setEmail] = useState(invitation.email ?? "");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [phone, setPhone] = useState("");
@@ -40,13 +41,17 @@ export default function AcceptInviteForm({
       setError("Passwords don't match.");
       return;
     }
+    if (!email.trim()) {
+      setError("Email is required to accept this invitation.");
+      return;
+    }
 
     setSubmitting(true);
     const supabase = createClient();
 
     // Sign up the user
     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-      email: invitation.email,
+      email: email.trim().toLowerCase(),
       password,
       options: {
         emailRedirectTo: `${window.location.origin}/auth/callback`,
@@ -93,6 +98,7 @@ export default function AcceptInviteForm({
     admin: "administrator",
     client: "client",
     caregiver: "caregiver",
+    family: "family member",
   };
 
   return (
@@ -131,9 +137,21 @@ export default function AcceptInviteForm({
               <p className="text-xs font-medium text-ink-700 mb-1.5 tracking-wide uppercase">
                 Email
               </p>
-              <p className="px-4 py-3 bg-cream-100 rounded-xl text-ink-900 text-sm">
-                {invitation.email}
-              </p>
+              {invitation.email ? (
+                <p className="px-4 py-3 bg-cream-100 rounded-xl text-ink-900 text-sm">
+                  {invitation.email}
+                </p>
+              ) : (
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Email address"
+                  autoComplete="email"
+                  className="w-full px-4 py-3 bg-cream-50 border border-cream-200 rounded-xl text-ink-900 placeholder:text-ink-300 focus:outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-500/20 transition"
+                  required
+                />
+              )}
             </div>
 
             <Field

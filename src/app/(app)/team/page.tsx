@@ -18,7 +18,7 @@ type TeamMember = {
 
 type Invitation = {
   id: string;
-  email: string;
+  email: string | null;
   full_name: string;
   role: string;
   status: "pending" | "accepted" | "expired" | "revoked";
@@ -36,14 +36,15 @@ export default async function TeamPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role, organization_id")
+    .select("role, organization_id, is_owner")
     .eq("id", user.id)
     .single<{
       role: "admin" | "client" | "caregiver" | "family";
       organization_id: string;
+      is_owner: boolean;
     }>();
 
-  if (!profile || profile.role !== "admin") {
+  if (!profile || (profile.role !== "admin" && !profile.is_owner)) {
     return (
       <main className="px-5 py-10 max-w-2xl mx-auto">
         <div className="bg-white rounded-3xl p-8 shadow-soft text-center">
@@ -268,7 +269,7 @@ function InvitationRow({ invitation }: { invitation: Invitation }) {
           {invitation.full_name}
         </p>
         <p className="text-xs text-ink-500 truncate">
-          {invitation.email} · invite pending
+          {invitation.email ?? "No email provided"} · invite pending
         </p>
       </div>
       <ArrowRightIcon size={16} className="text-ink-300" />
