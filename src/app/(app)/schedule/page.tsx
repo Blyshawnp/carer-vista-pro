@@ -103,6 +103,14 @@ export default async function SchedulePage({
   };
 
   const viewerRole = profile?.role ?? "caregiver";
+  let assignedClientCount = 0;
+  if (viewerRole === "caregiver" || viewerRole === "family") {
+    const { count } = await supabase
+      .from("clients")
+      .select("id", { count: "exact", head: true });
+    assignedClientCount = count ?? 0;
+  }
+
   const shifts: ScheduleShift[] = (
     (rows ?? []) as unknown as ScheduleQueryRow[]
   ).map((r) => {
@@ -139,7 +147,14 @@ export default async function SchedulePage({
     return new Date(shift.scheduled_end) < new Date() || !!shift.check_out_time;
   });
 
-  return <ScheduleView shifts={shifts} role={viewerRole} archiveMode={archiveMode} />;
+  return (
+    <ScheduleView
+      shifts={shifts}
+      role={viewerRole}
+      archiveMode={archiveMode}
+      assignedClientCount={assignedClientCount}
+    />
+  );
 }
 
 function normalizeRows<T>(value: T[] | T | null | undefined): T[] {

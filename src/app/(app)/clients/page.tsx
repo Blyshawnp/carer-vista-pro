@@ -56,6 +56,7 @@ export default async function ClientsPage() {
       <ClientsList
         clients={clients ?? []}
         canManage={canManage}
+        role={profile.role}
       />
     </main>
   );

@@ -13,10 +13,12 @@ export default function ScheduleView({
   shifts,
   role,
   archiveMode,
+  assignedClientCount = 0,
 }: {
   shifts: ScheduleShift[];
   role: "admin" | "client" | "caregiver" | "family";
   archiveMode?: boolean;
+  assignedClientCount?: number;
 }) {
   const [view, setView] = useState<View>("list");
   const [now, setNow] = useState(() => new Date());
@@ -138,7 +140,13 @@ export default function ScheduleView({
       )}
 
       {view === "list" ? (
-        <ListView shifts={shifts} now={now} />
+        <ListView
+          shifts={shifts}
+          now={now}
+          role={role}
+          archiveMode={archiveMode}
+          assignedClientCount={assignedClientCount}
+        />
       ) : (
         <CalendarView shifts={shifts} now={now} />
       )}
@@ -183,19 +191,45 @@ function ToggleBtn({
 
 /* ========== LIST VIEW ========== */
 
-function ListView({ shifts, now }: { shifts: ScheduleShift[]; now: Date }) {
+function ListView({
+  shifts,
+  now,
+  role,
+  archiveMode,
+  assignedClientCount,
+}: {
+  shifts: ScheduleShift[];
+  now: Date;
+  role: "admin" | "client" | "caregiver" | "family";
+  archiveMode?: boolean;
+  assignedClientCount: number;
+}) {
   const grouped = useMemo(() => groupByDay(shifts), [shifts]);
 
   if (shifts.length === 0) {
+    const isCareRole = role === "caregiver" || role === "family";
+    const title =
+      role === "caregiver" && assignedClientCount === 0
+        ? "No assigned clients yet"
+        : archiveMode
+          ? "No archived shifts"
+          : "No shifts scheduled yet";
+    const message =
+      role === "caregiver" && assignedClientCount === 0
+        ? "No assigned clients yet. Ask an admin to assign you to a client."
+        : isCareRole && assignedClientCount > 0
+          ? "No shifts scheduled yet."
+          : archiveMode
+            ? "Completed shifts will appear here."
+            : "Tap the + button to create your first shift.";
+
     return (
       <div className="bg-white rounded-3xl p-10 shadow-soft text-center grain-overlay">
         <div className="relative">
           <p className="font-display text-xl text-ink-900 mb-1">
-            No shifts yet
+            {title}
           </p>
-          <p className="text-ink-500 text-sm">
-            Tap the + button to create your first shift.
-          </p>
+          <p className="text-ink-500 text-sm">{message}</p>
         </div>
       </div>
     );

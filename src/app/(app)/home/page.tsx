@@ -21,6 +21,12 @@ export type ShiftRow = {
   assignment_status: "pending" | "accepted" | "declined" | null;
 };
 
+export type AssignedClient = {
+  id: string;
+  full_name: string;
+  address: string | null;
+};
+
 export default async function HomePage() {
   const supabase = await createClient();
   const {
@@ -126,6 +132,16 @@ export default async function HomePage() {
         new Date(b.scheduled_start).getTime()
     );
 
+  let assignedClients: AssignedClient[] = [];
+  if (profile.role === "caregiver" || profile.role === "family" || profile.role === "client") {
+    const { data: clientRows } = await supabase
+      .from("clients")
+      .select("id, full_name, address")
+      .order("full_name");
+
+    assignedClients = (clientRows ?? []) as AssignedClient[];
+  }
+
   // For admin/client: list of caregivers currently on shift
   let activeShifts: ActiveShift[] = [];
   if (profile.role !== "caregiver") {
@@ -165,6 +181,7 @@ export default async function HomePage() {
       role={profile.role}
       shifts={shifts}
       activeShifts={activeShifts}
+      assignedClients={assignedClients}
     />
   );
 }

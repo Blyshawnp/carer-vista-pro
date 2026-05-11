@@ -295,9 +295,24 @@ export default async function MePage() {
         </section>
       )}
 
+      {profile?.role === "family" && (
+        <section className="space-y-2 mb-4">
+          <NavLink
+            href="/clients"
+            label="Linked clients"
+            Icon={MapPinIcon}
+          />
+        </section>
+      )}
+
       {/* Caregiver actions */}
       {profile?.role === "caregiver" && (
         <section className="space-y-2 mb-4">
+          <NavLink
+            href="/clients"
+            label="Assigned clients"
+            Icon={MapPinIcon}
+          />
           <NavLink
             href="/me/invoices"
             label={t("me.myInvoices", lang)}

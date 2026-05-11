@@ -11,6 +11,7 @@ import {
   MessageIcon,
 } from "@/components/icons";
 import type { ShiftRow } from "./page";
+import type { AssignedClient } from "./page";
 import type { ActiveShift } from "./page";
 import { getShiftStatus } from "@/lib/shift-status";
 
@@ -56,10 +57,12 @@ export default function HomeContent({
   role,
   shifts,
   activeShifts,
+  assignedClients,
 }: {
   role: "admin" | "client" | "caregiver" | "family";
   shifts: ShiftRow[];
   activeShifts: ActiveShift[];
+  assignedClients: AssignedClient[];
 }) {
   const [now, setNow] = useState(() => new Date());
 
@@ -136,14 +139,23 @@ export default function HomeContent({
       {state.kind === "upcoming" && (
         <UpcomingCard shift={state.shift} now={now} role={role} />
       )}
-      {state.kind === "no_shifts" && <NoShiftsCard role={role} />}
+      {state.kind === "no_shifts" && (
+        <NoShiftsCard
+          role={role}
+          assignedClientCount={assignedClients.length}
+        />
+      )}
+
+      {assignedClients.length > 0 && state.kind === "no_shifts" && (
+        <AssignedClientsPanel clients={assignedClients} />
+      )}
 
       {/* Quick links */}
       <section className="grid grid-cols-2 gap-3 mt-5">
+        <QuickLink href="/clients" label="Clients" Icon={MapPinIcon} />
         <QuickLink href="/schedule" label="Schedule" Icon={CalendarIcon} />
         <QuickLink href="/tasks" label="Tasks" Icon={CheckSquareIcon} />
         <QuickLink href="/messages" label="Messages" Icon={MessageIcon} />
-        <QuickLink href="/me" label="Account" Icon={ClockIcon} />
       </section>
 
       {/* Upcoming list */}
@@ -347,22 +359,34 @@ function UpcomingCard({
 
 function NoShiftsCard({
   role,
+  assignedClientCount,
 }: {
   role: "admin" | "client" | "caregiver" | "family";
+  assignedClientCount: number;
 }) {
+  const isCareRole = role === "caregiver" || role === "family";
+  const title =
+    role === "caregiver" && assignedClientCount === 0
+      ? "No assigned clients yet"
+      : "Nothing scheduled";
+  const message =
+    role === "caregiver" && assignedClientCount === 0
+      ? "No assigned clients yet. Ask an admin to assign you to a client."
+      : isCareRole && assignedClientCount > 0
+        ? "No shifts scheduled yet."
+        : role === "caregiver"
+          ? "You don't have any upcoming shifts."
+          : "No shifts in the next two weeks.";
+
   return (    <article className="bg-white rounded-3xl p-8 shadow-soft text-center grain-overlay">
       <div className="relative">
         <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-cream-200 grid place-items-center text-ink-500">
           <CalendarIcon size={26} />
         </div>
         <h2 className="font-display text-2xl text-ink-900 mb-1.5">
-          Nothing scheduled
+          {title}
         </h2>
-        <p className="text-ink-500 text-sm mb-5">
-          {role === "caregiver"
-            ? "You don't have any upcoming shifts."
-            : "No shifts in the next two weeks."}
-        </p>
+        <p className="text-ink-500 text-sm mb-5">{message}</p>
         {role !== "caregiver" && (
           <Link
             href="/schedule"
@@ -373,6 +397,48 @@ function NoShiftsCard({
         )}
       </div>
     </article>
+  );
+}
+
+function AssignedClientsPanel({ clients }: { clients: AssignedClient[] }) {
+  return (
+    <section className="mt-5 bg-white rounded-3xl shadow-soft p-5 grain-overlay">
+      <div className="relative">
+        <div className="flex items-baseline justify-between mb-3">
+          <h2 className="font-display text-xl text-ink-900">
+            Assigned clients
+          </h2>
+          <Link
+            href="/clients"
+            className="text-xs text-forest-600 font-medium hover:underline"
+          >
+            See all
+          </Link>
+        </div>
+        <ul className="space-y-2">
+          {clients.slice(0, 3).map((client) => (
+            <li key={client.id}>
+              <Link
+                href={`/clients/${client.id}/home-info`}
+                className="flex items-center justify-between gap-3 rounded-2xl bg-cream-50 hover:bg-cream-100 px-4 py-3 transition"
+              >
+                <span className="min-w-0">
+                  <span className="block font-medium text-ink-900 truncate">
+                    {client.full_name}
+                  </span>
+                  {client.address && (
+                    <span className="block text-xs text-ink-500 truncate">
+                      {client.address}
+                    </span>
+                  )}
+                </span>
+                <ArrowRightIcon size={16} className="text-ink-300 shrink-0" />
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
   );
 }
 

@@ -19,17 +19,26 @@ type Client = {
 export default function ClientsList({
   clients,
   canManage,
+  role,
 }: {
   clients: Client[];
   canManage: boolean;
+  role: "admin" | "client" | "caregiver" | "family";
 }) {
   if (clients.length === 0) {
+    const message =
+      role === "caregiver"
+        ? "No assigned clients yet. Ask an admin to assign you to a client."
+        : role === "family" || role === "client"
+          ? "No linked clients yet. Ask an admin to link your account to a client."
+          : "No care recipients are currently visible for your account.";
+
     return (
       <div className="bg-white rounded-3xl p-10 shadow-soft text-center grain-overlay">
-        <p className="font-display text-lg mb-1">No clients yet</p>
-        <p className="text-sm text-ink-500">
-          No care recipients are currently visible for your account.
+        <p className="font-display text-lg mb-1">
+          {role === "caregiver" ? "No assigned clients yet" : "No clients yet"}
         </p>
+        <p className="text-sm text-ink-500">{message}</p>
         {canManage && (
           <Link
             href="/clients/new"

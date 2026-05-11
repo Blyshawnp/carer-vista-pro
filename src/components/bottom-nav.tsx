@@ -92,6 +92,12 @@ function getTabs(role: Role, lang: Lang): NavItem[] {
       key: "home",
     },
     {
+      href: "/clients",
+      label: t("nav.clients", lang),
+      Icon: GridIcon,
+      key: "clients",
+    },
+    {
       href: "/schedule",
       label: t("nav.schedule", lang),
       Icon: CalendarIcon,
