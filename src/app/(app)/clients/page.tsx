@@ -17,7 +17,7 @@ export default async function ClientsPage() {
     .single<{ role: "admin" | "client" | "caregiver" | "family"; organization_id: string }>();
 
   if (!profile) redirect("/me");
-  const canManage = profile.role === "admin";
+  const canManage = profile.role === "admin" || profile.role === "client";
 
   const { data: clients } = await supabase
     .from("clients")

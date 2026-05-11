@@ -18,7 +18,7 @@ export default async function NewClientPage() {
     .single<{ role: "admin" | "client" | "caregiver" | "family" }>();
 
   if (!profile) redirect("/me");
-  if (profile.role !== "admin") redirect("/clients");
+  if (profile.role !== "admin" && profile.role !== "client") redirect("/clients");
 
   return (
     <main className="px-5 py-6 max-w-2xl mx-auto">

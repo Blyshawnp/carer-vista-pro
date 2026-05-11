@@ -11,33 +11,49 @@ type ClientFull = {
   id: string;
   full_name: string;
   address: string | null;
-  emergency_contact_1_name: string | null;
-  emergency_contact_1_phone: string | null;
-  emergency_contact_1_relationship: string | null;
-  emergency_contact_2_name: string | null;
-  emergency_contact_2_phone: string | null;
-  emergency_contact_2_relationship: string | null;
   preferred_hospital_name: string | null;
   preferred_hospital_address: string | null;
   preferred_hospital_phone: string | null;
   primary_physician_name: string | null;
   primary_physician_address: string | null;
   primary_physician_phone: string | null;
-  has_panic_button: boolean | null;
-  panic_button_location: string | null;
-  has_medical_alert: boolean | null;
-  medical_alert_location: string | null;
-  first_aid_location: string | null;
-  hypoglycemia_kit_location: string | null;
-  fire_extinguisher_location: string | null;
-  aed_location: string | null;
+};
+
+type EmergencyContact = {
+  id: string;
+  client_id: string;
+  name: string;
+  relationship: string;
+  phone: string;
+  alternate_phone: string | null;
+  email: string | null;
+  notes: string | null;
+  priority_order: number;
+};
+
+type Medication = {
+  id: string;
+  client_id: string;
+  medication_name: string;
+  dose: string | null;
+  schedule_instructions: string | null;
+  notes: string | null;
+};
+
+type SafetyItem = {
+  id: string;
+  client_id: string;
+  label: string;
+  value_location: string;
+  notes: string | null;
 };
 
 type Allergy = {
   id: string;
   client_id: string;
   name: string;
-  severity: "critical" | "mild" | "minor";
+  reaction: string | null;
+  severity: "critical" | "mild" | "minor" | null;
   notes: string | null;
 };
 
@@ -57,20 +73,54 @@ export default async function EmergencyPage() {
   const { data: clientsRaw } = await supabase
     .from("clients")
     .select(
-      "id, full_name, address, emergency_contact_1_name, emergency_contact_1_phone, emergency_contact_1_relationship, emergency_contact_2_name, emergency_contact_2_phone, emergency_contact_2_relationship, preferred_hospital_name, preferred_hospital_address, preferred_hospital_phone, primary_physician_name, primary_physician_address, primary_physician_phone, has_panic_button, panic_button_location, has_medical_alert, medical_alert_location, first_aid_location, hypoglycemia_kit_location, fire_extinguisher_location, aed_location"
+      "id, full_name, address, preferred_hospital_name, preferred_hospital_address, preferred_hospital_phone, primary_physician_name, primary_physician_address, primary_physician_phone"
     )
     .order("full_name");
 
   const clients = (clientsRaw ?? []) as ClientFull[];
 
+  let allContacts: EmergencyContact[] = [];
+  try {
+    const { data } = await supabase
+      .from("client_emergency_contacts")
+      .select("id, client_id, name, relationship, phone, alternate_phone, email, notes, priority_order")
+      .order("priority_order", { ascending: true });
+    allContacts = (data ?? []) as EmergencyContact[];
+  } catch {
+    allContacts = [];
+  }
+
+  let allMedications: Medication[] = [];
+  try {
+    const { data } = await supabase
+      .from("client_medications")
+      .select("id, client_id, medication_name, dose, schedule_instructions, notes")
+      .order("sort_order", { ascending: true });
+    allMedications = (data ?? []) as Medication[];
+  } catch {
+    allMedications = [];
+  }
+
   let allAllergies: Allergy[] = [];
   try {
     const { data } = await supabase
       .from("client_allergies")
-      .select("id, client_id, name, severity, notes");
+      .select("id, client_id, name, reaction, severity, notes")
+      .order("sort_order", { ascending: true });
     allAllergies = (data ?? []) as Allergy[];
   } catch {
     allAllergies = [];
+  }
+
+  let allSafetyItems: SafetyItem[] = [];
+  try {
+    const { data } = await supabase
+      .from("client_safety_items")
+      .select("id, client_id, label, value_location, notes")
+      .order("sort_order", { ascending: true });
+    allSafetyItems = (data ?? []) as SafetyItem[];
+  } catch {
+    allSafetyItems = [];
   }
 
   const { data: urgentIncidents } = await supabase
@@ -163,8 +213,17 @@ export default async function EmergencyPage() {
         <div id="emergency-info" className="space-y-4">
           <h2 className="text-[10px] uppercase tracking-[0.2em] text-ink-400 font-bold px-1">Client Medical Info</h2>
           {clients.map((client) => {
+            const clientContacts = allContacts.filter(
+              (contact) => contact.client_id === client.id
+            );
+            const clientMedications = allMedications.filter(
+              (medication) => medication.client_id === client.id
+            );
             const clientAllergies = allAllergies.filter(
               (a) => a.client_id === client.id
+            );
+            const clientSafetyItems = allSafetyItems.filter(
+              (item) => item.client_id === client.id
             );
             return (
               <div key={client.id}>
@@ -183,7 +242,13 @@ export default async function EmergencyPage() {
                     </a>
                   )}
                 </div>
-                <EmergencyPanel info={client} allergies={clientAllergies} />
+                <EmergencyPanel
+                  info={client}
+                  contacts={clientContacts}
+                  medications={clientMedications}
+                  allergies={clientAllergies}
+                  safetyItems={clientSafetyItems}
+                />
               </div>
             );
           })}

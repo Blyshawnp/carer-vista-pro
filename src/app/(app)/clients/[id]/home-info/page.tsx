@@ -1,7 +1,12 @@
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import HomeInfoEditor from "./home-info-editor";
+import HomeInfoEditor, {
+  type Allergy,
+  type EmergencyContact,
+  type Medication,
+  type SafetyItem,
+} from "./home-info-editor";
 import ClientUsersManager from "./client-users-manager";
 
 export const dynamic = "force-dynamic";
@@ -13,12 +18,6 @@ type ClientHomeInfo = {
   organization_id: string;
   wifi_ssid: string | null;
   wifi_password: string | null;
-  emergency_contact_1_name: string | null;
-  emergency_contact_1_phone: string | null;
-  emergency_contact_1_relationship: string | null;
-  emergency_contact_2_name: string | null;
-  emergency_contact_2_phone: string | null;
-  emergency_contact_2_relationship: string | null;
   home_notes: string | null;
   preferred_hospital_name: string | null;
   preferred_hospital_address: string | null;
@@ -26,21 +25,8 @@ type ClientHomeInfo = {
   primary_physician_name: string | null;
   primary_physician_address: string | null;
   primary_physician_phone: string | null;
-  has_panic_button: boolean | null;
-  panic_button_location: string | null;
-  has_medical_alert: boolean | null;
-  medical_alert_location: string | null;
-  first_aid_location: string | null;
-  hypoglycemia_kit_location: string | null;
-  fire_extinguisher_location: string | null;
-  aed_location: string | null;
-};
-
-type Allergy = {
-  id: string;
-  name: string;
-  severity: "critical" | "mild" | "minor";
-  notes: string | null;
+  show_medications_to_caregivers: boolean;
+  show_allergies_to_caregivers: boolean;
 };
 
 type Document = {
@@ -81,12 +67,12 @@ export default async function HomeInfoPage({
     .single<{ role: "admin" | "client" | "caregiver" | "family" }>();
 
   if (!profile) redirect("/me");
-  const canManage = profile.role === "admin";
+  const canManage = profile.role === "admin" || profile.role === "client";
 
   const { data: client, error: clientError } = await supabase
     .from("clients")
     .select(
-      "id, full_name, organization_id, wifi_ssid, wifi_password, emergency_contact_1_name, emergency_contact_1_phone, emergency_contact_1_relationship, emergency_contact_2_name, emergency_contact_2_phone, emergency_contact_2_relationship, home_notes, preferred_hospital_name, preferred_hospital_address, preferred_hospital_phone, primary_physician_name, primary_physician_address, primary_physician_phone, has_panic_button, panic_button_location, has_medical_alert, medical_alert_location, first_aid_location, hypoglycemia_kit_location, fire_extinguisher_location, aed_location"
+      "id, full_name, organization_id, wifi_ssid, wifi_password, home_notes, preferred_hospital_name, preferred_hospital_address, preferred_hospital_phone, primary_physician_name, primary_physician_address, primary_physician_phone, show_medications_to_caregivers, show_allergies_to_caregivers"
     )
     .eq("id", id)
     .single<ClientHomeInfo>();
@@ -114,18 +100,55 @@ export default async function HomeInfoPage({
 
   if (!client) notFound();
 
-  // Fetch allergies (silent fail if Batch C SQL not run)
+  let contacts: EmergencyContact[] = [];
+  try {
+    const { data } = await supabase
+      .from("client_emergency_contacts")
+      .select("id, name, relationship, phone, alternate_phone, email, notes, priority_order")
+      .eq("client_id", client.id)
+      .order("priority_order", { ascending: true });
+    contacts = (data ?? []) as EmergencyContact[];
+  } catch {
+    contacts = [];
+  }
+
+  let medications: Medication[] = [];
+  try {
+    const { data } = await supabase
+      .from("client_medications")
+      .select("id, medication_name, dose, schedule_instructions, notes, sort_order")
+      .eq("client_id", client.id)
+      .order("sort_order", { ascending: true })
+      .order("medication_name", { ascending: true });
+    medications = (data ?? []) as Medication[];
+  } catch {
+    medications = [];
+  }
+
   let allergies: Allergy[] = [];
   try {
     const { data } = await supabase
       .from("client_allergies")
-      .select("id, name, severity, notes")
+      .select("id, name, reaction, severity, notes, sort_order")
       .eq("client_id", client.id)
-      .order("severity", { ascending: true })
+      .order("sort_order", { ascending: true })
       .order("name", { ascending: true });
     allergies = (data ?? []) as Allergy[];
   } catch {
     allergies = [];
+  }
+
+  let safetyItems: SafetyItem[] = [];
+  try {
+    const { data } = await supabase
+      .from("client_safety_items")
+      .select("id, label, value_location, notes, visible_to_caregivers, sort_order")
+      .eq("client_id", client.id)
+      .order("sort_order", { ascending: true })
+      .order("label", { ascending: true });
+    safetyItems = (data ?? []) as SafetyItem[];
+  } catch {
+    safetyItems = [];
   }
 
   // Fetch documents (silent fail)
@@ -182,7 +205,10 @@ export default async function HomeInfoPage({
 
       <HomeInfoEditor
         client={client}
+        contacts={contacts}
+        medications={medications}
         allergies={allergies}
+        safetyItems={safetyItems}
         documents={documents}
         canEditWifi={canManage}
       />

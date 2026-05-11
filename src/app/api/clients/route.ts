@@ -45,8 +45,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Complete setup before adding clients." }, { status: 400 });
   }
 
-  if (profile.role !== "admin") {
-    return NextResponse.json({ error: "Admin access required." }, { status: 403 });
+  if (profile.role !== "admin" && profile.role !== "client") {
+    return NextResponse.json({ error: "Admin or client-family admin access required." }, { status: 403 });
   }
 
   const { data: client, error: clientError } = await admin

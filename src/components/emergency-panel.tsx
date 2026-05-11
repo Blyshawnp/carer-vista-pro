@@ -6,18 +6,38 @@ import { StarOfLifeIcon } from "./icons";
 type Allergy = {
   id: string;
   name: string;
-  severity: "critical" | "mild" | "minor";
+  reaction: string | null;
+  severity: "critical" | "mild" | "minor" | null;
+  notes: string | null;
+};
+
+type EmergencyContact = {
+  id: string;
+  name: string;
+  relationship: string;
+  phone: string;
+  alternate_phone: string | null;
+  email: string | null;
+  notes: string | null;
+  priority_order: number;
+};
+
+type Medication = {
+  id: string;
+  medication_name: string;
+  dose: string | null;
+  schedule_instructions: string | null;
+  notes: string | null;
+};
+
+type SafetyItem = {
+  id: string;
+  label: string;
+  value_location: string;
   notes: string | null;
 };
 
 type EmergencyInfo = {
-  // Contacts
-  emergency_contact_1_name: string | null;
-  emergency_contact_1_phone: string | null;
-  emergency_contact_1_relationship: string | null;
-  emergency_contact_2_name: string | null;
-  emergency_contact_2_phone: string | null;
-  emergency_contact_2_relationship: string | null;
   // Hospital
   preferred_hospital_name: string | null;
   preferred_hospital_address: string | null;
@@ -26,55 +46,45 @@ type EmergencyInfo = {
   primary_physician_name: string | null;
   primary_physician_address: string | null;
   primary_physician_phone: string | null;
-  // Emergency devices
-  has_panic_button: boolean | null;
-  panic_button_location: string | null;
-  has_medical_alert: boolean | null;
-  medical_alert_location: string | null;
-  first_aid_location: string | null;
-  hypoglycemia_kit_location: string | null;
-  fire_extinguisher_location: string | null;
-  aed_location: string | null;
 };
 
 export default function EmergencyPanel({
   info,
+  contacts,
+  medications,
   allergies,
+  safetyItems,
 }: {
   info: EmergencyInfo;
+  contacts: EmergencyContact[];
+  medications: Medication[];
   allergies: Allergy[];
+  safetyItems: SafetyItem[];
 }) {
   const [expanded, setExpanded] = useState(false);
 
   const criticalAllergies = allergies.filter((a) => a.severity === "critical");
   const mildAllergies = allergies.filter((a) => a.severity === "mild");
   const minorAllergies = allergies.filter((a) => a.severity === "minor");
+  const unspecifiedAllergies = allergies.filter((a) => !a.severity);
 
-  const hasContacts = !!(
-    info.emergency_contact_1_phone || info.emergency_contact_2_phone
-  );
+  const hasContacts = contacts.length > 0;
   const hasHospital = !!(
     info.preferred_hospital_name || info.preferred_hospital_phone
   );
   const hasPhysician = !!(
     info.primary_physician_name || info.primary_physician_phone
   );
-  const hasDevices = !!(
-    info.has_panic_button ||
-    info.has_medical_alert ||
-    info.first_aid_location ||
-    info.hypoglycemia_kit_location ||
-    info.fire_extinguisher_location ||
-    info.aed_location
-  );
+  const hasSafetyItems = safetyItems.length > 0;
 
   // Don't render the panel at all if there's nothing to show
   const hasAnyInfo =
     hasContacts ||
     hasHospital ||
     hasPhysician ||
-    hasDevices ||
-    allergies.length > 0;
+    hasSafetyItems ||
+    allergies.length > 0 ||
+    medications.length > 0;
   if (!hasAnyInfo) return null;
 
   return (
@@ -96,14 +106,16 @@ export default function EmergencyPanel({
               </span>
             )}
             {hasContacts && "Contacts · "}
+            {medications.length > 0 && "Medications · "}
             {hasHospital && "Hospital · "}
             {hasPhysician && "Physician · "}
-            {hasDevices && "Devices"}
+            {hasSafetyItems && "Safety"}
             {allergies.length === 0 &&
               !hasContacts &&
+              medications.length === 0 &&
               !hasHospital &&
               !hasPhysician &&
-              !hasDevices &&
+              !hasSafetyItems &&
               "Tap to view"}
           </p>
         </div>
@@ -136,26 +148,33 @@ export default function EmergencyPanel({
                   items={minorAllergies}
                 />
               )}
+              {unspecifiedAllergies.length > 0 && (
+                <AllergyGroup
+                  label="Not specified"
+                  tone="minor"
+                  items={unspecifiedAllergies}
+                />
+              )}
             </Section>
           )}
 
           {/* EMERGENCY CONTACTS */}
           {hasContacts && (
             <Section title="Emergency contacts">
-              {info.emergency_contact_1_phone && (
+              {contacts.map((contact) => (
                 <ContactRow
-                  name={info.emergency_contact_1_name}
-                  phone={info.emergency_contact_1_phone}
-                  relationship={info.emergency_contact_1_relationship}
+                  key={contact.id}
+                  contact={contact}
                 />
-              )}
-              {info.emergency_contact_2_phone && (
-                <ContactRow
-                  name={info.emergency_contact_2_name}
-                  phone={info.emergency_contact_2_phone}
-                  relationship={info.emergency_contact_2_relationship}
-                />
-              )}
+              ))}
+            </Section>
+          )}
+
+          {medications.length > 0 && (
+            <Section title="Medications">
+              {medications.map((medication) => (
+                <MedicationRow key={medication.id} medication={medication} />
+              ))}
             </Section>
           )}
 
@@ -181,42 +200,16 @@ export default function EmergencyPanel({
             </Section>
           )}
 
-          {/* EMERGENCY DEVICES & LOCATIONS */}
-          {hasDevices && (
-            <Section title="In case of emergency">
-              {info.has_panic_button && info.panic_button_location && (
+          {hasSafetyItems && (
+            <Section title="Emergency & safety items">
+              {safetyItems.map((item) => (
                 <DeviceRow
-                  label="Panic button"
-                  location={info.panic_button_location}
+                  key={item.id}
+                  label={item.label}
+                  location={item.value_location}
+                  notes={item.notes}
                 />
-              )}
-              {info.has_medical_alert && info.medical_alert_location && (
-                <DeviceRow
-                  label="Medical alert button"
-                  location={info.medical_alert_location}
-                />
-              )}
-              {info.first_aid_location && (
-                <DeviceRow
-                  label="First aid kit"
-                  location={info.first_aid_location}
-                />
-              )}
-              {info.hypoglycemia_kit_location && (
-                <DeviceRow
-                  label="Hypoglycemia kit / glucagon"
-                  location={info.hypoglycemia_kit_location}
-                />
-              )}
-              {info.aed_location && (
-                <DeviceRow label="AED" location={info.aed_location} />
-              )}
-              {info.fire_extinguisher_location && (
-                <DeviceRow
-                  label="Fire extinguisher"
-                  location={info.fire_extinguisher_location}
-                />
-              )}
+              ))}
             </Section>
           )}
         </div>
@@ -265,6 +258,9 @@ function AllergyGroup({
         {items.map((a) => (
           <li key={a.id} className="text-sm">
             <span className="font-medium">{a.name}</span>
+            {a.reaction && (
+              <span className="text-xs opacity-80"> · {a.reaction}</span>
+            )}
             {a.notes && (
               <span className="text-xs opacity-80"> · {a.notes}</span>
             )}
@@ -276,30 +272,53 @@ function AllergyGroup({
 }
 
 function ContactRow({
-  name,
-  phone,
-  relationship,
+  contact,
 }: {
-  name: string | null;
-  phone: string | null;
-  relationship: string | null;
+  contact: EmergencyContact;
 }) {
   return (
-    <div className="flex items-baseline justify-between gap-3 bg-cream-50 rounded-xl px-3 py-2.5">
-      <div className="min-w-0">
-        <p className="font-medium text-ink-900 truncate">{name ?? "—"}</p>
-        {relationship && (
-          <p className="text-xs text-ink-500">{relationship}</p>
-        )}
-      </div>
-      {phone && (
+    <div className="bg-cream-50 rounded-xl px-3 py-2.5">
+      <div className="flex items-baseline justify-between gap-3">
+        <div className="min-w-0">
+          <p className="font-medium text-ink-900 truncate">{contact.name}</p>
+          <p className="text-xs text-ink-500">{contact.relationship}</p>
+        </div>
         <a
-          href={`tel:${phone}`}
+          href={`tel:${contact.phone}`}
           className="text-sm text-forest-600 font-medium hover:underline shrink-0"
         >
-          {phone}
+          {contact.phone}
         </a>
+      </div>
+      {(contact.alternate_phone || contact.email || contact.notes) && (
+        <div className="mt-2 space-y-0.5 text-xs text-ink-500">
+          {contact.alternate_phone && (
+            <p>
+              Alternate:{" "}
+              <a href={`tel:${contact.alternate_phone}`} className="text-forest-600 hover:underline">
+                {contact.alternate_phone}
+              </a>
+            </p>
+          )}
+          {contact.email && <p>{contact.email}</p>}
+          {contact.notes && <p>{contact.notes}</p>}
+        </div>
       )}
+    </div>
+  );
+}
+
+function MedicationRow({ medication }: { medication: Medication }) {
+  return (
+    <div className="bg-cream-50 rounded-xl px-3 py-2.5">
+      <div className="min-w-0">
+        <p className="font-medium text-ink-900">{medication.medication_name}</p>
+        {medication.dose && <p className="text-xs text-ink-500">Dose: {medication.dose}</p>}
+        {medication.schedule_instructions && (
+          <p className="text-xs text-ink-500">{medication.schedule_instructions}</p>
+        )}
+        {medication.notes && <p className="text-xs text-ink-500">{medication.notes}</p>}
+      </div>
     </div>
   );
 }
@@ -336,16 +355,21 @@ function PlaceRow({
 function DeviceRow({
   label,
   location,
+  notes,
 }: {
   label: string;
   location: string;
+  notes?: string | null;
 }) {
   return (
-    <div className="flex items-baseline justify-between gap-3 bg-cream-50 rounded-xl px-3 py-2">
-      <span className="text-xs uppercase tracking-wide text-ink-500 shrink-0">
-        {label}
-      </span>
-      <span className="text-sm text-ink-900 text-right">{location}</span>
+    <div className="bg-cream-50 rounded-xl px-3 py-2">
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="text-xs uppercase tracking-wide text-ink-500 shrink-0">
+          {label}
+        </span>
+        <span className="text-sm text-ink-900 text-right">{location}</span>
+      </div>
+      {notes && <p className="text-xs text-ink-500 mt-1">{notes}</p>}
     </div>
   );
 }
