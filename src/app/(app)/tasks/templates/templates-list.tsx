@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { PlusIcon } from "@/components/icons";
+import { getFirstName } from "@/lib/name";
 import {
   type TaskCategory,
   type TaskCategoryOption,
@@ -177,7 +178,7 @@ export default function TemplatesList({
               active={filter === c.id}
               onClick={() => setFilter(c.id)}
             >
-              {c.full_name.split(" ")[0]}
+              {getFirstName(c.full_name)}
             </FilterPill>
           ))}
         </div>

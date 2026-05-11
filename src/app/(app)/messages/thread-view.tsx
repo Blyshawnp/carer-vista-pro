@@ -29,7 +29,7 @@ export default function ThreadView({
 
   useEffect(() => {
     const supabase = createClient();
-    
+
     const channel = supabase
       .channel(`thread-${otherId}`)
       .on(
@@ -81,14 +81,12 @@ export default function ThreadView({
   }
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-140px)]">
-      <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+    <div className="flex h-[calc(100dvh-140px)] flex-col pb-[calc(9rem+env(safe-area-inset-bottom))]">
+      <div className="flex-1 min-h-0 overflow-y-auto px-5 py-4 space-y-4">
         {messages.map((m) => (
           <div
             key={m.id}
-            className={`flex ${
-              m.sender_id === currentUserId ? "justify-end" : "justify-start"
-            }`}
+            className={`flex ${m.sender_id === currentUserId ? "justify-end" : "justify-start"}`}
           >
             <div
               className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm ${
@@ -98,8 +96,15 @@ export default function ThreadView({
               }`}
             >
               <p className="leading-relaxed">{m.content}</p>
-              <p className={`text-[10px] mt-1 opacity-60 ${m.sender_id === currentUserId ? 'text-right' : ''}`}>
-                {new Date(m.created_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+              <p
+                className={`text-[10px] mt-1 opacity-60 ${
+                  m.sender_id === currentUserId ? "text-right" : ""
+                }`}
+              >
+                {new Date(m.created_at).toLocaleTimeString([], {
+                  hour: "numeric",
+                  minute: "2-digit",
+                })}
               </p>
             </div>
           </div>
@@ -107,7 +112,10 @@ export default function ThreadView({
         <div ref={scrollRef} />
       </div>
 
-      <form onSubmit={send} className="p-4 bg-cream-100/50 backdrop-blur-sm sticky bottom-0">
+      <form
+        onSubmit={send}
+        className="sticky bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-30 px-5 pb-3 bg-cream-100/70 backdrop-blur-sm"
+      >
         <div className="flex gap-2 bg-white rounded-2xl p-1.5 shadow-soft border border-cream-200">
           <input
             value={content}

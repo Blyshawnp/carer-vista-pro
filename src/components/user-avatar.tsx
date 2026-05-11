@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { getInitials, normalizeDisplayName } from "@/lib/name";
 
 export type AvatarProfile = {
   full_name: string | null;
@@ -20,14 +21,8 @@ export default function UserAvatar({
   linkToProfile?: boolean;
   className?: string;
 }) {
-  const initials = person.full_name
-    ? person.full_name
-        .split(" ")
-        .map((n) => n[0])
-        .slice(0, 2)
-        .join("")
-        .toUpperCase()
-    : "?";
+  const initials = getInitials(person.full_name);
+  const displayName = normalizeDisplayName(person.full_name) || "User";
 
   const sizeCls = {
     xs: "w-6 h-6 text-[10px]",
@@ -49,11 +44,11 @@ export default function UserAvatar({
       {person.avatar_url ? (
         <img
           src={person.avatar_url}
-          alt={person.full_name || "User"}
+          alt={displayName}
           className="w-full h-full object-cover"
         />
       ) : (
-        <span className="font-display font-bold">{initials}</span>
+        <span className="font-medium tracking-normal leading-none">{initials}</span>
       )}
     </div>
   );

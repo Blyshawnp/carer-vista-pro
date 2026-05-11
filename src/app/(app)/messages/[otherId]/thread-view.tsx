@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import UserAvatar from "@/components/user-avatar";
+import { getFirstName } from "@/lib/name";
+import { ArrowRightIcon } from "@/components/icons";
 
 type Person = {
   id: string;
@@ -39,12 +41,10 @@ export default function ThreadView({
   const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom on new message
   useEffect(() => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages.length]);
 
-  // Real-time subscription: listen for new messages in this thread
   useEffect(() => {
     const supabase = createClient();
     const channel = supabase
@@ -58,19 +58,16 @@ export default function ThreadView({
         },
         (payload) => {
           const m = payload.new as Message;
-          // Only include messages between me and the other person
           const inThread =
             (m.sender_id === me.id && m.recipient_id === other.id) ||
             (m.sender_id === other.id && m.recipient_id === me.id);
           if (!inThread) return;
 
           setMessages((prev) => {
-            // Skip if we already have this message (optimistic update collision)
             if (prev.some((p) => p.id === m.id)) return prev;
             return [...prev, m];
           });
 
-          // Mark new incoming messages as read
           if (m.sender_id === other.id) {
             void supabase
               .from("messages")
@@ -96,9 +93,7 @@ export default function ThreadView({
 
     setSending(true);
     setError(null);
-    const supabase = createClient();
 
-    // Optimistic message so it shows up instantly
     const tempId = `temp-${Date.now()}`;
     const optimistic: Message = {
       id: tempId,
@@ -127,7 +122,6 @@ export default function ThreadView({
       | null;
 
     if (!response.ok || !result?.message) {
-      // Roll back optimistic
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
       setError(result?.error ?? "Could not send message.");
       setText(content);
@@ -135,17 +129,13 @@ export default function ThreadView({
       return;
     }
 
-    // Replace optimistic with real
     const real = result.message;
-    setMessages((prev) =>
-      prev.map((m) => (m.id === tempId ? real : m))
-    );
-
+    setMessages((prev) => prev.map((m) => (m.id === tempId ? real : m)));
     setSending(false);
   }
 
   return (
-    <main className="px-5 py-6 max-w-2xl mx-auto flex min-h-[calc(100dvh-7rem)] flex-col pb-[calc(7rem+env(safe-area-inset-bottom))]">
+    <main className="px-5 py-6 max-w-2xl mx-auto flex min-h-[calc(100dvh-7rem)] flex-col pb-[calc(9rem+env(safe-area-inset-bottom))]">
       <header className="mb-4">
         <Link
           href="/messages"
@@ -154,7 +144,10 @@ export default function ThreadView({
           ← Back
         </Link>
         <div className="flex items-center gap-3">
-          <Link href={`/profiles/${other.id}`} aria-label={`View ${other.full_name}'s profile`}>
+          <Link
+            href={`/profiles/${other.id}`}
+            aria-label={`View ${other.full_name}'s profile`}
+          >
             <UserAvatar person={other} size="md" />
           </Link>
           <div>
@@ -166,11 +159,10 @@ export default function ThreadView({
         </div>
       </header>
 
-      {/* Messages */}
       <div className="flex-1 min-h-0 overflow-y-auto space-y-2 mb-4 -mx-1 px-1 pb-6">
         {messages.length === 0 ? (
           <div className="text-center py-10 text-sm text-ink-500">
-            Say hello to {other.full_name.split(" ")[0]}.
+            Say hello to {getFirstName(other.full_name)}.
           </div>
         ) : (
           messages.map((m, i) => (
@@ -192,8 +184,7 @@ export default function ThreadView({
         </div>
       )}
 
-      {/* Composer */}
-      <div className="fixed inset-x-0 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-30 px-5">
+      <div className="sticky bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-30 px-0 pt-1 pb-3 bg-cream-100/70 backdrop-blur-sm">
         <div className="mx-auto max-w-2xl rounded-[1.25rem] border border-cream-200 bg-white/95 p-2.5 shadow-lifted backdrop-blur">
           <form onSubmit={send} className="flex gap-2">
             <input
@@ -232,7 +223,9 @@ function MessageBubble({
   return (
     <div className={`flex ${isFromMe ? "justify-end" : "justify-start"} gap-2`}>
       {!isFromMe && <UserAvatar person={other} size="xs" className="mt-1" />}
-      <div className={`flex max-w-[80%] flex-col ${isFromMe ? "items-end" : "items-start"}`}>
+      <div
+        className={`flex max-w-[80%] flex-col ${isFromMe ? "items-end" : "items-start"}`}
+      >
         <div
           className={`rounded-2xl px-4 py-2.5 ${
             isFromMe
@@ -255,15 +248,12 @@ function MessageBubble({
 }
 
 function shouldShowTime(messages: Message[], index: number) {
-  // Show timestamp on the last message of a "burst" (when the next message
-  // is from a different sender or more than 5 minutes later)
   const m = messages[index];
   const next = messages[index + 1];
   if (!next) return true;
   if (next.sender_id !== m.sender_id) return true;
   const gapMin =
-    (new Date(next.created_at).getTime() -
-      new Date(m.created_at).getTime()) /
+    (new Date(next.created_at).getTime() - new Date(m.created_at).getTime()) /
     60000;
   return gapMin > 5;
 }

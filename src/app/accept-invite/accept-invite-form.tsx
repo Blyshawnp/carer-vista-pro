@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { getFirstName } from "@/lib/name";
 
 type Invitation = {
   id: string;
@@ -120,7 +121,7 @@ export default function AcceptInviteForm({
           <h1 className="font-display text-3xl text-ink-900 mb-1">
             Welcome,{" "}
             <span className="italic text-forest-600">
-              {invitation.full_name.split(" ")[0]}
+              {getFirstName(invitation.full_name)}
             </span>
           </h1>
           <p className="text-ink-500 text-sm">

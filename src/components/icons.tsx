@@ -42,16 +42,28 @@ export const UserIcon = (p: IconProps) => (
 );
 
 export const StarOfLifeIcon = (p: IconProps) => (
-  <svg width={p.size || 24} height={p.size || 24} className={p.className} viewBox="0 0 24 24" aria-hidden="true">
+  <svg
+    width={p.size || 24}
+    height={p.size || 24}
+    className={p.className}
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+    fill="none"
+  >
+    <g fill="currentColor">
+      <rect x="11.1" y="1.5" width="1.8" height="7.4" rx="0.9" />
+      <rect x="11.1" y="15.1" width="1.8" height="7.4" rx="0.9" />
+      <rect x="11.1" y="1.5" width="1.8" height="7.4" rx="0.9" transform="rotate(60 12 12)" />
+      <rect x="11.1" y="1.5" width="1.8" height="7.4" rx="0.9" transform="rotate(120 12 12)" />
+      <rect x="11.1" y="1.5" width="1.8" height="7.4" rx="0.9" transform="rotate(180 12 12)" />
+      <rect x="11.1" y="1.5" width="1.8" height="7.4" rx="0.9" transform="rotate(240 12 12)" />
+      <rect x="11.1" y="1.5" width="1.8" height="7.4" rx="0.9" transform="rotate(300 12 12)" />
+    </g>
+    <circle cx="12" cy="12" r="3.1" fill="white" />
     <path
-      fill="currentColor"
-      d="M10.1 2h3.8l1 6.1 5.05-3.55 1.9 3.3-5.65 2.55 5.65 2.55-1.9 3.3-5.05-3.55-1 6.1h-3.8l-1-6.1-5.05 3.55-1.9-3.3L7.8 10.4 2.15 7.85l1.9-3.3L9.1 8.1 10.1 2Z"
-    />
-    <path
-      d="M12 5.8v12.4M10.2 8.55c2.65.85 2.65 2.85 0 3.7 2.65.85 2.65 2.85 0 3.7M13.8 8.55c-2.65.85-2.65 2.85 0 3.7-2.65.85-2.65 2.85 0 3.7"
-      fill="none"
-      stroke="#fff"
-      strokeWidth={1.15}
+      d="M12 6.6v10.8M10.1 8.6c2.4.7 2.4 2.4 0 3.1 2.4.7 2.4 2.4 0 3.1M13.9 8.6c-2.4.7-2.4 2.4 0 3.1-2.4.7-2.4 2.4 0 3.1"
+      stroke="#ffffff"
+      strokeWidth="1.2"
       strokeLinecap="round"
       strokeLinejoin="round"
     />

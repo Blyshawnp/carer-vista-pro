@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowRightIcon } from "./icons";
+import { usePathname } from "next/navigation";
 
 const DISMISS_KEY = "caregiver-install-dismissed";
 const DISMISS_DAYS = 14;
@@ -47,6 +47,7 @@ function isDismissed(): boolean {
 }
 
 export default function InstallPrompt() {
+  const pathname = usePathname();
   const [platform, setPlatform] = useState<Platform>("unsupported");
   const [show, setShow] = useState(false);
   const [showIosSheet, setShowIosSheet] = useState(false);
@@ -54,6 +55,12 @@ export default function InstallPrompt() {
     useState<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
+    setShow(false);
+    setShowIosSheet(false);
+    setDeferredPrompt(null);
+
+    if (pathname !== "/home") return;
+
     const p = detectPlatform();
     setPlatform(p);
 
@@ -76,7 +83,7 @@ export default function InstallPrompt() {
       window.addEventListener("beforeinstallprompt", handler);
       return () => window.removeEventListener("beforeinstallprompt", handler);
     }
-  }, []);
+  }, [pathname]);
 
   function dismiss() {
     setShow(false);
@@ -105,6 +112,7 @@ export default function InstallPrompt() {
     }
   }
 
+  if (pathname !== "/home") return null;
   if (!show && !showIosSheet) return null;
 
   return (
@@ -132,7 +140,7 @@ export default function InstallPrompt() {
             </button>
             <button
               onClick={dismiss}
-              aria-label="Dismiss"
+              aria-label="Dismiss install prompt"
               className="w-7 h-7 rounded-full hover:bg-cream-50/15 grid place-items-center transition shrink-0"
             >
               <svg

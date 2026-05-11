@@ -6,6 +6,7 @@ import NotificationBell from "./notification-bell";
 import { StarOfLifeIcon } from "./icons";
 import UserAvatar from "./user-avatar";
 import type { Role } from "@/lib/db-types";
+import { getFirstName } from "@/lib/name";
 
 export default function AppHeader({
   fullName,
@@ -24,19 +25,19 @@ export default function AppHeader({
   notificationCount?: number;
   role: Role;
 }) {
-  const firstName = fullName.split(" ")[0] || "there";
+  const firstName = getFirstName(fullName);
 
   return (
     <header className="px-5 pt-5 pb-3 flex items-center justify-between gap-3 sticky top-0 bg-cream-100/85 backdrop-blur-md z-20">
       <div className="flex items-center gap-3 min-w-0">
-        <div className="relative shrink-0 w-12 h-12 rounded-[1.1rem] bg-white shadow-soft ring-1 ring-forest-600/10 grid place-items-center overflow-hidden">
+        <div className="relative shrink-0 w-12 h-12 rounded-[1rem] overflow-hidden">
           <Image
-            src="/icon-192.png"
+            src="/Icon.png"
             alt=""
-            width={40}
-            height={40}
+            fill
+            sizes="48px"
             priority
-            className="rounded-xl"
+            className="object-contain"
           />
         </div>
         <div className="min-w-0">
@@ -54,7 +55,7 @@ export default function AppHeader({
             )}
           </div>
           <h1 className="mt-1 font-display text-2xl text-ink-900 leading-none truncate">
-            Welcome, <i className="text-forest-600">{firstName}</i>
+            Welcome, <span className="text-forest-600">{firstName}</span>
           </h1>
         </div>
       </div>
