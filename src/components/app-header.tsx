@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import NotificationBell from "./notification-bell";
 import { StarOfLifeIcon } from "./icons";
@@ -30,14 +29,13 @@ export default function AppHeader({
   return (
     <header className="px-5 pt-5 pb-3 flex items-center justify-between gap-3 sticky top-0 bg-cream-100/85 backdrop-blur-md z-20">
       <div className="flex items-center gap-3 min-w-0">
-        <div className="relative shrink-0 w-12 h-12 rounded-[1rem] overflow-hidden">
-          <Image
-            src="/Icon.png"
+        <div className="relative shrink-0 w-12 h-12 rounded-[1rem] overflow-hidden bg-transparent">
+          <img
+            src="/icon-192.png"
             alt=""
-            fill
-            sizes="48px"
-            priority
-            className="object-contain"
+            className="block w-full h-full object-contain"
+            loading="eager"
+            decoding="async"
           />
         </div>
         <div className="min-w-0">

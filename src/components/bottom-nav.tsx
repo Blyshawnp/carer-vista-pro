@@ -93,7 +93,7 @@ function getTabs(role: Role, lang: Lang): NavItem[] {
     },
     {
       href: "/clients",
-      label: t("nav.clients", lang),
+      label: role === "family" ? t("nav.family", lang) : t("nav.clients", lang),
       Icon: GridIcon,
       key: "clients",
     },

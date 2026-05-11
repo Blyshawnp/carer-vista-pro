@@ -3,6 +3,15 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import {
+  COUNTRY_OPTIONS,
+  buildAddressQuery,
+  getRegionOptions,
+  normalizeCountry,
+  postalLabel,
+  regionLabel,
+  usesRegionDropdown,
+} from "@/lib/address";
 
 type ClientHomeInfo = {
   id: string;
@@ -14,6 +23,7 @@ type ClientHomeInfo = {
   street_address_2: string | null;
   city: string | null;
   state: string | null;
+  state_or_region: string | null;
   postal_code: string | null;
   country: string | null;
   latitude: number | null;
@@ -176,9 +186,9 @@ export default function HomeInfoEditor({
   const [streetAddress1, setStreetAddress1] = useState(client.street_address_1 ?? "");
   const [streetAddress2, setStreetAddress2] = useState(client.street_address_2 ?? "");
   const [city, setCity] = useState(client.city ?? "");
-  const [state, setState] = useState(client.state ?? "");
+  const [stateOrRegion, setStateOrRegion] = useState(client.state_or_region ?? client.state ?? "");
   const [postalCode, setPostalCode] = useState(client.postal_code ?? "");
-  const [country, setCountry] = useState(client.country ?? "US");
+  const [country, setCountry] = useState(normalizeCountry(client.country));
   const [latitude, setLatitude] = useState(
     client.latitude != null ? String(client.latitude) : ""
   );
@@ -315,20 +325,65 @@ export default function HomeInfoEditor({
       return;
     }
 
+    let resolvedLatitude = lat;
+    let resolvedLongitude = lng;
+    let resolvedLocationSource = locationSource;
+    let resolvedRadius = Math.round(radius);
+
+    if (resolvedLatitude == null || resolvedLongitude == null) {
+      const query = buildAddressQuery({
+        street_address_1: streetAddress1,
+        street_address_2: streetAddress2,
+        city,
+        state_or_region: stateOrRegion,
+        postal_code: postalCode,
+        country,
+      });
+      if (query) {
+        try {
+          const response = await fetch("/api/address-lookup", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ query }),
+          });
+          const result = (await response.json().catch(() => null)) as
+            | { formattedAddress?: string; latitude?: number; longitude?: number; source?: string; error?: string }
+            | null;
+          if (response.ok && result?.latitude != null && result.longitude != null) {
+            resolvedLatitude = result.latitude;
+            resolvedLongitude = result.longitude;
+            resolvedLocationSource = "address_geocode";
+            resolvedRadius = 150;
+            setLatitude(String(result.latitude));
+            setLongitude(String(result.longitude));
+            setGeofenceRadiusMeters("150");
+            setLocationSource("address_geocode");
+          }
+        } catch {
+          /* ignore lookup failure and save address fields */
+        }
+      }
+    }
+
+    if (resolvedLatitude != null && resolvedLongitude != null && resolvedLocationSource === "unknown") {
+      resolvedLocationSource = "manual";
+    }
+
     const { error: updateError } = await supabase
       .from("clients")
       .update({
         street_address_1: streetAddress1.trim() || null,
         street_address_2: streetAddress2.trim() || null,
         city: city.trim() || null,
-        state: state.trim() || null,
+        state: stateOrRegion.trim() || null,
+        state_or_region: stateOrRegion.trim() || null,
         postal_code: postalCode.trim() || null,
-        country: country.trim() || "US",
-        latitude: lat,
-        longitude: lng,
-        geofence_radius_meters: Math.round(radius),
-        location_source: locationSource,
-        location_set_at: lat != null && lng != null ? new Date().toISOString() : null,
+        country: normalizeCountry(country),
+        latitude: resolvedLatitude,
+        longitude: resolvedLongitude,
+        geofence_radius_meters: resolvedRadius,
+        location_source: resolvedLocationSource,
+        location_set_at: resolvedLatitude != null && resolvedLongitude != null ? new Date().toISOString() : null,
         home_notes: notes.trim() || null,
         preferred_hospital_name: hospName.trim() || null,
         preferred_hospital_address: hospAddr.trim() || null,
@@ -387,11 +442,46 @@ export default function HomeInfoEditor({
         <Field label="Street address 2" value={streetAddress2} onChange={setStreetAddress2} placeholder="Apartment, suite, or floor" />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Field label="City" value={city} onChange={setCity} placeholder="City" />
-          <Field label="State" value={state} onChange={setState} placeholder="State" />
+          {usesRegionDropdown(country) ? (
+            <label className="block">
+              <span className="block text-xs font-medium text-ink-700 mb-1.5 tracking-wide uppercase">
+                {regionLabel(country)}
+              </span>
+              <select
+                value={stateOrRegion}
+                onChange={(event) => setStateOrRegion(event.target.value)}
+                className={inputCls}
+              >
+                <option value="">Select...</option>
+                {getRegionOptions(country).map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : (
+            <Field label={regionLabel(country)} value={stateOrRegion} onChange={setStateOrRegion} placeholder="Region" />
+          )}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Field label="ZIP / postal code" value={postalCode} onChange={setPostalCode} placeholder="Postal code" />
-          <Field label="Country" value={country} onChange={setCountry} placeholder="Country" />
+          <Field label={postalLabel(country)} value={postalCode} onChange={setPostalCode} placeholder={postalLabel(country)} />
+          <label className="block">
+            <span className="block text-xs font-medium text-ink-700 mb-1.5 tracking-wide uppercase">
+              Country
+            </span>
+            <select
+              value={country}
+              onChange={(event) => setCountry(event.target.value)}
+              className={inputCls}
+            >
+              {COUNTRY_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
         <ReadOnly label="Formatted address" value={client.formatted_address ?? client.address ?? "Not set"} />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -406,10 +496,14 @@ export default function HomeInfoEditor({
           <button
             type="button"
             onClick={async () => {
-              const query = [streetAddress1, streetAddress2, city, state, postalCode, country]
-                .map((value) => value.trim())
-                .filter(Boolean)
-                .join(", ");
+              const query = buildAddressQuery({
+                street_address_1: streetAddress1,
+                street_address_2: streetAddress2,
+                city,
+                state_or_region: stateOrRegion,
+                postal_code: postalCode,
+                country,
+              });
               if (!query) {
                 setError("Enter an address before trying lookup.");
                 return;
@@ -429,14 +523,15 @@ export default function HomeInfoEditor({
                 }
                 if (typeof result.latitude === "number") setLatitude(String(result.latitude));
                 if (typeof result.longitude === "number") setLongitude(String(result.longitude));
-                if (result.source) setLocationSource(result.source);
+                setGeofenceRadiusMeters("150");
+                setLocationSource("address_geocode");
               } catch {
                 setError("Address lookup is not configured.");
               }
             }}
             className="bg-forest-100 hover:bg-forest-100/70 text-forest-700 py-2.5 rounded-xl text-sm font-medium transition"
           >
-            Set location from address
+            Set geofence from address
           </button>
           <button
             type="button"

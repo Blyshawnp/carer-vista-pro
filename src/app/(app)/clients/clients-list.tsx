@@ -29,14 +29,20 @@ export default function ClientsList({
     const message =
       role === "caregiver"
         ? "No assigned clients yet. Ask an admin to assign you to a client."
-        : role === "family" || role === "client"
-          ? "No linked clients yet. Ask an admin to link your account to a client."
+        : role === "family"
+          ? "No family links yet. Ask an admin to link your account to a client."
+          : role === "client"
+            ? "No linked clients yet. Ask an admin to link your account to a client."
           : "No care recipients are currently visible for your account.";
 
     return (
       <div className="bg-white rounded-3xl p-10 shadow-soft text-center grain-overlay">
         <p className="font-display text-lg mb-1">
-          {role === "caregiver" ? "No assigned clients yet" : "No clients yet"}
+          {role === "caregiver"
+            ? "No assigned clients yet"
+            : role === "family"
+              ? "No family links yet"
+              : "No clients yet"}
         </p>
         <p className="text-sm text-ink-500">{message}</p>
         {canManage && (

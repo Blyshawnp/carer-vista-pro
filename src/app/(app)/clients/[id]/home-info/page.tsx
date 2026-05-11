@@ -89,6 +89,7 @@ export default async function HomeInfoPage({
 
   if (!profile) redirect("/me");
   const canManage = profile.role === "admin" || profile.role === "client";
+  const backLabel = profile.role === "family" ? "Back to family" : "Back to clients";
 
   const { data: assignment } = await supabase
     .from("client_user_assignments")
@@ -120,7 +121,7 @@ export default async function HomeInfoPage({
             href="/clients"
             className="inline-block bg-forest-600 hover:bg-forest-700 text-cream-50 px-5 py-2.5 rounded-2xl text-sm font-medium transition"
           >
-            Back to clients
+            {backLabel}
           </Link>
         </div>
       </main>
@@ -252,13 +253,17 @@ export default async function HomeInfoPage({
           href="/clients"
           className="text-sm text-forest-600 hover:underline mb-2 inline-block"
         >
-          ← Back to clients
+          ← {backLabel}
         </Link>
         <h1 className="font-display text-3xl text-ink-900">
           {client.full_name}
         </h1>
         <p className="text-ink-500 text-sm">
-          Home info for caregivers
+          {profile.role === "family"
+            ? "Home info for family access"
+            : profile.role === "caregiver"
+              ? "Home info for caregivers"
+              : "Home info"}
         </p>
       </header>
 

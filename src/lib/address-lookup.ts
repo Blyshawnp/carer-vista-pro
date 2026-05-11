@@ -54,14 +54,10 @@ async function lookupWithMapbox(query: string): Promise<AddressLookupResult | nu
 }
 
 async function lookupWithNominatim(query: string): Promise<AddressLookupResult | null> {
-  const apiKey = process.env.ADDRESS_LOOKUP_API_KEY?.trim();
   const url = new URL("https://nominatim.openstreetmap.org/search");
   url.searchParams.set("q", query);
   url.searchParams.set("format", "jsonv2");
   url.searchParams.set("limit", "1");
-  if (apiKey) {
-    url.searchParams.set("email", apiKey);
-  }
 
   const response = await fetch(url, {
     headers: {

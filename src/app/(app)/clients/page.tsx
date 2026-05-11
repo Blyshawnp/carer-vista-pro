@@ -18,6 +18,13 @@ export default async function ClientsPage() {
 
   if (!profile) redirect("/me");
   const canManage = profile.role === "admin" || profile.role === "client";
+  const pageTitle = profile.role === "family" ? "Family" : "Clients";
+  const pageSubtitle =
+    profile.role === "family"
+      ? "Linked family members and care recipients connected to you"
+      : canManage
+        ? "Care recipients in this care circle"
+        : "Clients and care recipients connected to you";
 
   const { data: clients } = await supabase
     .from("clients")
@@ -31,16 +38,12 @@ export default async function ClientsPage() {
           href="/me"
           className="text-sm text-forest-600 hover:underline mb-2 inline-block"
         >
-          ← Back
+          {profile.role === "family" ? "← Back to family" : "← Back"}
         </Link>
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h1 className="font-display text-3xl text-ink-900">Clients</h1>
-            <p className="text-ink-500 text-sm">
-              {canManage
-                ? "Care recipients in this care circle"
-                : "Clients and care recipients connected to you"}
-            </p>
+            <h1 className="font-display text-3xl text-ink-900">{pageTitle}</h1>
+            <p className="text-ink-500 text-sm">{pageSubtitle}</p>
           </div>
           {canManage && (
             <Link

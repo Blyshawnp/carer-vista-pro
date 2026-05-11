@@ -75,6 +75,7 @@ export default function HomeContent({
   }, []);
 
   const state = useMemo(() => pickState(shifts, now), [shifts, now]);
+  const clientsLabel = role === "family" ? "Family" : "Clients";
   
   const upcomingList = useMemo(
     () =>
@@ -152,12 +153,15 @@ export default function HomeContent({
       )}
 
       {assignedClients.length > 0 && state.kind === "no_shifts" && (
-        <AssignedClientsPanel clients={assignedClients} />
+        <AssignedClientsPanel
+          clients={assignedClients}
+          role={role}
+        />
       )}
 
       {/* Quick links */}
       <section className="grid grid-cols-2 gap-3 mt-5">
-        <QuickLink href="/clients" label="Clients" Icon={MapPinIcon} />
+        <QuickLink href="/clients" label={clientsLabel} Icon={MapPinIcon} />
         <QuickLink href="/schedule" label="Schedule" Icon={CalendarIcon} />
         <QuickLink href="/tasks" label="Tasks" Icon={CheckSquareIcon} />
         <QuickLink href="/messages" label="Messages" Icon={MessageIcon} />
@@ -373,10 +377,14 @@ function NoShiftsCard({
   const title =
     role === "caregiver" && assignedClientCount === 0
       ? "No assigned clients yet"
+      : role === "family" && assignedClientCount === 0
+        ? "No family links yet"
       : "Nothing scheduled";
   const message =
     role === "caregiver" && assignedClientCount === 0
       ? "No assigned clients yet. Ask an admin to assign you to a client."
+      : role === "family" && assignedClientCount === 0
+        ? "No family links yet. Ask an admin to link your account to a client."
       : isCareRole && assignedClientCount > 0
         ? "No shifts scheduled yet."
         : role === "caregiver"
@@ -405,14 +413,19 @@ function NoShiftsCard({
   );
 }
 
-function AssignedClientsPanel({ clients }: { clients: AssignedClient[] }) {
+function AssignedClientsPanel({
+  clients,
+  role,
+}: {
+  clients: AssignedClient[];
+  role: "admin" | "client" | "caregiver" | "family";
+}) {
+  const title = role === "family" ? "Family links" : "Assigned clients";
   return (
     <section className="mt-5 bg-white rounded-3xl shadow-soft p-5 grain-overlay">
       <div className="relative">
         <div className="flex items-baseline justify-between mb-3">
-          <h2 className="font-display text-xl text-ink-900">
-            Assigned clients
-          </h2>
+          <h2 className="font-display text-xl text-ink-900">{title}</h2>
           <Link
             href="/clients"
             className="text-xs text-forest-600 font-medium hover:underline"

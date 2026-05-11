@@ -299,7 +299,7 @@ export default async function MePage() {
         <section className="space-y-2 mb-4">
           <NavLink
             href="/clients"
-            label="Linked clients"
+            label={t("me.familyAccess", lang)}
             Icon={MapPinIcon}
           />
         </section>

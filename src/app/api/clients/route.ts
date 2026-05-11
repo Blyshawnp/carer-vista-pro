@@ -2,10 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { lookupAddress } from "@/lib/address-lookup";
-import {
-  buildAddressQuery,
-  normalizeCountry,
-} from "@/lib/address";
+import { normalizeCountry } from "@/lib/address";
 
 type CreateClientRequest = {
   fullName?: string;
@@ -162,7 +159,7 @@ async function maybeBackfillGeocode(
     country: payload.country ?? null,
   });
 
-  if (!lookup?.latitude || !lookup.longitude) {
+  if (lookup?.latitude == null || lookup.longitude == null) {
     return;
   }
 

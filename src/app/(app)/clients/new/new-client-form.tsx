@@ -4,6 +4,14 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { MapPinIcon } from "@/components/icons";
 import { getCurrentPosition } from "@/lib/geo";
+import {
+  COUNTRY_OPTIONS,
+  getRegionOptions,
+  normalizeCountry,
+  postalLabel,
+  regionLabel,
+  usesRegionDropdown,
+} from "@/lib/address";
 
 export default function NewClientForm() {
   const router = useRouter();
@@ -11,9 +19,9 @@ export default function NewClientForm() {
   const [streetAddress1, setStreetAddress1] = useState("");
   const [streetAddress2, setStreetAddress2] = useState("");
   const [city, setCity] = useState("");
-  const [state, setState] = useState("");
+  const [stateOrRegion, setStateOrRegion] = useState("");
   const [postalCode, setPostalCode] = useState("");
-  const [country, setCountry] = useState("US");
+  const [country, setCountry] = useState("United States");
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
   const [geofenceRadiusMeters, setGeofenceRadiusMeters] = useState("150");
@@ -43,9 +51,9 @@ export default function NewClientForm() {
         streetAddress1,
         streetAddress2,
         city,
-        state,
+        stateOrRegion,
         postalCode,
-        country,
+        country: normalizeCountry(country),
         latitude: latitude.trim() === "" ? null : Number(latitude),
         longitude: longitude.trim() === "" ? null : Number(longitude),
         geofenceRadiusMeters: Number(geofenceRadiusMeters),
@@ -106,13 +114,33 @@ export default function NewClientForm() {
                 className={inputCls}
                 placeholder="City"
               />
-              <input
-                type="text"
-                value={state}
-                onChange={(event) => setState(event.target.value)}
-                className={inputCls}
-                placeholder="State"
-              />
+              {usesRegionDropdown(country) ? (
+                <label className="block">
+                  <span className="block text-xs font-medium text-ink-700 mb-1.5 tracking-wide uppercase">
+                    {regionLabel(country)}
+                  </span>
+                  <select
+                    value={stateOrRegion}
+                    onChange={(event) => setStateOrRegion(event.target.value)}
+                    className={inputCls}
+                  >
+                    <option value="">Select...</option>
+                    {getRegionOptions(country).map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : (
+                <input
+                  type="text"
+                  value={stateOrRegion}
+                  onChange={(event) => setStateOrRegion(event.target.value)}
+                  className={inputCls}
+                  placeholder={regionLabel(country)}
+                />
+              )}
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <input
@@ -120,15 +148,24 @@ export default function NewClientForm() {
                 value={postalCode}
                 onChange={(event) => setPostalCode(event.target.value)}
                 className={inputCls}
-                placeholder="ZIP / postal code"
+                placeholder={postalLabel(country)}
               />
-              <input
-                type="text"
-                value={country}
-                onChange={(event) => setCountry(event.target.value)}
-                className={inputCls}
-                placeholder="Country"
-              />
+              <label className="block">
+                <span className="block text-xs font-medium text-ink-700 mb-1.5 tracking-wide uppercase">
+                  Country
+                </span>
+                <select
+                  value={country}
+                  onChange={(event) => setCountry(event.target.value)}
+                  className={inputCls}
+                >
+                  {COUNTRY_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
             </div>
           </div>
         </Field>
