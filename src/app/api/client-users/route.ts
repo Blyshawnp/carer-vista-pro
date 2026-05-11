@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 type ClientUsersRequest = {
   clientId?: string;
   userIds?: string[];
+  userRoles?: Record<string, string>;
 };
 
 export async function POST(request: Request) {
@@ -32,8 +33,8 @@ export async function POST(request: Request) {
     .eq("id", user.id)
     .maybeSingle<{ id: string; role: string; organization_id: string | null }>();
 
-  if (!viewer?.organization_id || viewer.role !== "admin") {
-    return NextResponse.json({ error: "Admin access required." }, { status: 403 });
+  if (!viewer?.organization_id || (viewer.role !== "admin" && viewer.role !== "client")) {
+    return NextResponse.json({ error: "Admin or client-family admin access required." }, { status: 403 });
   }
 
   const { data: client } = await admin
@@ -57,6 +58,7 @@ export async function POST(request: Request) {
     client_id: client.id,
     user_id: profile.id,
     relationship_role: normalizeRelationshipRole(profile.role),
+    role: normalizeAssignmentRole(profile.role, payload.userRoles?.[profile.id]),
     assigned_by: viewer.id,
     is_active: true,
   }));
@@ -82,5 +84,18 @@ function normalizeRelationshipRole(role: string) {
   if (role === "caregiver" || role === "client" || role === "family" || role === "admin") {
     return role;
   }
+  return "viewer";
+}
+
+function normalizeAssignmentRole(
+  profileRole: string,
+  role: string | undefined
+) {
+  if (profileRole === "family") {
+    return role === "client-like" ? "client-like" : "viewer";
+  }
+  if (profileRole === "caregiver") return "caregiver";
+  if (profileRole === "client") return "client";
+  if (profileRole === "admin") return "admin";
   return "viewer";
 }

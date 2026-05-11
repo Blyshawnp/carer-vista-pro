@@ -17,6 +17,19 @@ type ClientHomeInfo = {
   id: string;
   full_name: string;
   organization_id: string;
+  address: string | null;
+  formatted_address: string | null;
+  street_address_1: string | null;
+  street_address_2: string | null;
+  city: string | null;
+  state: string | null;
+  postal_code: string | null;
+  country: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  geofence_radius_meters: number;
+  location_set_at: string | null;
+  location_source: string | null;
   wifi_ssid: string | null;
   wifi_password: string | null;
   home_notes: string | null;
@@ -49,6 +62,12 @@ type UserOption = {
   is_active: boolean;
 };
 
+type AssignmentOption = {
+  user_id: string;
+  role: "caregiver" | "family" | "client" | "admin" | "viewer" | "client-like";
+  relationship_role: "caregiver" | "family" | "client" | "admin" | "viewer";
+};
+
 export default async function HomeInfoPage({
   params,
 }: {
@@ -70,10 +89,18 @@ export default async function HomeInfoPage({
   if (!profile) redirect("/me");
   const canManage = profile.role === "admin" || profile.role === "client";
 
+  const { data: assignment } = await supabase
+    .from("client_user_assignments")
+    .select("user_id, role, relationship_role")
+    .eq("client_id", id)
+    .eq("user_id", user.id)
+    .eq("is_active", true)
+    .maybeSingle<AssignmentOption>();
+
   const { data: client, error: clientError } = await supabase
     .from("clients")
     .select(
-      "id, full_name, organization_id, wifi_ssid, wifi_password, home_notes, preferred_hospital_name, preferred_hospital_address, preferred_hospital_phone, primary_physician_name, primary_physician_address, primary_physician_phone, show_medications_to_caregivers, show_allergies_to_caregivers"
+      "id, full_name, organization_id, address, formatted_address, street_address_1, street_address_2, city, state, postal_code, country, latitude, longitude, geofence_radius_meters, location_set_at, location_source, wifi_ssid, wifi_password, home_notes, preferred_hospital_name, preferred_hospital_address, preferred_hospital_phone, primary_physician_name, primary_physician_address, primary_physician_phone, show_medications_to_caregivers, show_allergies_to_caregivers"
     )
     .eq("id", id)
     .single<ClientHomeInfo>();
@@ -100,6 +127,15 @@ export default async function HomeInfoPage({
   }
 
   if (!client) notFound();
+
+  const canViewMedicationDetails =
+    canManage ||
+    assignment?.role === "client-like" ||
+    (profile.role === "caregiver" && client.show_medications_to_caregivers);
+  const canViewAllergyDetails =
+    canManage ||
+    assignment?.role === "client-like" ||
+    (profile.role === "caregiver" && client.show_allergies_to_caregivers);
 
   let contacts: EmergencyContact[] = [];
   try {
@@ -166,6 +202,11 @@ export default async function HomeInfoPage({
     safetyItems = [];
   }
 
+  const canViewSafetyDetails =
+    canManage ||
+    assignment?.role === "client-like" ||
+    safetyItems.length > 0;
+
   // Fetch documents (silent fail)
   let documents: Document[] = [];
   try {
@@ -183,6 +224,7 @@ export default async function HomeInfoPage({
 
   let users: UserOption[] = [];
   let assignedUserIds: string[] = [];
+  let assignments: AssignmentOption[] = [];
   if (canManage) {
     const [{ data: usersData }, { data: assignmentsData }] = await Promise.all([
       supabase
@@ -192,13 +234,14 @@ export default async function HomeInfoPage({
         .order("full_name"),
       supabase
         .from("client_user_assignments")
-        .select("user_id")
+        .select("user_id, role, relationship_role")
         .eq("client_id", client.id)
         .eq("is_active", true),
     ]);
 
     users = (usersData ?? []) as UserOption[];
-    assignedUserIds = (assignmentsData ?? []).map((row) => row.user_id as string);
+    assignments = (assignmentsData ?? []) as AssignmentOption[];
+    assignedUserIds = assignments.map((row) => row.user_id);
   }
 
   return (
@@ -227,12 +270,17 @@ export default async function HomeInfoPage({
         documents={documents}
         canManage={canManage}
         canEditWifi={canManage}
+        canViewMedicationDetails={canViewMedicationDetails}
+        canViewAllergyDetails={canViewAllergyDetails}
+        canViewSafetyDetails={canViewSafetyDetails}
+        assignmentRole={assignment?.role ?? null}
       />
       {canManage && (
         <ClientUsersManager
           clientId={client.id}
           users={users}
           assignedUserIds={assignedUserIds}
+          assignments={assignments}
         />
       )}
     </main>

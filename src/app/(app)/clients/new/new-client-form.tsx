@@ -2,17 +2,28 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { MapPinIcon } from "@/components/icons";
+import { getCurrentPosition } from "@/lib/geo";
 
 export default function NewClientForm() {
   const router = useRouter();
   const [fullName, setFullName] = useState("");
-  const [address, setAddress] = useState("");
+  const [streetAddress1, setStreetAddress1] = useState("");
+  const [streetAddress2, setStreetAddress2] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [country, setCountry] = useState("US");
+  const [latitude, setLatitude] = useState("");
+  const [longitude, setLongitude] = useState("");
+  const [geofenceRadiusMeters, setGeofenceRadiusMeters] = useState("150");
   const [homeNotes, setHomeNotes] = useState("");
   const [emergencyName, setEmergencyName] = useState("");
   const [emergencyPhone, setEmergencyPhone] = useState("");
   const [emergencyRelationship, setEmergencyRelationship] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [locating, setLocating] = useState(false);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -29,7 +40,15 @@ export default function NewClientForm() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         fullName,
-        address,
+        streetAddress1,
+        streetAddress2,
+        city,
+        state,
+        postalCode,
+        country,
+        latitude: latitude.trim() === "" ? null : Number(latitude),
+        longitude: longitude.trim() === "" ? null : Number(longitude),
+        geofenceRadiusMeters: Number(geofenceRadiusMeters),
         homeNotes,
         emergencyName,
         emergencyPhone,
@@ -64,13 +83,106 @@ export default function NewClientForm() {
         </Field>
 
         <Field label="Address">
-          <input
-            type="text"
-            value={address}
-            onChange={(event) => setAddress(event.target.value)}
-            className={inputCls}
-            placeholder="Home address"
-          />
+          <div className="space-y-3">
+            <input
+              type="text"
+              value={streetAddress1}
+              onChange={(event) => setStreetAddress1(event.target.value)}
+              className={inputCls}
+              placeholder="Street address 1"
+            />
+            <input
+              type="text"
+              value={streetAddress2}
+              onChange={(event) => setStreetAddress2(event.target.value)}
+              className={inputCls}
+              placeholder="Street address 2"
+            />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <input
+                type="text"
+                value={city}
+                onChange={(event) => setCity(event.target.value)}
+                className={inputCls}
+                placeholder="City"
+              />
+              <input
+                type="text"
+                value={state}
+                onChange={(event) => setState(event.target.value)}
+                className={inputCls}
+                placeholder="State"
+              />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <input
+                type="text"
+                value={postalCode}
+                onChange={(event) => setPostalCode(event.target.value)}
+                className={inputCls}
+                placeholder="ZIP / postal code"
+              />
+              <input
+                type="text"
+                value={country}
+                onChange={(event) => setCountry(event.target.value)}
+                className={inputCls}
+                placeholder="Country"
+              />
+            </div>
+          </div>
+        </Field>
+
+        <Field label="Location">
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <input
+                type="text"
+                value={latitude}
+                onChange={(event) => setLatitude(event.target.value)}
+                className={inputCls}
+                placeholder="Latitude"
+              />
+              <input
+                type="text"
+                value={longitude}
+                onChange={(event) => setLongitude(event.target.value)}
+                className={inputCls}
+                placeholder="Longitude"
+              />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-3">
+              <input
+                type="number"
+                min={10}
+                max={5000}
+                value={geofenceRadiusMeters}
+                onChange={(event) => setGeofenceRadiusMeters(event.target.value)}
+                className={inputCls}
+                placeholder="Geofence radius"
+              />
+              <button
+                type="button"
+                onClick={async () => {
+                  setError(null);
+                  setLocating(true);
+                  const coords = await getCurrentPosition();
+                  setLocating(false);
+                  if (!coords) {
+                    setError("Could not get your location.");
+                    return;
+                  }
+                  setLatitude(coords.latitude.toFixed(6));
+                  setLongitude(coords.longitude.toFixed(6));
+                }}
+                className="inline-flex items-center justify-center gap-2 bg-forest-100 hover:bg-forest-100/70 text-forest-700 px-4 py-2.5 rounded-xl text-sm font-medium transition disabled:opacity-50"
+                disabled={locating}
+              >
+                <MapPinIcon size={16} />
+                {locating ? "Getting location..." : "Use my current location"}
+              </button>
+            </div>
+          </div>
         </Field>
 
         <Field label="Emergency contact name">

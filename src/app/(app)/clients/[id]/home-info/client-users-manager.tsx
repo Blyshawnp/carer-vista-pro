@@ -11,17 +11,31 @@ type UserOption = {
   is_active: boolean;
 };
 
+type AssignmentOption = {
+  user_id: string;
+  role: "caregiver" | "family" | "client" | "admin" | "viewer" | "client-like";
+  relationship_role: "caregiver" | "family" | "client" | "admin" | "viewer";
+};
+
 export default function ClientUsersManager({
   clientId,
   users,
   assignedUserIds,
+  assignments,
 }: {
   clientId: string;
   users: UserOption[];
   assignedUserIds: string[];
+  assignments: AssignmentOption[];
 }) {
   const router = useRouter();
   const [selectedUserIds, setSelectedUserIds] = useState(new Set(assignedUserIds));
+  const [selectedRoles, setSelectedRoles] = useState<Record<string, AssignmentOption["role"]>>(
+    () =>
+      Object.fromEntries(
+        assignments.map((assignment) => [assignment.user_id, assignment.role])
+      ) as Record<string, AssignmentOption["role"]>
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,6 +59,12 @@ export default function ClientUsersManager({
       body: JSON.stringify({
         clientId,
         userIds: Array.from(selectedUserIds),
+        userRoles: Object.fromEntries(
+          Array.from(selectedUserIds).map((userId) => [
+            userId,
+            selectedRoles[userId] ?? "viewer",
+          ])
+        ),
       }),
     });
 
@@ -97,11 +117,23 @@ export default function ClientUsersManager({
                     <span className="block font-medium text-ink-800 truncate">
                       {person.full_name || person.email}
                     </span>
-                    <span className="block text-xs text-ink-500">
-                      {roleLabel(person.role)}
-                      {!person.is_active && " · Inactive"}
-                    </span>
+                    <span className="block text-xs text-ink-500">{roleLabel(person.role)}{!person.is_active && " · Inactive"}</span>
                   </span>
+                  {person.role === "family" && checked && (
+                    <select
+                      value={selectedRoles[person.id] ?? "viewer"}
+                      onChange={(event) =>
+                        setSelectedRoles((current) => ({
+                          ...current,
+                          [person.id]: event.target.value as AssignmentOption["role"],
+                        }))
+                      }
+                      className="ml-auto rounded-xl border border-cream-200 bg-white px-3 py-2 text-xs text-ink-800"
+                    >
+                      <option value="viewer">Viewer</option>
+                      <option value="client-like">Client-like</option>
+                    </select>
+                  )}
                 </label>
               );
             })}

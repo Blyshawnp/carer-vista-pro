@@ -8,6 +8,19 @@ type ClientHomeInfo = {
   id: string;
   full_name: string;
   organization_id: string;
+  address: string | null;
+  formatted_address: string | null;
+  street_address_1: string | null;
+  street_address_2: string | null;
+  city: string | null;
+  state: string | null;
+  postal_code: string | null;
+  country: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  geofence_radius_meters: number;
+  location_set_at: string | null;
+  location_source: string | null;
   wifi_ssid: string | null;
   wifi_password: string | null;
   home_notes: string | null;
@@ -109,6 +122,8 @@ type EditableSafetyItem = Omit<SafetyItem, "notes"> & {
   notes: string;
 };
 
+type AssignmentRole = "caregiver" | "family" | "client" | "admin" | "viewer" | "client-like";
+
 const DOC_CATEGORIES: { value: Document["category"]; label: string }[] = [
   { value: "emergency", label: "Emergency" },
   { value: "instructions", label: "Instructions" },
@@ -136,6 +151,10 @@ export default function HomeInfoEditor({
   documents: initialDocs,
   canManage,
   canEditWifi,
+  canViewMedicationDetails,
+  canViewAllergyDetails,
+  canViewSafetyDetails,
+  assignmentRole,
 }: {
   client: ClientHomeInfo;
   contacts: EmergencyContact[];
@@ -145,11 +164,31 @@ export default function HomeInfoEditor({
   documents: Document[];
   canManage: boolean;
   canEditWifi: boolean;
+  canViewMedicationDetails: boolean;
+  canViewAllergyDetails: boolean;
+  canViewSafetyDetails: boolean;
+  assignmentRole: AssignmentRole | null;
 }) {
   const router = useRouter();
   const [wifiSsid, setWifiSsid] = useState(client.wifi_ssid ?? "");
   const [wifiPassword, setWifiPassword] = useState(client.wifi_password ?? "");
   const [showWifi, setShowWifi] = useState(false);
+  const [streetAddress1, setStreetAddress1] = useState(client.street_address_1 ?? "");
+  const [streetAddress2, setStreetAddress2] = useState(client.street_address_2 ?? "");
+  const [city, setCity] = useState(client.city ?? "");
+  const [state, setState] = useState(client.state ?? "");
+  const [postalCode, setPostalCode] = useState(client.postal_code ?? "");
+  const [country, setCountry] = useState(client.country ?? "US");
+  const [latitude, setLatitude] = useState(
+    client.latitude != null ? String(client.latitude) : ""
+  );
+  const [longitude, setLongitude] = useState(
+    client.longitude != null ? String(client.longitude) : ""
+  );
+  const [geofenceRadiusMeters, setGeofenceRadiusMeters] = useState(
+    String(client.geofence_radius_meters ?? 150)
+  );
+  const [locationSource, setLocationSource] = useState(client.location_source ?? "unknown");
   const [contacts, setContacts] = useState<EditableContact[]>(
     (initialContacts.length > 0 ? initialContacts : [EMPTY_CONTACT]).map((c, index) => ({
       ...c,
@@ -218,8 +257,10 @@ export default function HomeInfoEditor({
         medications={initialMedications}
         allergies={initialAllergies}
         safetyItems={initialSafetyItems}
-        showMedicationHiddenMessage={!client.show_medications_to_caregivers}
-        showAllergyHiddenMessage={!client.show_allergies_to_caregivers}
+        canViewMedicationDetails={canViewMedicationDetails}
+        canViewAllergyDetails={canViewAllergyDetails}
+        canViewSafetyDetails={canViewSafetyDetails}
+        assignmentRole={assignmentRole}
       />
     );
   }
@@ -255,9 +296,39 @@ export default function HomeInfoEditor({
       return;
     }
 
+    const lat = latitude.trim() === "" ? null : Number(latitude);
+    const lng = longitude.trim() === "" ? null : Number(longitude);
+    const radius = Number(geofenceRadiusMeters);
+    if (lat != null && (Number.isNaN(lat) || lat < -90 || lat > 90)) {
+      setError("Latitude must be between -90 and 90.");
+      setSaving(false);
+      return;
+    }
+    if (lng != null && (Number.isNaN(lng) || lng < -180 || lng > 180)) {
+      setError("Longitude must be between -180 and 180.");
+      setSaving(false);
+      return;
+    }
+    if (Number.isNaN(radius) || radius < 10 || radius > 5000) {
+      setError("Geofence radius must be between 10 and 5000 meters.");
+      setSaving(false);
+      return;
+    }
+
     const { error: updateError } = await supabase
       .from("clients")
       .update({
+        street_address_1: streetAddress1.trim() || null,
+        street_address_2: streetAddress2.trim() || null,
+        city: city.trim() || null,
+        state: state.trim() || null,
+        postal_code: postalCode.trim() || null,
+        country: country.trim() || "US",
+        latitude: lat,
+        longitude: lng,
+        geofence_radius_meters: Math.round(radius),
+        location_source: locationSource,
+        location_set_at: lat != null && lng != null ? new Date().toISOString() : null,
         home_notes: notes.trim() || null,
         preferred_hospital_name: hospName.trim() || null,
         preferred_hospital_address: hospAddr.trim() || null,
@@ -306,6 +377,92 @@ export default function HomeInfoEditor({
     <form onSubmit={save} className="space-y-4">
       <Card title="Emergency contacts" subtitle="Add up to 5 contacts in call order.">
         <ContactEditor contacts={contacts} onChange={setContacts} />
+      </Card>
+
+      <Card
+        title="Client location"
+        subtitle="Structured address fields keep the displayed address and geofence location aligned."
+      >
+        <Field label="Street address 1" value={streetAddress1} onChange={setStreetAddress1} placeholder="123 Main St" />
+        <Field label="Street address 2" value={streetAddress2} onChange={setStreetAddress2} placeholder="Apartment, suite, or floor" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Field label="City" value={city} onChange={setCity} placeholder="City" />
+          <Field label="State" value={state} onChange={setState} placeholder="State" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Field label="ZIP / postal code" value={postalCode} onChange={setPostalCode} placeholder="Postal code" />
+          <Field label="Country" value={country} onChange={setCountry} placeholder="Country" />
+        </div>
+        <ReadOnly label="Formatted address" value={client.formatted_address ?? client.address ?? "Not set"} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Field label="Latitude" value={latitude} onChange={setLatitude} placeholder="Latitude" />
+          <Field label="Longitude" value={longitude} onChange={setLongitude} placeholder="Longitude" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Field label="Geofence radius (meters)" value={geofenceRadiusMeters} onChange={setGeofenceRadiusMeters} placeholder="150" />
+          <Field label="Location source" value={locationSource} onChange={setLocationSource} placeholder="manual" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <button
+            type="button"
+            onClick={async () => {
+              const query = [streetAddress1, streetAddress2, city, state, postalCode, country]
+                .map((value) => value.trim())
+                .filter(Boolean)
+                .join(", ");
+              if (!query) {
+                setError("Enter an address before trying lookup.");
+                return;
+              }
+              try {
+                const response = await fetch("/api/address-lookup", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ query }),
+                });
+                const result = (await response.json().catch(() => null)) as
+                  | { formattedAddress?: string; latitude?: number; longitude?: number; error?: string; source?: string }
+                  | null;
+                if (!response.ok || !result) {
+                  setError(result?.error ?? "Address lookup is not configured.");
+                  return;
+                }
+                if (typeof result.latitude === "number") setLatitude(String(result.latitude));
+                if (typeof result.longitude === "number") setLongitude(String(result.longitude));
+                if (result.source) setLocationSource(result.source);
+              } catch {
+                setError("Address lookup is not configured.");
+              }
+            }}
+            className="bg-forest-100 hover:bg-forest-100/70 text-forest-700 py-2.5 rounded-xl text-sm font-medium transition"
+          >
+            Set location from address
+          </button>
+          <button
+            type="button"
+            onClick={() => setLocationSource("manual")}
+            className="bg-cream-50 hover:bg-cream-100 text-forest-600 border border-forest-500/30 py-2.5 rounded-xl text-sm font-medium transition"
+          >
+            Adjust location manually
+          </button>
+          <button
+            type="button"
+            onClick={async () => {
+              const { getCurrentPosition } = await import("@/lib/geo");
+              const coords = await getCurrentPosition();
+              if (!coords) {
+                setError("Could not get the current location.");
+                return;
+              }
+              setLatitude(coords.latitude.toFixed(6));
+              setLongitude(coords.longitude.toFixed(6));
+              setLocationSource("current_location");
+            }}
+            className="bg-cream-50 hover:bg-cream-100 text-forest-600 border border-forest-500/30 py-2.5 rounded-xl text-sm font-medium transition"
+          >
+            Use my current location
+          </button>
+        </div>
       </Card>
 
       <Card
@@ -955,19 +1112,30 @@ function ReadOnlyHomeInfo({
   medications,
   allergies,
   safetyItems,
-  showMedicationHiddenMessage,
-  showAllergyHiddenMessage,
+  canViewMedicationDetails,
+  canViewAllergyDetails,
+  canViewSafetyDetails,
+  assignmentRole,
 }: {
   client: ClientHomeInfo;
   contacts: EmergencyContact[];
   medications: Medication[];
   allergies: Allergy[];
   safetyItems: SafetyItem[];
-  showMedicationHiddenMessage: boolean;
-  showAllergyHiddenMessage: boolean;
+  canViewMedicationDetails: boolean;
+  canViewAllergyDetails: boolean;
+  canViewSafetyDetails: boolean;
+  assignmentRole: AssignmentRole | null;
 }) {
   return (
     <div className="space-y-4">
+      <Card title="Client location">
+        <ReadOnly label="Address" value={client.formatted_address ?? client.address ?? "Not set"} />
+        <ReadOnly label="Latitude" value={client.latitude != null ? String(client.latitude) : "Not set"} />
+        <ReadOnly label="Longitude" value={client.longitude != null ? String(client.longitude) : "Not set"} />
+        <ReadOnly label="Geofence radius" value={`${client.geofence_radius_meters ?? 150}m`} />
+        <ReadOnly label="Location source" value={client.location_source ?? "unknown"} />
+      </Card>
       <Card title="Emergency contacts">
         {contacts.length === 0 ? (
           <p className="text-sm text-ink-500">No emergency contacts visible.</p>
@@ -990,7 +1158,7 @@ function ReadOnlyHomeInfo({
       </Card>
 
       <Card title="Medications">
-        {showMedicationHiddenMessage ? (
+        {!canViewMedicationDetails ? (
           <p className="text-sm text-ink-500">Medication details are hidden by the client/admin.</p>
         ) : medications.length === 0 ? (
           <p className="text-sm text-ink-500">No medications visible.</p>
@@ -1012,7 +1180,7 @@ function ReadOnlyHomeInfo({
       </Card>
 
       <Card title="Allergies">
-        {showAllergyHiddenMessage ? (
+        {!canViewAllergyDetails ? (
           <p className="text-sm text-ink-500">Allergy details are hidden by the client/admin.</p>
         ) : allergies.length === 0 ? (
           <p className="text-sm text-ink-500">No allergies visible.</p>
@@ -1029,7 +1197,9 @@ function ReadOnlyHomeInfo({
       </Card>
 
       <Card title="Emergency & Safety Items">
-        {safetyItems.length === 0 ? (
+        {!canViewSafetyDetails ? (
+          <p className="text-sm text-ink-500">Safety details are hidden by the client/admin.</p>
+        ) : safetyItems.length === 0 ? (
           <p className="text-sm text-ink-500">No safety items visible.</p>
         ) : (
           safetyItems.map((item) => (
@@ -1051,6 +1221,12 @@ function ReadOnlyHomeInfo({
           <p className="text-sm text-ink-500">No home notes visible.</p>
         )}
       </Card>
+
+      {assignmentRole === "client-like" && (
+        <p className="text-xs text-forest-600 px-1">
+          Client privileges are enabled for this family account.
+        </p>
+      )}
 
       <CorrectionRequestForm clientId={client.id} organizationId={client.organization_id} />
     </div>

@@ -5,6 +5,15 @@ import { createClient } from "@/lib/supabase/server";
 type CreateClientRequest = {
   fullName?: string;
   address?: string;
+  streetAddress1?: string;
+  streetAddress2?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  country?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  geofenceRadiusMeters?: number;
   homeNotes?: string;
   emergencyName?: string;
   emergencyPhone?: string;
@@ -54,11 +63,28 @@ export async function POST(request: Request) {
     .insert({
       organization_id: profile.organization_id,
       full_name: fullName,
-      address: clean(payload.address),
+      address: formatAddress(payload),
+      street_address_1: clean(payload.streetAddress1),
+      street_address_2: clean(payload.streetAddress2),
+      city: clean(payload.city),
+      state: clean(payload.state),
+      postal_code: clean(payload.postalCode),
+      country: clean(payload.country) ?? "US",
+      latitude: normalizeNumber(payload.latitude),
+      longitude: normalizeNumber(payload.longitude),
+      geofence_radius_meters: normalizeRadius(payload.geofenceRadiusMeters),
       home_notes: clean(payload.homeNotes),
       emergency_contact_1_name: clean(payload.emergencyName),
       emergency_contact_1_phone: clean(payload.emergencyPhone),
       emergency_contact_1_relationship: clean(payload.emergencyRelationship),
+      location_source:
+        normalizeNumber(payload.latitude) != null && normalizeNumber(payload.longitude) != null
+          ? "manual"
+          : "unknown",
+      location_set_at:
+        normalizeNumber(payload.latitude) != null && normalizeNumber(payload.longitude) != null
+          ? new Date().toISOString()
+          : null,
     })
     .select("id")
     .single<{ id: string }>();
@@ -97,4 +123,30 @@ export async function POST(request: Request) {
 function clean(value?: string) {
   const trimmed = value?.trim();
   return trimmed ? trimmed : null;
+}
+
+function normalizeNumber(value?: number | null) {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function normalizeRadius(value?: number) {
+  return typeof value === "number" && Number.isFinite(value) && value > 0
+    ? Math.round(value)
+    : 150;
+}
+
+function formatAddress(payload: CreateClientRequest) {
+  const parts = [
+    clean(payload.streetAddress1),
+    clean(payload.streetAddress2),
+    clean(payload.city),
+    clean(payload.state),
+    clean(payload.postalCode),
+    clean(payload.country) ?? "US",
+  ].filter(Boolean);
+
+  if (parts.length > 0) {
+    return parts.join(", ");
+  }
+  return clean(payload.address);
 }

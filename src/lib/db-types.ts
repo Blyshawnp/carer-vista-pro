@@ -34,10 +34,30 @@ export type ClientRow = {
   id: string;
   full_name: string;
   address: string | null;
+  formatted_address: string | null;
+  street_address_1: string | null;
+  street_address_2: string | null;
+  city: string | null;
+  state: string | null;
+  postal_code: string | null;
+  country: string | null;
   latitude: number | null;
   longitude: number | null;
   geofence_radius_meters: number;
+  location_set_at: string | null;
+  location_source: string | null;
   organization_id: string;
+};
+
+export type ClientAssignmentRow = {
+  id: string;
+  organization_id: string;
+  client_id: string;
+  user_id: string;
+  relationship_role: "caregiver" | "family" | "client" | "admin" | "viewer";
+  role: "caregiver" | "family" | "client" | "admin" | "viewer" | "client-like";
+  assigned_by: string | null;
+  is_active: boolean;
 };
 
 export type ShiftTypeRow = {
