@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useState } from "react";
 import NotificationBell from "./notification-bell";
 import UserAvatar from "./user-avatar";
 import type { Role } from "@/lib/db-types";
@@ -25,6 +26,8 @@ export default function AppHeader({
   role: Role;
 }) {
   const firstName = getFirstName(fullName);
+  const [logoFailed, setLogoFailed] = useState(false);
+  const [emergencyIconFailed, setEmergencyIconFailed] = useState(false);
 
   return (
     <header className="px-5 pt-5 pb-3 flex items-center justify-between gap-3 sticky top-0 bg-cream-100/85 backdrop-blur-md z-20">
@@ -36,14 +39,21 @@ export default function AppHeader({
             className="inline-flex items-center min-w-0"
           >
             <span className="relative block w-36 h-12 shrink-0">
-              <Image
-                src="/icon.png"
-                alt="Carer Vista Pro"
-                fill
-                sizes="144px"
-                priority
-                className="object-contain"
-              />
+              {logoFailed ? (
+                <span className="flex h-12 items-center font-display text-xl leading-none text-forest-700">
+                  Carer Vista Pro
+                </span>
+              ) : (
+                <Image
+                  src="/icon.png"
+                  alt="Carer Vista Pro"
+                  width={144}
+                  height={48}
+                  priority
+                  onError={() => setLogoFailed(true)}
+                  className="h-12 w-36 object-contain"
+                />
+              )}
             </span>
           </Link>
           <div className="mt-1 flex items-center gap-2 min-w-0">
@@ -72,19 +82,20 @@ export default function AppHeader({
         >
           <span
             aria-hidden="true"
-            className="absolute inset-0 rounded-full bg-red-600"
-          />
-          <span
-            aria-hidden="true"
             className="absolute inset-0 rounded-full bg-red-500/20 animate-ping"
           />
-          <Image
-            src="/icons/emergency.png"
-            alt=""
-            width={48}
-            height={48}
-            className="relative z-10 block object-contain"
-          />
+          {emergencyIconFailed ? (
+            <EmergencyFallbackIcon className="relative z-10" />
+          ) : (
+            <Image
+              src="/icons/emergency.png"
+              alt=""
+              width={48}
+              height={48}
+              onError={() => setEmergencyIconFailed(true)}
+              className="relative z-10 block object-contain"
+            />
+          )}
         </Link>
         {userId && (
           <NotificationBell initialCount={notificationCount} userId={userId} />
@@ -107,5 +118,17 @@ export default function AppHeader({
         )}
       </div>
     </header>
+  );
+}
+
+function EmergencyFallbackIcon({ className = "" }: { className?: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={`relative grid h-12 w-12 place-items-center rounded-full bg-red-600 ${className}`}
+    >
+      <span className="absolute h-7 w-2.5 rounded-sm bg-white" />
+      <span className="absolute h-2.5 w-7 rounded-sm bg-white" />
+    </span>
   );
 }

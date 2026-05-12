@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 type EmergencyInfo = {
   id: string;
@@ -64,6 +64,8 @@ export default function EmergencyPanel({
   allergies,
   safetyItems,
 }: EmergencyPanelProps) {
+  const [emergencyIconFailed, setEmergencyIconFailed] = useState(false);
+
   return (
     <section
       aria-label={`${info.full_name} emergency information`}
@@ -71,13 +73,18 @@ export default function EmergencyPanel({
     >
       <div className="flex items-start gap-3 p-4 border-b border-cream-200 bg-cream-50">
         <span className="relative w-11 h-11 rounded-full grid place-items-center shrink-0 shadow-[0_0_16px_rgba(220,38,38,0.28)] overflow-hidden">
-          <Image
-            src="/icons/emergency.png"
-            alt=""
-            width={44}
-            height={44}
-            className="object-contain"
-          />
+          {emergencyIconFailed ? (
+            <EmergencyFallbackIcon />
+          ) : (
+            <Image
+              src="/icons/emergency.png"
+              alt=""
+              width={44}
+              height={44}
+              onError={() => setEmergencyIconFailed(true)}
+              className="object-contain"
+            />
+          )}
         </span>
         <div className="min-w-0">
           <h3 className="font-display text-xl text-ink-900 leading-tight">
@@ -306,6 +313,18 @@ function InfoCard({
 
 function EmptyText({ children }: { children: ReactNode }) {
   return <p className="rounded-2xl bg-cream-50 p-3 text-sm text-ink-500">{children}</p>;
+}
+
+function EmergencyFallbackIcon() {
+  return (
+    <span
+      aria-hidden="true"
+      className="relative grid h-11 w-11 place-items-center rounded-full bg-red-600"
+    >
+      <span className="absolute h-6 w-2 rounded-sm bg-white" />
+      <span className="absolute h-2 w-6 rounded-sm bg-white" />
+    </span>
+  );
 }
 
 function MapLink({ address }: { address: string }) {
