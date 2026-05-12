@@ -1,3 +1,26 @@
+-- Helper used by incident reporting policies for organization owners.
+create or replace function public.is_owner()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.profiles p
+    left join public.organizations o
+      on o.id = p.organization_id
+    where p.id = auth.uid()
+      and (
+        coalesce(p.is_owner, false) = true
+        or o.owner_id = auth.uid()
+      )
+  );
+$$;
+
+grant execute on function public.is_owner() to authenticated;
+
 -- Create incident_reports table
 create table if not exists public.incident_reports (
     id uuid primary key default gen_random_uuid(),
