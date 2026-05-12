@@ -170,7 +170,15 @@ export default async function EmergencyPage({
       .select("id, category, description, created_at, client_id, shift_id, profiles:reported_by(full_name), clients(full_name)")
       .order("created_at", { ascending: false })
       .limit(12);
-    incidentReports = (data ?? []) as IncidentReport[];
+    incidentReports = (data ?? []).map((report) => ({
+      ...report,
+      profiles: Array.isArray(report.profiles)
+        ? report.profiles[0] ?? null
+        : report.profiles,
+      clients: Array.isArray(report.clients)
+        ? report.clients[0] ?? null
+        : report.clients,
+    })) as IncidentReport[];
   } catch {
     incidentReports = [];
   }

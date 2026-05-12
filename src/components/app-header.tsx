@@ -28,18 +28,23 @@ export default function AppHeader({
 
   return (
     <header className="px-5 pt-5 pb-3 flex items-center justify-between gap-3 sticky top-0 bg-cream-100/85 backdrop-blur-md z-20">
-      {/* Left: Logo + Welcome */}
       <div className="flex items-center gap-3 min-w-0">
         <div className="min-w-0">
-          {/* Replaced AppLogo with static Image */}
-          <Link href="/home">
-            <Image
-              src="/icon.png"
-              alt="Carer Vista Pro"
-              width={120}
-              height={40}
-              className="object-contain"
-            />
+          <Link
+            href="/home"
+            aria-label="Carer Vista Pro home"
+            className="inline-flex items-center min-w-0"
+          >
+            <span className="relative block w-36 h-12 shrink-0">
+              <Image
+                src="/icon.png"
+                alt="Carer Vista Pro"
+                fill
+                sizes="144px"
+                priority
+                className="object-contain"
+              />
+            </span>
           </Link>
           <div className="mt-1 flex items-center gap-2 min-w-0">
             <h1 className="font-display text-2xl text-ink-900 leading-none truncate">
@@ -57,32 +62,33 @@ export default function AppHeader({
         </div>
       </div>
 
-      {/* Right: Emergency, Notifications, Profile */}
       <div className="flex items-center gap-2 shrink-0">
-        {/* Emergency Button */}
         <Link
           href="/emergency?report=1"
-          aria-label="Emergency Info"
-          title="Emergency Info"
+          aria-label="Emergency info"
+          title="Emergency info"
           data-role={role}
-          className="relative w-12 h-12 rounded-full bg-[#FF0000] text-white grid place-items-center border border-red-300 shadow-[0_0_10px_rgba(255,0,0,0.34)] transition-transform transition-shadow transition-colors duration-150 hover:scale-[1.05] hover:shadow-[0_0_14px_rgba(255,0,0,0.48)] active:scale-95 active:bg-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-cream-100 motion-safe:animate-pulse"
+          className="relative w-[52px] h-[52px] min-w-[52px] min-h-[52px] rounded-full grid place-items-center overflow-visible shadow-[0_0_18px_rgba(220,38,38,0.38)] transition duration-150 hover:scale-[1.05] hover:shadow-[0_0_24px_rgba(220,38,38,0.5)] active:scale-95 active:brightness-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2 focus-visible:ring-offset-cream-100 motion-safe:animate-pulse"
         >
-          <span aria-hidden className="absolute inset-0 rounded-full bg-white/10 animate-ping" />
+          <span
+            aria-hidden="true"
+            className="absolute inset-0 rounded-full bg-red-600"
+          />
+          <span
+            aria-hidden="true"
+            className="absolute inset-0 rounded-full bg-red-500/20 animate-ping"
+          />
           <Image
             src="/icons/emergency.png"
-            alt="Emergency Star of Life"
-            width={24}
-            height={24}
-            className="relative z-10 block"
+            alt=""
+            width={48}
+            height={48}
+            className="relative z-10 block object-contain"
           />
         </Link>
-
-        {/* Notification Bell */}
         {userId && (
           <NotificationBell initialCount={notificationCount} userId={userId} />
         )}
-
-        {/* Profile Avatar */}
         {userId && (
           <Link
             href="/me"
