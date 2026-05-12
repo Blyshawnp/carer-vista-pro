@@ -86,8 +86,13 @@ export default function LoginPage() {
       <div className="relative w-full max-w-sm">
         {/* Brand */}
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 inline-flex">
-            <AppLogo href="/login" showText={false} className="justify-center" />
+          <div className="mx-auto mb-5 inline-flex">
+            <AppLogo
+              href="/login"
+              variant="auth"
+              showText={false}
+              className="justify-center"
+            />
           </div>
           <h1 className="font-display text-4xl text-ink-900 mb-1.5">Carer Vista Pro</h1>
           <p className="text-ink-500 text-sm">

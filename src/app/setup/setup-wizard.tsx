@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import AppLogo from "@/components/app-logo";
 
 type SetupType = "personal_family" | "organization";
 type FirstRole = "client" | "family" | "admin";
@@ -65,7 +66,18 @@ export default function SetupWizard({
   return (
     <main className="min-h-dvh bg-cream-100 px-5 py-8">
       <form onSubmit={submit} className="max-w-2xl mx-auto space-y-5">
-        <header>
+        <header className="text-center sm:text-left">
+          <div className="mb-5 flex justify-center sm:justify-start">
+            <AppLogo
+              href="/setup"
+              variant="auth"
+              showText={false}
+              className="justify-center"
+            />
+          </div>
+          <p className="font-display text-3xl text-ink-900 leading-none mb-3">
+            Carer Vista Pro
+          </p>
           <p className="text-xs uppercase tracking-[0.18em] text-forest-600 font-bold mb-2">
             First-run setup
           </p>

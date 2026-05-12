@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import AppLogo from "./app-logo";
 import NotificationBell from "./notification-bell";
 import UserAvatar from "./user-avatar";
 import type { Role } from "@/lib/db-types";
@@ -26,36 +27,13 @@ export default function AppHeader({
   role: Role;
 }) {
   const firstName = getFirstName(fullName);
-  const [logoFailed, setLogoFailed] = useState(false);
   const [emergencyIconFailed, setEmergencyIconFailed] = useState(false);
 
   return (
     <header className="px-5 pt-5 pb-3 flex items-center justify-between gap-3 sticky top-0 bg-cream-100/85 backdrop-blur-md z-20">
       <div className="flex items-center gap-3 min-w-0">
         <div className="min-w-0">
-          <Link
-            href="/home"
-            aria-label="Carer Vista Pro home"
-            className="inline-flex items-center min-w-0"
-          >
-            <span className="relative block w-36 h-12 shrink-0">
-              {logoFailed ? (
-                <span className="flex h-12 items-center font-display text-xl leading-none text-forest-700">
-                  Carer Vista Pro
-                </span>
-              ) : (
-                <Image
-                  src="/icon.png"
-                  alt="Carer Vista Pro"
-                  width={144}
-                  height={48}
-                  priority
-                  onError={() => setLogoFailed(true)}
-                  className="h-12 w-36 object-contain"
-                />
-              )}
-            </span>
-          </Link>
+          <AppLogo href="/home" variant="header" showText={false} />
           <div className="mt-1 flex items-center gap-2 min-w-0">
             <h1 className="font-display text-2xl text-ink-900 leading-none truncate">
               Welcome, <span className="text-forest-600">{firstName}</span>
