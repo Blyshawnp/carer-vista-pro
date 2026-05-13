@@ -203,7 +203,7 @@ export default async function EmergencyPage({
       <header className="mb-5">
         <Link
           href="/home"
-          className="text-sm text-forest-600 hover:underline mb-2 inline-block"
+          className="text-sm text-navy-600 hover:underline mb-2 inline-block"
         >
           ← Back
         </Link>
@@ -229,7 +229,7 @@ export default async function EmergencyPage({
             <Link
               key={inc.id}
               href={`/incidents?incident=${inc.id}`}
-              className="flex items-center justify-between bg-terracotta-500 text-white p-5 rounded-[2rem] shadow-lg animate-pulse border-2 border-white/20"
+              className="flex items-center justify-between bg-teal-500 text-white p-5 rounded-[2rem] shadow-lg animate-pulse border-2 border-white/20"
             >
               <div className="flex items-center gap-3 min-w-0">
                  <Image src="/icons/emergency.png" alt="" width={24} height={24} className="shrink-0" />
@@ -257,18 +257,18 @@ export default async function EmergencyPage({
       {(canFileIncident || profile?.role !== "caregiver") && (
         <section className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-5">
           {canFileIncident && (
-            <Link
-              href="/emergency?report=1"
-              className="bg-terracotta-600 hover:bg-terracotta-500 text-cream-50 rounded-2xl shadow-soft px-4 py-3 transition active:scale-[0.99] border border-terracotta-400/30"
-            >
-              <span className="block font-medium">Report an incident</span>
-              <span className="block text-xs text-cream-50/80">Create a care or safety report</span>
-            </Link>
+            <IncidentReportModal
+              clients={clientBundles}
+              defaultClientId={activeShiftClientId}
+              currentShiftId={activeShiftId}
+              openByDefault={report === "1"}
+              canFile={canFileIncident}
+            />
           )}
           {profile?.role !== "caregiver" && (
             <Link
               href="/incidents"
-              className="bg-white hover:bg-cream-50 rounded-2xl shadow-soft px-4 py-3 transition active:scale-[0.99]"
+              className="bg-white hover:bg-cream-50 rounded-2xl shadow-soft px-4 py-3 transition active:scale-[0.99] flex flex-col justify-center border border-cream-200"
             >
               <span className="block font-medium text-ink-900">Incident history</span>
               <span className="block text-xs text-ink-500">Review submitted reports</span>
@@ -276,14 +276,6 @@ export default async function EmergencyPage({
           )}
         </section>
       )}
-
-      <IncidentReportModal
-        clients={clientBundles}
-        defaultClientId={activeShiftClientId}
-        currentShiftId={activeShiftId}
-        openByDefault={report === "1"}
-        canFile={canFileIncident}
-      />
 
       <div className="bg-white rounded-2xl shadow-soft p-4 mb-6">
         <p className="text-[10px] uppercase tracking-[0.18em] text-ink-400 font-bold mb-1">
@@ -296,7 +288,7 @@ export default async function EmergencyPage({
         </p>
         <Link
           href="/emergency-disclaimer"
-          className="inline-block mt-2 text-sm text-forest-600 hover:underline font-medium"
+          className="inline-block mt-2 text-sm text-navy-600 hover:underline font-medium"
         >
           Read the full disclaimer
         </Link>
@@ -321,7 +313,7 @@ export default async function EmergencyPage({
                       href={`https://maps.google.com/?q=${encodeURIComponent(client.address)}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-forest-600 hover:underline font-medium"
+                      className="text-xs text-navy-600 hover:underline font-medium"
                     >
                       View Map
                     </a>

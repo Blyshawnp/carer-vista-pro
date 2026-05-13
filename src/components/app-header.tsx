@@ -52,7 +52,7 @@ export default function AppHeader({
 
       <div className="flex items-center gap-2 shrink-0">
         <Link
-          href="/emergency?report=1"
+          href="/emergency"
           aria-label="Emergency info"
           title="Emergency info"
           data-role={role}

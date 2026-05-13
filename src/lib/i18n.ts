@@ -113,6 +113,27 @@ const en = {
   "role.client": "Client",
   "role.caregiver": "Caregiver",
   "role.family": "Family",
+
+  // Auth
+  "auth.title": "Carer Vista Pro",
+  "auth.signInTitle": "Sign in to your account",
+  "auth.signUpTitle": "Create your deployment owner account",
+  "auth.fullName": "Full name",
+  "auth.email": "Email",
+  "auth.password": "Password",
+  "auth.signIn": "Sign in",
+  "auth.signingIn": "Signing in...",
+  "auth.createAccount": "Create account",
+  "auth.creating": "Creating...",
+  "auth.forgotPassword": "Forgot your password?",
+  "auth.newDeployment": "New deployment? Create the first account",
+  "auth.alreadyHaveAccount": "Already have an account? Sign in",
+  "auth.checkEmail": "Check your email to confirm your account, then come back to finish setup.",
+  "auth.errors.fullNameRequired": "Full name is required.",
+
+  // Setup
+  "setup.title": "Welcome to Carer Vista Pro",
+  "setup.subtitle": "Let's set up your agency's workspace",
 } as const;
 
 type TranslationKey = keyof typeof en;
@@ -208,6 +229,25 @@ const es: Record<TranslationKey, string> = {
   "role.client": "Cliente",
   "role.caregiver": "Cuidador",
   "role.family": "Familia",
+
+  "auth.title": "Carer Vista Pro",
+  "auth.signInTitle": "Inicie sesión en su cuenta",
+  "auth.signUpTitle": "Cree su cuenta de implementación pública",
+  "auth.fullName": "Nombre completo",
+  "auth.email": "Correo electrónico",
+  "auth.password": "Contraseña",
+  "auth.signIn": "Iniciar sesión",
+  "auth.signingIn": "Iniciando sesión...",
+  "auth.createAccount": "Crear cuenta",
+  "auth.creating": "Creando...",
+  "auth.forgotPassword": "¿Olvidó su contraseña?",
+  "auth.newDeployment": "¿Nueva implementación? Cree la primera cuenta",
+  "auth.alreadyHaveAccount": "¿Ya tiene una cuenta? Inicie sesión",
+  "auth.checkEmail": "Revise su correo electrónico para confirmar su cuenta, luego regrese para finalizar la configuración.",
+  "auth.errors.fullNameRequired": "Se requiere el nombre completo.",
+
+  "setup.title": "Bienvenido a Carer Vista Pro",
+  "setup.subtitle": "Configuremos el espacio de trabajo de su agencia",
 };
 
 const dictionaries: Record<Lang, Record<TranslationKey, string>> = {
@@ -232,6 +272,21 @@ export function t(
     }
   }
   return s;
+}
+
+/**
+ * Client-side hook to translate strings. For now this returns English; the
+ * server passes the resolved language to client components when needed. This
+ * exists so client components can `import { useTranslation } from "@/lib/i18n"`
+ * without having to thread the lang prop everywhere.
+ */
+export function useTranslation() {
+  const lang: Lang = "en";
+  return {
+    t: (key: TranslationKey, vars?: Record<string, string | number>) =>
+      t(key, lang, vars),
+    lang,
+  };
 }
 
 export type { TranslationKey };
