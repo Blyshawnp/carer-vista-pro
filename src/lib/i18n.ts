@@ -1,1 +1,292 @@
-ZXhwb3J0IHR5cGUgTGFuZyA9ICJlbiIgfCAiZXMiOwoKY29uc3QgZW4gPSB7CiAgIm5hdi5ob21lIjogIkhvbWUiLAogICJuYXYuc2NoZWR1bGUiOiAiU2NoZWR1bGUiLAogICJuYXYudGFza3MiOiAiVGFza3MiLAogICJuYXYuY2xpZW50cyI6ICJDbGllbnRzIiwKICAibmF2LmZhbWlseSI6ICJGYW1pbHkiLAogICJuYXYudGVhbSI6ICJUZWFtIiwKICAibmF2Lm5vdGlmaWNhdGlvbnMiOiAiQWxlcnRzIiwKICAibmF2Lm1lc3NhZ2VzIjogIk1lc3NhZ2VzIiwKICAibmF2Lm1lIjogIk1lIiwKICAiY29tbW9uLnNhdmUiOiAiU2F2ZSIsCiAgImNvbW1vbi5zYXZpbmciOiAiU2F2aW5nLi4uIiwKICAiY29tbW9uLmNhbmNlbCI6ICJDYW5jZWxhciIsCiAgImNvbW1vbi5iYWNrIjogIkF0csOhcyIsCiAgImNvbW1vbi5sb2FkaW5nIjogIkNhcmdhbmRvLi4uIiwKICAiY29tbW9uLnJlcXVpcmVkIjogIm9ibGlnYXRvcmlvIiwKICAiY29tbW9uLm9wdGlvbmFsIjogIm9wY2lvbmFsIiwKICAiY29tbW9uLmRlbGV0ZSI6ICJFbGltaW5hciIsCiAgImNvbW1vbi5lZGl0IjogIkVkaXRhciIsCiAgImNvbW1vbi5jb25maXJtIjogIkNvbmZpcm1hciIsCiAgImNvbW1vbi55ZXMiOiAiU8OtIiwKICAiY29tbW9uLm5vIjogIk5vIiwKICAiY29tbW9uLmFkZCI6ICJBZ3JlZ2FyIiwKICAiYXV0aC50aXRsZSI6ICJDYXJlciBWaXN0YSBQcm8iLAogICJhdXRoLnNpZ25JblRpdGxlIjogIkluaWNpZSBzZXNpw7NuIGVuIHN1IGN1ZW50YSIsCiAgImF1dGguc2lnblVwVGl0bGUiOiAiQ3JlZSBzdSBjdWVudGEgZGUgaW1wbGVtZW50YWNpw7NuIHDDumJsaWNhIiwKICAiYXV0aC5mdWxsTmFtZSI6ICJOb21icmUgY29tcGxldG8iLAogICJhdXRoLmVtYWlsIjogIkNvcnJlbyBlbGVjdHLDs25pY28iLAogICJhdXRoLnBhc3N3b3JkIjogIkNvbnRyYXNlw7FhIiwKICAiYXV0aC5zaWduSW4iOiAiSW5pY2lhciBzZXNpw7NuIiwKICAiYXV0aC5zaWduaW5nSW4iOiAiSW5pY2lhbmRvIHNlc2nDs24uLi4iLAogICJhdXRoLmNyZWF0ZUFjY291bnQiOiAiQ3JlYXIgY3VlbnRhIiwKICAiYXV0aC5jcmVhdGluZyI6ICJDcmVhbmRvLi4uIiwKICAiYXV0aC5mb3Jnb3RQYXNzd29yZCI6ICLCv09sdmlkw7Mgc3UgY29udHJhc2XDsWE/IiwKICAiYXV0aC5uZXdEZXBsb3ltZW50IjogIsK/TnVldmEgaW1wbGVtZW50YWNpw7NuPyBDcmVlIGxhIHByaW1lcmEgY3VlbnRhIiwKICAiYXV0aC5hbHJlYWR5SGF2ZUFjY291bnQiOiAiwr9ZYSB0aWVuZSB1bmEgY3VlbnRhPyBJbmljaWUgc2VzacOzbiIsCiAgImF1dGguY2hlY2tFbWFpbCI6ICJSZXZpc2Ugc3UgY29ycmVvIGVsZWN0csOzbmljbyBwYXJhIGNvbmZpcm1hciBzdSBjdWVudGEsIGx1ZWdvIHJlZ3Jlc2UgcGFyYSBmaW5hbGl6YXIgbGEgY29uZmlndXJhY2nDs24uIiwKICAiYXV0aC5lcnJvcnMuZnVsbE5hbWVSZXF1aXJlZCI6ICJTZSByZXF1aWVyZSBlbCBub21icmUgY29tcGxldG8uIiwKICAic2V0dXAudGl0bGUiOiAiQmllbnZlbmlkbyBhIENhcmVyIFZpc3RhIFBybyIsCiAgInNldHVwLnN1YnRpdGxlIjogIkNvbmZpZ3VyZW1vcyBlbCBlc3BhY2lvIGRlIHRyYWJham8gZGUgc3UgYWdlbmNpYSIsCiAgIm1lLnRpdGxlIjogIk1pIGN1ZW50YSIsCiAgIm1lLmVtYWlsIjogIkNvcnJlbyBlbGVjdHLDs25pY28iLAogICJtZS5waG9uZSI6ICJUZWzDqWZvbm8iLAogICJtZS5vcmdhbml6YXRpb24iOiAiT3JnYW5pemFjacOzbiIsCiAgIm1lLm5vdFNldCI6ICJObyBlc3RhYmxlY2lkbyIsCiAgIm1lLnNpZ25PdXQiOiAiQ2VycmFyIHNlc2nDs24iLAogICJtZS5oZWxwQW5kSG93VG8iOiAiQXl1ZGEgeSBndcOtYSIsCiAgIm1lLm15SW52b2ljZXMiOiAiTWlzIGZhY3R1cmFzIiwKICAibWUucGF5cm9sbCI6ICJOw7NtaW5hIiwKICAibWUubWFuYWdlVGVhbSI6ICJBZG1pbmlzdHJhciBlcXVpcG8iLAogICJtZS5jbGllbnRzQW5kR2VvZmVuY2UiOiAiQ2xpZW50ZXMgeSBnZW9jZXJjYSIsCiAgIm1lLmZhbWlseUFjY2VzcyI6ICJBY2Nlc28gZmFtaWxpYXIiLAogICJtZS5ob21lSW5mbyI6ICJJbmZvcm1hY2nDs24gZGVsIGhvZ2FyIiwKICAibWUuc2V0dGluZ3MiOiAiQ29uZmlndXJhY2nDs24iLAogICJtZS5sYW5ndWFnZSI6ICJJZGlvbWEiLAogICJtZS5sYW5ndWFnZUVuIjogIkVuZ2xpc2giLAogICJtZS5sYW5ndWFnZUVzIjogIkVzcGHDsW9sIiwKICAibWUubGFuZ3VhZ2VTdWJ0aXRsZSI6ICJMb3MgY2FtYmlvcyBzdXJ0ZW4gZWZlY3RvIGFsIHJlY2FyZ2FyIGxhIHDDoWdpbmEuIiwKICAicGF5LnRoaXNQZXJpb2QiOiAiRXN0ZSBwZXLDrW9kbyBkZSBwYWdvIiwKICAicGF5Lmxhc3RQZXJpb2QiOiAiUGVyw61vZG8gYW50ZXJpb3IiLAogICJwYXkucnVuc0ZyaVRvRnJpIjogIkxvcyBwZXLDrW9kb3MgdmFuIGRlIHZpZXJuZXMgYSB2aWVybmVzLCBzZSBjaWVycmFuIGEgbGFzIDkgUE0uIiwKICAicGF5LnZpZXdBbGwiOiAiVmVyIHRvZG8g4oaSIiwKICAicGF5LmhvdXJzIjogImgiLAogICJzaGlmdC5zY2hlZHVsZWQiOiAiUHJvZ3JhbWFkbyIsCiAgInNoaWZ0Lm5vdFlldFN0YXJ0ZWQiOiAiQcO6biBubyBjb21lbnphZG8iLAogICInc2hpZnQuaW5Qcm9ncmVzcyI6ICJFbiBjdXJzbyIsCiAgInNoaWZ0LmNvbXBsZXRlZCI6ICJDb21wbGV0YWRvIiwKICAic2hpZnQuZmxhZ2dlZCI6ICJNYXJjYWRvIiwKICAic2hpZnQuY2xpZW50IjogIkNsaWVudGUiLAogICJzaGlmdC5jYXJlZ2l2ZXIiOiAiQ3VpZGFkb3IiLAogICInc2hpZnQubG9jYXRpb24iOiAiVWJpY2FjacOzbiIsCiAgInNoaWZ0LmJvbnVzIjogIkJvbm8iLAogICInc2hpZnQucGF5IjogIlBhZ28iLAogICInc2hpZnQuY2hlY2tJbiI6ICJSZWdpc3RyYXIgZW50cmFkYSIsCiAgInNoaWZ0LmNoZWNrT3V0IjogIlJlZ2lzdHJhciBzYWxpZGEiLAogICInc2hpZnQudGFza3MiOiAiVGFyZWFzIiwKICAic2hpZnQudmlld0FsbFRhc2tzIjogIlZlciBsYXMge259IHRhcmVhcyDimpIiLAogICInc2hpZnQuaGFuZG9mZk5vdGUiOiAiTm90YSBkZSByZWxldm8iLAogICJzaGlmdC5oYW5kb2ZmTm90ZUZyb21MYXN0IjogIk5vdGEgZGVsIMO6bHRpbW8gdHVybm8iLAogICJzaGlmdC5oYW5kb2ZmTm90ZVBsYWNlaG9sZGVyIjogIsK/QWxnbyBxdWUgZWwgcHLDs3hpbW8gY3VpZGFkb3IgZGViYSBzYWJlcj8gKG9wY2lvbmFsKSIsCiAgInNoaWZ0LmxlYXZlSGFuZG9mZk5vdGUiOiAiRGVqYXIgdW5hIG5vdGEgcGFyYSBlbCBwcsOzeGltbyBjdWlkYWRvciIsCiAgInNoaWZ0LnZpZXdlZEJ5IjogIlZpc3RvIHBvciB7bmFtZX0iLAogICJzaGlmdC5ub3RZZXRWaWV3ZWQiOiAiQcO6biBubyB2aXN0byIsCiAgImhlbHAudGl0bGUiOiAiQXl1ZGEiLAogICJoZWxwLmJhY2tMaW5rIjogIuKGkCBBdHLDoXMiLAogICJtZXNzYWdlcy50aXRsZSI6ICJNZW5zYWplcyIsCiAgIm1lc3NhZ2VzLm5ld01lc3NhZ2UiOiAiTnVldm8gbWVuc2FqZSIsCiAgIm1lc3NhZ2VzLnNlbmQiOiAiRW52aWFyIiwKICAibWVzc2FnZXMudHlwZU1lc3NhZ2UiOiAiRXNjcmliaXIgdW4gbWVuc2FqZS4uLiIsCiAgInNjaGVkdWxlLnRpdGxlIjogIkhvcmFyaW8iLAogICJzY2hlZHVsZS50b2RheSI6ICJIb3kiLAogICJzY2hlZHVsZS50b21vcnJvdyI6ICJNYcOxYW5hIiwKICAic2NoZWR1bGUudXBjb21pbmciOiAiUHLDs3hpbW9zIiwKICAic2NoZWR1bGUucGFzdCI6ICJQYXNhZG9zIiwKICAic2NoZWR1bGUubm9TaGlmdHMiOiAiTm8gaGF5IHR1cm5vcyBwcm9ncmFtYWRvcy4iLAogICJzY2hlZHVsZS5uZXdTaGlmdCI6ICJOdWV2byB0dXJubyIsCiAgInJvbGUuYWRtaW4iOiAiQWRtaW5pc3RyYWRvciIsCiAgInJvbGUuY2xpZW50IjogIkNsaWVudGUiLAogICIncm9sZS5jYXJlZ2l2ZXIiOiAiQ3VpZGFkb3IiLAogICIncm9sZS5mYW1pbHkiOiAiRmFtaWxpYSIsCn07Cgpjb25zdCBkaWN0aW9uYXJpZXM6IFJlY29yZDxMYW5nLCBSZWNvcmQ8c3RyaW5nLCBzdHJpbmc+PiA9IHsKICBlbiwKICBlcywKfTsKCmV4cG9ydCBmdW5jdGlvbiB0KAogIGtleTogVHJhbnNsYXRpb25LZXksCiAgbGFuZzogTGFuZyA9ICJlbiIsCiAgdmFycz86IFJlY29yZDxzdHJpbmcsIHN0cmluZyB8IG51bWJlcj4KKTogc3RyaW5nIHsKICBsZXQgcyA9IChkaWN0aW9uYXJpZXNbbGFuZ10gYXMgYW55KT8uW2tleV0gPz8gKGVuIGFzIGFueSlba2V5XTsKICBpZiAoIXMpIHJldHVybiBrZXk7CiAgaWYgKHZhcnMpIHsKICAgIGZvciAoY29uc3QgW2ssIHZdIG9mIE9iamVjdC5lbnRyaWVzKHZhcnMpKSB7CiAgICAgIHMgPSBzLnJlcGxhY2UobmV3IFJlZ0V4cChgXFx7JHtrfVxcfWAsICJnIiksIFN0cmluZyh2KSk7CiAgICB9CiAgfQogIHJldHVybiBzOwp9CgpleHBvcnQgZnVuY3Rpb24gdXNlVHJhbnNsYXRpb24oKSB7CiAgY29uc3QgbGFuZyA9ICJlbiI7IAogIHJldHVybiB7IHQ6IChrZXk6IFRyYW5zbGF0aW9uS2V5LCB2YXJzPzogUmVjb3JkPHN0cmluZywgc3RyaW5nIHwgbnVtYmVyPikgPT4gdChrZXksIGxhbmcsIHZhcnMpLCBsYW5nIH07Cn0KCmV4cG9ydCB0eXBlIHsgVHJhbnNsYXRpb25LZXkgfTsK
+/**
+ * Minimal i18n. No external dependencies. Translations are typed so a missing
+ * key in Spanish is a compile error.
+ *
+ * Adding a string:
+ *   1. Add the key + English value to `en` below.
+ *   2. Add the same key with the Spanish value to `es`.
+ *   3. Use `t("your.key", lang)` in your component.
+ *
+ * The user's language preference lives on `profiles.language`. Server pages
+ * read it from the profile; client components receive it as a prop.
+ */
+
+export type Lang = "en" | "es";
+
+const en = {
+  // Nav
+  "nav.home": "Home",
+  "nav.schedule": "Schedule",
+  "nav.tasks": "Tasks",
+  "nav.clients": "Clients",
+  "nav.family": "Family",
+  "nav.team": "Team",
+  "nav.notifications": "Alerts",
+  "nav.messages": "Messages",
+  "nav.me": "Me",
+
+  // Common
+  "common.save": "Save",
+  "common.saving": "Saving...",
+  "common.cancel": "Cancel",
+  "common.back": "Back",
+  "common.loading": "Loading...",
+  "common.required": "required",
+  "common.optional": "optional",
+  "common.delete": "Delete",
+  "common.edit": "Edit",
+  "common.confirm": "Confirm",
+  "common.yes": "Yes",
+  "common.no": "No",
+  "common.add": "Add",
+
+  // Me page
+  "me.title": "Me",
+  "me.email": "Email",
+  "me.phone": "Phone",
+  "me.organization": "Organization",
+  "me.notSet": "Not set",
+  "me.signOut": "Sign out",
+  "me.helpAndHowTo": "Help & how-to",
+  "me.myInvoices": "My invoices",
+  "me.payroll": "Payroll",
+  "me.manageTeam": "Manage team",
+  "me.clientsAndGeofence": "Clients & geofence",
+  "me.familyAccess": "Family access",
+  "me.homeInfo": "Home info",
+  "me.settings": "Settings",
+  "me.language": "Language",
+  "me.languageEn": "English",
+  "me.languageEs": "Español",
+  "me.languageSubtitle": "Changes take effect on next page load.",
+
+  // Pay summary
+  "pay.thisPeriod": "This pay period",
+  "pay.lastPeriod": "Last period",
+  "pay.runsFriToFri": "Periods run Fri – Fri, lock at 9 PM.",
+  "pay.viewAll": "View all →",
+  "pay.hours": "hrs",
+
+  // Shift detail
+  "shift.scheduled": "Scheduled",
+  "shift.notYetStarted": "Not yet started",
+  "shift.inProgress": "In progress",
+  "shift.completed": "Completed",
+  "shift.flagged": "Flagged",
+  "shift.client": "Client",
+  "shift.caregiver": "Caregiver",
+  "shift.location": "Location",
+  "shift.bonus": "Bonus",
+  "shift.pay": "Pay",
+  "shift.checkIn": "Check in",
+  "shift.checkOut": "Check out",
+  "shift.tasks": "Tasks",
+  "shift.viewAllTasks": "View all {n} tasks →",
+  "shift.handoffNote": "Handoff note",
+  "shift.handoffNoteFromLast": "Note from last shift",
+  "shift.handoffNotePlaceholder": "Anything the next caregiver should know? (optional)",
+  "shift.leaveHandoffNote": "Leave a note for the next caregiver",
+  "shift.viewedBy": "Seen by {name}",
+  "shift.notYetViewed": "Not yet seen",
+
+  // Help
+  "help.title": "Help",
+  "help.backLink": "← Back",
+
+  // Messages
+  "messages.title": "Messages",
+  "messages.newMessage": "New message",
+  "messages.send": "Send",
+  "messages.typeMessage": "Type a message...",
+
+  // Schedule
+  "schedule.title": "Schedule",
+  "schedule.today": "Today",
+  "schedule.tomorrow": "Tomorrow",
+  "schedule.upcoming": "Upcoming",
+  "schedule.past": "Past",
+  "schedule.noShifts": "No shifts scheduled.",
+  "schedule.newShift": "New shift",
+
+  // Roles
+  "role.admin": "Admin",
+  "role.client": "Client",
+  "role.caregiver": "Caregiver",
+  "role.family": "Family",
+
+  // Auth
+  "auth.title": "Carer Vista Pro",
+  "auth.signInTitle": "Sign in to your account",
+  "auth.signUpTitle": "Create your deployment owner account",
+  "auth.fullName": "Full name",
+  "auth.email": "Email",
+  "auth.password": "Password",
+  "auth.signIn": "Sign in",
+  "auth.signingIn": "Signing in...",
+  "auth.createAccount": "Create account",
+  "auth.creating": "Creating...",
+  "auth.forgotPassword": "Forgot your password?",
+  "auth.newDeployment": "New deployment? Create the first account",
+  "auth.alreadyHaveAccount": "Already have an account? Sign in",
+  "auth.checkEmail": "Check your email to confirm your account, then come back to finish setup.",
+  "auth.errors.fullNameRequired": "Full name is required.",
+
+  // Setup
+  "setup.title": "Welcome to Carer Vista Pro",
+  "setup.subtitle": "Let's set up your agency's workspace",
+} as const;
+
+type TranslationKey = keyof typeof en;
+
+const es: Record<TranslationKey, string> = {
+  "nav.home": "Inicio",
+  "nav.schedule": "Horario",
+  "nav.tasks": "Tareas",
+  "nav.clients": "Clientes",
+  "nav.family": "Familia",
+  "nav.team": "Equipo",
+  "nav.notifications": "Avisos",
+  "nav.messages": "Mensajes",
+  "nav.me": "Yo",
+
+  "common.save": "Guardar",
+  "common.saving": "Guardando...",
+  "common.cancel": "Cancelar",
+  "common.back": "Atrás",
+  "common.loading": "Cargando...",
+  "common.required": "obligatorio",
+  "common.optional": "opcional",
+  "common.delete": "Eliminar",
+  "common.edit": "Editar",
+  "common.confirm": "Confirmar",
+  "common.yes": "Sí",
+  "common.no": "No",
+  "common.add": "Agregar",
+
+  "me.title": "Mi cuenta",
+  "me.email": "Correo electrónico",
+  "me.phone": "Teléfono",
+  "me.organization": "Organización",
+  "me.notSet": "No establecido",
+  "me.signOut": "Cerrar sesión",
+  "me.helpAndHowTo": "Ayuda y guía",
+  "me.myInvoices": "Mis facturas",
+  "me.payroll": "Nómina",
+  "me.manageTeam": "Administrar equipo",
+  "me.clientsAndGeofence": "Clientes y geocerca",
+  "me.familyAccess": "Acceso familiar",
+  "me.homeInfo": "Información del hogar",
+  "me.settings": "Configuración",
+  "me.language": "Idioma",
+  "me.languageEn": "English",
+  "me.languageEs": "Español",
+  "me.languageSubtitle": "Los cambios surten efecto al recargar la página.",
+
+  "pay.thisPeriod": "Este período de pago",
+  "pay.lastPeriod": "Período anterior",
+  "pay.runsFriToFri": "Los períodos van de viernes a viernes, se cierran a las 9 PM.",
+  "pay.viewAll": "Ver todo →",
+  "pay.hours": "h",
+
+  "shift.scheduled": "Programado",
+  "shift.notYetStarted": "Aún no comenzado",
+  "shift.inProgress": "En curso",
+  "shift.completed": "Completado",
+  "shift.flagged": "Marcado",
+  "shift.client": "Cliente",
+  "shift.caregiver": "Cuidador",
+  "shift.location": "Ubicación",
+  "shift.bonus": "Bono",
+  "shift.pay": "Pago",
+  "shift.checkIn": "Registrar entrada",
+  "shift.checkOut": "Registrar salida",
+  "shift.tasks": "Tareas",
+  "shift.viewAllTasks": "Ver las {n} tareas →",
+  "shift.handoffNote": "Nota de relevo",
+  "shift.handoffNoteFromLast": "Nota del último turno",
+  "shift.handoffNotePlaceholder": "¿Algo que el próximo cuidador deba saber? (opcional)",
+  "shift.leaveHandoffNote": "Dejar una nota para el próximo cuidador",
+  "shift.viewedBy": "Visto por {name}",
+  "shift.notYetViewed": "Aún no visto",
+
+  "help.title": "Ayuda",
+  "help.backLink": "← Atrás",
+
+  "messages.title": "Mensajes",
+  "messages.newMessage": "Nuevo mensaje",
+  "messages.send": "Enviar",
+  "messages.typeMessage": "Escribir un mensaje...",
+
+  "schedule.title": "Horario",
+  "schedule.today": "Hoy",
+  "schedule.tomorrow": "Mañana",
+  "schedule.upcoming": "Próximos",
+  "schedule.past": "Pasados",
+  "schedule.noShifts": "No hay turnos programados.",
+  "schedule.newShift": "Nuevo turno",
+
+  "role.admin": "Administrador",
+  "role.client": "Cliente",
+  "role.caregiver": "Cuidador",
+  "role.family": "Familia",
+
+  "auth.title": "Carer Vista Pro",
+  "auth.signInTitle": "Inicie sesión en su cuenta",
+  "auth.signUpTitle": "Cree su cuenta de implementación pública",
+  "auth.fullName": "Nombre completo",
+  "auth.email": "Correo electrónico",
+  "auth.password": "Contraseña",
+  "auth.signIn": "Iniciar sesión",
+  "auth.signingIn": "Iniciando sesión...",
+  "auth.createAccount": "Crear cuenta",
+  "auth.creating": "Creando...",
+  "auth.forgotPassword": "¿Olvidó su contraseña?",
+  "auth.newDeployment": "¿Nueva implementación? Cree la primera cuenta",
+  "auth.alreadyHaveAccount": "¿Ya tiene una cuenta? Inicie sesión",
+  "auth.checkEmail": "Revise su correo electrónico para confirmar su cuenta, luego regrese para finalizar la configuración.",
+  "auth.errors.fullNameRequired": "Se requiere el nombre completo.",
+
+  "setup.title": "Bienvenido a Carer Vista Pro",
+  "setup.subtitle": "Configuremos el espacio de trabajo de su agencia",
+};
+
+const dictionaries: Record<Lang, Record<TranslationKey, string>> = {
+  en,
+  es,
+};
+
+/**
+ * Translate a key. Optional `vars` for {placeholders}.
+ * Falls back to English if the language doesn't have the key (shouldn't
+ * happen due to typing, but defensive).
+ */
+export function t(
+  key: TranslationKey,
+  lang: Lang = "en",
+  vars?: Record<string, string | number>
+): string {
+  let s = dictionaries[lang]?.[key] ?? en[key];
+  if (vars) {
+    for (const [k, v] of Object.entries(vars)) {
+      s = s.replace(new RegExp(`\\{${k}\\}`, "g"), String(v));
+    }
+  }
+  return s;
+}
+
+/**
+ * Client-side hook to translate strings. For now this returns English; the
+ * server passes the resolved language to client components when needed. This
+ * exists so client components can `import { useTranslation } from "@/lib/i18n"`
+ * without having to thread the lang prop everywhere.
+ */
+export function useTranslation() {
+  const lang: Lang = "en";
+  return {
+    t: (key: TranslationKey, vars?: Record<string, string | number>) =>
+      t(key, lang, vars),
+    lang,
+  };
+}
+
+export type { TranslationKey };
