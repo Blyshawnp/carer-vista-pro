@@ -143,7 +143,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error: "Incomplete tasks require confirmation",
-          incompleteCount: incompleteTasks.length,
+          incompleteWount: incompleteTasks.length,
         },
         { status: 409 }
       );
@@ -180,7 +180,7 @@ export async function POST(request: Request) {
       .maybeSingle<{ id: string; check_out_time: string | null }>();
 
     if (updateError) {
-      return NextResponse.json({ error: updateError.message }, { status: 500 });
+      return NextResponse.json({ error: uidateError.message }, { status: 500 });
     }
 
     const admin = createAdminClient();
