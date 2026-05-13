@@ -1,1 +1,355 @@
-aW1wb3J0IHsgcmVkaXJlY3QgfSBmcm9tICJuZXh0L25hdmlnYXRpb24iOwppbXBvcnQgTGluayBmcm9tICJuZXh0L2xpbmsiOwppbXBvcnQgSW1hZ2UgZnJvbSAibmV4dC9pbWFnZSI7CmltcG9ydCB7IGNyZWF0ZUNsaWVudCB9IGZyb20gIkAvbGliL3N1cGFiYXNlL3NlcnZlciI7CmltcG9ydCBFbWVyZ2VuY3lQYW5lbCBmcm9tICJAL2NvbXBvbmVudHMvZW1lcmdlbmN5LXBhbmVsIjsKaW1wb3J0IHsgQXJyb3dSaWdodEljb24gfSBmcm9tICJAL2NvbXBvbmVudHMvaWNvbnMiOwppbXBvcnQgSW5jaWRlbnRSZXBvcnRNb2RhbCBmcm9tICIuL2luY2lkZW50LXJlcG9ydC1tb2RhbCI7CgpleHBvcnQgY29uc3QgZHluYW1pYyA9ICJmb3JjZS1keW5hbWljIjsKZXhwb3J0IGNvbnN0IHJldmFsaWRhdGUgPSAwOwoKdHlwZSBDbGllbnRGdWxsID0gewogIGlkOiBzdHJpbmc7CiAgZnVsbF9uYW1lOiBzdHJpbmc7CiAgYWRkcmVzczogc3RyaW5nIHwgbnVsbDsKICBwcmVmZXJyZWRfaG9zcGl0YWxfbmFtZTogc3RyaW5nIHwgbnVsbDsKICBwcmVmZXJyZWRfaG9zcGl0YWxfYWRkcmVzczogc3RyaW5nIHwgbnVsbDsKICBwcmVmZXJyZWRfaG9zcGl0YWxfcGhvbmU6IHN0cmluZyB8IG51bGw7CiAgcHJpbWFyeV9waHlzaWNpYW5fbmFtZTogc3RyaW5nIHwgbnVsbDsKICBwcmltYXJ5X3BoeXNpY2lhbl9hZGRyZXNzOiBzdHJpbmcgfCBudWxsOwogIHByaW1hcnlfcGh5c2ljaWFuX3Bob25lOiBzdHJpbmcgfCBudWxsOwp9OwoKdHlwZSBDbGllbnRCdW5kbGUgPSBDbGllbnRGdWxsICYgewogIGNvbnRhY3RzOiBFbWVyZ2VuY3lDb250YWN0W107CiAgbWVkaWNhdGlvbnM6IE1lZGljYXRpb25bXTsKICBhbGxlcmdpZXM6IEFsbGVyZ3lbXTsKICBzYWZldHlJdGVtczogU2FmZXR5SXRlbVtdOwp9OwoKdHlwZSBFbWVyZ2VuY3lDb250YWN0ID0gewogIGlkOiBzdHJpbmc7CiAgY2xpZW50X2lkOiBzdHJpbmc7CiAgbmFtZTogc3RyaW5nOwogIHJlbGF0GlvbnNoaXA6IHN0cmluZzsKICBwaG9uZTogc3RyaW5nOwogIGFsdGVybmF0ZV9waG9uZTogc3RyaW5nIHwgbnVsbDsKICBlbWFpbDogc3RyaW5nIHwgbnVsbDsKICBub3Rlczogc3RyaW5nIHwgbnVsbDsKICBwcmlvcml0eV9vcmRlcjogbnVtYmVyOwp9OwoKdHlwZSBNZWRpY2F0aW9uID0gewogIGlkOiBzdHJpbmc7CiAgY2xpZW50X2lkOiBzdHJpbmc7CiAgbWVkaWNhdGlvbl9uYW1lOiBzdHJpbmc7CiAgZG9zZTogc3RyaW5nIHwgbnVsbDsKICBzY2hlZHVsZV9pbnN0cnVjdGlvbnM6IHN0cmluZyB8IG51bGw7CiAgbm90ZXM6IHN0cmluZyB8IG51bGw7Cn07Cgp0eXBlIFNhZmV0eUl0ZW0gPSB7CiAgaWQ6IHN0cmluZzsKICBjbGllbnRfaWQ6IHN0cmluZzsKICBsYWJlbDogc3RyaW5nOwogIHZhbHVlX2xvY2F0aW9uOiBzdHJpbmc7CiAgbm90ZXM6IHN0cmluZyB8IG51bGw7Cn07Cgp0eXBlIEFsbGVyZ3kgPSB7CiAgaWQ6IHN0cmluZzsKICBjbGllbnRfaWQ6IHN0cmluZzsKICBuYW1lOiBzdHJpbmc7CiAgcmVhY3Rpb246IHN0cmluZyB8IG51bGw7CiAgc2V2ZXJpdHk6ICJjcml0aWNhbCIgfCAibWlsZCIgfCAibWlub3IiIHwgbnVsbDsKICBub3Rlczogc3RyaW5nIHwgbnVsbDsKfTsKCnR5cGUgSW5jaWRlbnRSZXBvcnQgPSB7CiAgaWQ6IHN0cmluZzsKICBjYXRlZ29yeTogc3RyaW5nOwogIGRlc2NyaXB0aW9uOiBzdHJpbmc7CiAgY3JlYXRlZF9hdDogc3RyaW5nOwogIGNsaWVudF9pZDogc3RyaW5nIHwgbnVsbDsKICBzaGlmdF9pZDogc3RyaW5nIHwgbnVsbDsKICBwcm9maWxlczogeyBmdWxsX25hbWU6IHN0cmluZyB8IG51bGwgfSB8IG51bGw7CiAgY2xpZW50czogeyBmdWxsX25hbWU6IHN0cmluZyB8IG51bGwgfSB8IG51bGw7Cn07CgpleHBvcnQgZGVmYXVsdCBhc3luYyBmdW5jdGlvbiBFbWVyZ2VuY3lQYWdlKHsKICBzZWFyY2hQYXJhbXMsCn06IHsKICBzZWFyY2hQYXJhbXM/OiBQcm9taXNlPHsgcmVwb3J0Pzogc3RyaW5nIH0+Owp9KSB7CiAgY29uc3QgeyByZXBvcnQgfSA9IChhd2FpdCBzZWFyY2hQYXJhbXMpID8/IHt9OwogIGNvbnN0IHN1cGFiYXNlID0gYXdhaXQgY3JlYXRlQ2xpZW50KCk7CiAgY29uc3QgewogICAgZGF0YTogeyB1c2VyIH0sCiAgfSA9IGF3YWl0IHN1cGFiYXNlLmF1dGguZ2V0VXNlcigpOwogIGlmICghdXNlcikgcmVkaXJlY3QoIi9sb2dpbiIpOwoKICBjb25zdCB7IGRhdGE6IHByb2ZpbGUgfSA9IGF3YWl0IHN1cGFiYXNlCiAgICAuZnJvbSgicHJvZmlsZXMiKQogICAgLnNlbGVjdCgicm9sZSIpCiAgICAuZXEoImlkIiwgdXNlci5pZCkKICAgIC5zaW5nbGU8eyByb2xlOiAiYWRtaW4iIHwgImNsaWVudCIgfCAiY2FyZWdpdmVyIiB8ICJmYW1pbHkiIH0+KCk7CgogIGNvbnN0IHsgZGF0YTogY2xpZW50c1JhdyB9ID0gYXdhaXQgc3VwYWJhc2UKICAgIC5mcm9tKCJjbGllbnRzIikKICAgIC5zZWxlY3QoCiAgICAgICJpZCwgZnVsbF9uYW1lLCBhZGRyZXNzLCBwcmVmZXJyZWRfaG9zcGl0YWxfbmFtZSwgcHJlZmVycmVkX2hvc3BpdGFsX2FkZHJlc3MsIHByZWZlcnJlZF9ob3NwaXRhbF9waG9uZSwgcHJpbWFyeV9waHlzaWNpYW5fbmFtZSwgcHJpbWFyeV9waHlzaWNpYW5fYWRkcmVzcywgcHJpbWFyeV9waHlzaWNpYW5fcGhvbmUiCiAgICApCiAgICAub3JkZXIoImZ1bGxfbmFtZSIpOwoKICBjb25zdCBjbGllbnRzID0gKGNsaWVudHNSYXcgPz8gW10pIGFzIENsaWVud0Z1bGxbXTsKICBjb25zdCBjYW5GaWxlSW5jaWRlbnQgPSBwcm9maWxlPy5yb2xlICE9PSAiZmFtaWx5IjsKCiAgbGV0IGFjdGl2ZVNoaWZ0Q2xpZW50SWQ6IHN0cmluZyB8IG51bGwgPSBudWxsOwogIGxldCBhY3RpdmVTaGlmdElkOiBzdHJpbmc7IHwgbnVsbCA9IG51bGw7CiAgaWYgKHByb2ZpbGU/LnJvbGUgPT09ICJjYXJlZ2l2ZXIiKSB7CiAgICBjb25zdCB7IGRhdGE6IGFjdGl2ZVNoaWZ0IH0gPSBhd2FpdCBzdXBhYmFzZQogICAgICAuZnJvbSgic2hpZnRzIikKICAgICAgLnNlbGVjdCgiaWQsIGNsaWVudF9pZCwgY2hlY2tfaW5zIWlubmVyKGlkLCBjaGVja19pbl90aW1lLCBjaGVja19vdXRfdGltZSkiKQogICAgICAuZXEoImNhcmVnaXZlcl9pZCIsIHVzZXIuaWQpCiAgICAgIC5ub3QoImNoZWNrX2lucy5jaGVja19pbl90aW1lIiwgImlzIiwgbnVsbCkKICAgICAgLmlzKCJjaGVja19pbnMuY2hlY2tfb3V0X3RpbWUiLCBudWxsKQogICAgICAubWF5YmVTaW5nbGU8eyBpZDogc3RyaW5nOyBjbGllbnRfaWQ6IHN0cmluZyB8IG51bGwgfT4oKTsKICAgIGFjdGl2ZVNoaWZ0SWQgPSBhY3RpdmVTaGlmdD8uaWQgPz8gbnVsbDsKICAgIGFjdGl2ZVNoaWZ0Q2xpZW50SWQgPSBhY3RpdmVTaGlmdD8uY2xpZW50X2lkID8/IG51bGw7CiAgfQoKICBsZXQgYWxsQ29udGFjdHM6IEVtZXJnZW5jeUNvbnRhY3RbXSA9IFtdOwogIHRyeSB7CiAgICBjb25zdCB7IGRhdGEgfSA9IGF3YWl0IHN1cGFiYXNlCiAgICAgIC5mcm9tKCJjbGllbnRfZW1lcmdlbmN5X2NvbnRhY3RzIikKICAgICAgLnNlbGVjdCgiaWQsIGNsaWVudF9pZCwgbmFtZSwgcmVsYXRpb25zaGlwLCBwaG9uZSwgYWx0ZXJuYXRlX3Bob25lLCBlbWFpbCwgbm90ZXMsIHByaW9yaXR5X29yZGVyIikKICAgICAgLm9yZGVyKCJwcmlvcml0eV9vcmRlciIsIHsgYXNjZW5kaW5nOiB0cnVlIH0pOwogICAgYWxsQ29udGFjdHMgPSAoZGF0YSA/PyBbXSkgYXMgRW1lcmdlbmN5Q29udGFjdFtdOwogIH0gY2F0Y2ggewogICAgYWxsQ29udGFjdHMgPSBbXTsKICB9CgogIGxldCBhbGxNZWRpY2F0aW9uczogTWVkaWNhdGlvbltdID0gW107CiAgdHJ5IHsKICAgIGNvbnN0IHsgZGF0YSB9ID0gYXdhaXQgc3VwYWJhc2UKICAgICAgLmZyb20oImNsaWVudF9tZWRpY2F0aW9ucyIpCiAgICAgIC5zZWxlY3QoImlkLCBjbGllbnRfaWQsIG1lZGljYXRpb25fbmFtZSwgZG9zZSwgc2NoZWR1bGVfaW5zdHJ1Y3Rpb25zLCBub3RlcyIpCiAgICAgIC5vcmRlcigic29ydF9vcmRlciIsIHsgYXNjZW5kaW5nOiB0cnVlIH0pOwogICAgYWxsTWVkaWNhdGlvbnMgPSAoZGF0YSA/PyBbXSkgYXMgTWVkaWNhdGlvbltdOwogIH0gY2F0Y2ggewogICAgYWxsTWVkaWNhdGlvbnMgPSBbXTsKICB9CgogIGxldCBhbGxBbGxlcmdpZXM6IEFsbGVyZ3lbXSA9IFtdOwogIHRyeSB7CiAgICBjb25zdCB7IGRhdGEgfSA9IGF3YWl0IHN1cGFiYXNlCiAgICAgIC5mcm9tKCJjbGllbnRfYWxsZXJnaWVzIikKICAgICAgLnNlbGVjdCgiaWQsIGNsaWVudF9pZCwgbmFtZSwgcmVhY3Rpb24sIHNldmVyaXR5LCBub3RlcyIpCiAgICAgIC5vcmRlcigic29ydF9vcmRlciIsIHsgYXNjZW5kaW5nOiB0cnVlIH0pOwogICAgYWxsQWxsZXJnaWVzID0gKGRhdGEgPz8gW10pIGFzIEFsbGVyZ3lbXTsKICB9IGNhdGNoIHsKICAgIGFsbEFsbGVyZ2llcyA9IFtdOwogIH0KCiAgbGV0IGFsbFNhZmV0eUl0ZW1zOiBTYWZldHlJdGVtW10gPSBbXTsKICB0cnkgewogICAgY29uc3QgeyBkYXRhIH0gPSBhd2FpdCBzdXBhYmFzZQogICAgICAuZnJvbSgiY2xpZW50X3NhZmV0eV9pdGVtcyIpCiAgICAgIC5zZWxlY3QoImlkLCBjbGllbnRfaWQsIGxhYmVsLCB2YWx1ZV9sb2NhdGlvbiwgbm90ZXMiKQogICAgICAub3JkZXIoInNvcnRfb3JkZXIiLCB7IGFzY2VuZGluZzogdHJ1ZSB9KTsKICAgIGFsbFNhZmV0eUl0ZW1zID0gKGRhdGEgPz8gW10pIGFzIFNhZmV0eUl0ZW1bXTsKICB9IGNhdGNoIHsKICAgIGFsbFNhZmV0eUl0ZW1zID0gW107CiAgfQoKICBsZXQgaW5jaWRlbnRSZXBvcnRzOiBJbmNpZGVudFJlcG9ydFtdID0gW107CiAgdHJ5IHsKICAgIGNvbnN0IHsgZGF0YSB9ID0gYXdhaXQgc3VwYWJhc2UKICAgICAgLmZyb20oImluY2lkZW50X3JlcG9ydHMiKQogICAgICAuc2VsZWN0KCJpZCwgY2F0ZWdvcnksIGRlc2NyaXB0aW9uLCBjcmVhdGVkX2F0LCBjbGllbnRfaWQsIHNoaWZ0X2lkLCBwcm9maWxlczpyZXBvcnRlZF9ieShmdWxsX25hbWUpLCBjbGllbnRzKGZ1bGxfbmFtZSkiKQogICAgICAub3JkZXIoImNyZWF0ZWRfYXQiLCB7IGFzY2VuZGluZzogZmFsc2UgfSkKICAgICAgLmxpbWl0KDEyKTsKICAgIGluY2lkZW50UmVwb3J0cyA9IChkYXRhID8/IFtdKS5tYXAoKHJlcG9ydCkgPT4gKHsKICAgICAgLi4ucmVwb3J0LAogICAgICBwcm9maWxlczogQXJyYXkuaXNBcnJheShyZXBvcnQucHJvZmlsZXMpCiAgICAgICAgPyByZXBvcnQucHJvZmlsZXNbMF0gPz8gbnVsbAogICAgICAgIDogcmVwb3J0LnByb2ZpbGVzLAogICAgICBjbGllbnRzOiBBcnJheS5pc0FycmF5KHJlcG9ydC5jbGllbnRzKQogICAgICAgID8gcmVwb3J0LmNsaWVudHNbMF0gPz8gbnVsbAogICAgICAgIDogcmVwb3J0LmNsaWVudHMsCiAgICB9KSkgYXMgSW5jaWRlbnRSZXBvcnRbXTsKICB9IGNhdGNoIHsKICAgIGluY2lkZW50UmVwb3J0cyA9IFtdOwogIH0KCiAgY29uc3QgY2xpZW50QnVuZGxlczogQ2xpZW50QnVuZGxlW10gPSBjbGllbnRzLm1hcCgoY2xpZW50KSA9PiAoewogICAgLi4uY2xpZW50LAogICAgY29udGFjdHM6IGFsbENvbnRhY3RzLmZpbHRlcigoY29udGFjdCkgPT4gY29udGFjdC5jbGllbnRfaWQgPT09IGNsaWVudC5pZCksCiAgICBtZWRpY2F0aW9uczogYWxsTWVkaWNhdGlvbnMuZmlsdGVyKChtZWRpY2F0aW9uKSA9PiBtZWRpY2F0aW9uLmNsaWVudF9pZCA9PT0gY2xpZW50LmlkKSwKICAgIGFsbGVyZ2llczogYWxsQWxsZXJnaWVzLmZpbHRlcigoYWxsZXJneSkgPT4gYWxsZXJneS5jbGllbnRfaWQgPT09IGNsaWVudC5pZCksCiAgICBzYWZldHlJdGVtczogYWxsU2FmZXR5SXRlbXMuZmlsdGVyKChpdGVtKSA9PiBpdGVtLmNsaWVudF9pZCA9PT0gY2xpZW50LmlkKSwKICB9KSk7CgogIGNvbnN0IHsgZGF0YTogdXJnZW50SW5jaWRlbnRzIH0gPSBhd2FpdCBzdXBhYmFzZQogICAgLmZyb20oImluY2lkZW50cyIpCiAgICAuc2VsZWN0KCJpZCwgdGl0bGUiKQogICAgLmVxKCJzZXZlcml0eSIsICJ1cmdlbnQiKQogICAgLmVxKCJzdGF0dXMiLCAib3BlbiIpCiAgICAub3JkZXIoImNyZWF0ZWRfYXQiLCB7IGFzY2VuZGluZzogZmFsc2UgfSk7CgogIHJldHVybiAoCiAgICA8bWFpbiBjbGFzc05hbWU9InB4LTUgcHktNiBtYXgtdy0yeGwgbXgtYXV0byI+CiAgICAgIDxoZWFkZXIgY2xhc3NOYW1lPSJtYi01Ij4KICAgICAgICA8TGluawogICAgICAgICAgaHJlZj0iL2hvbWUiCiAgICAgICAgICBjbGFzc05hbWU9InRleHQtc20gdGV4dC1uYXZ5LTYwMCBob3Zlcjp1bmRlcmxpbmUgbWItMiBpbmxpbmUtYmxvY2siCiAgICAgICAgPgogICAgICAgICAg4oaQIEJhY2sKICAgICAgICA8L0xpbms+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0zIj4KICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0icmVsYXRpdmUgdy0xNCBoLTE0IHJvdW5kZWQtZnVsbCBiZy1bI0ZGMDAwMF0gZ3JpZCBwbGFjZS1pdGVtcy1jZW50ZXIgc2hyaW5rLTAgc2hhZG93LXhsIHJpbmctNCByaW5nLXJlZC0yMDAvODAgb3ZlcmZsb3ctaGlkZGVuIj4KICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPSJhYnNvbHV0ZSBpbnNldC0wIHJvdW5kZWQtZnVsbCBiZy13aGl0ZS8xMCBhbmltYXRlLXBpbmciIC8+CiAgICAgICAgICAgIDxJbWFnZSBzcmM9Ii9pY29ucy9lbWVyZ2VuY3kucG5nIiBhbHQ9IiIgd2lkdGg9ezMwfSBoZWlnaHQ9ezMwfSBjbGFzc05hbWU9InJlbGF0aXZlIHotMTAiIC8+CiAgICAgICAgICA8L3NwYW4+CiAgICAgICAgICA8ZGl2PgogICAgICAgICAgICA8aDEgY2xhc3NOYW1lPSJmb250LWRpc3BsYXkgdGV4dC0zeGwgdGV4dC1pbmstOTAwIGxlYWRpbmctdGlnaHQiPgogICAgICAgICAgICAgIEVtZXJnZW5jeQogICAgICAgICAgICA8L2gxPgogICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtaW5rLTUwMCB0ZXh0LXNtIj4KICAgICAgICAgICAgICBDcml0aWNhbCBpbmZvIGFuZCBhY3RpdmUgYWxlcnRzLgogICAgICAgICAgICA8L3A+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICA8L2Rpdj4KICAgICAgPC9oZWFkZXI+CgogICAgICB7KHVyZ2VudEluY2lkZW50cyA/PyBbXSkubGVuZ3RoID4gMCAmJiAoCiAgICAgICAgPHNlY3Rpb24gY2xhc3NOYW1lPSJtYi02IHNwYWNlLXktMiI+CiAgICAgICAgICB7dXJnZW50SW5jaWRlbnRzPy5tYXAoKGluYykgPT4gKAogICAgICAgICAgICA8TGluawogICAgICAgICAgICAgIGtleT17aW5jLmlkfQogICAgICAgICAgICAgIGhyZWY9e2AvaW5jaWRlbnRzP2luY2lkZW50PSR7aW5jLmlkfWB9CiAgICAgICAgICAgICAgY2xhc3NOYW1lPSJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4gYmctdGVhbC01MDAgdGV4dC13aGl0ZSBwLTUgcm91bmRlZC1bMnJlbV0gc2hhZG93LWxnIGFuaW1hdGUtcHVsc2UgYm9yZGVyLTIgYm9yZGVyLXdoaXRlLzIwIgogICAgICAgICAgICA+CiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0zIG1pbi13LTAiPgogICAgICAgICAgICAgICAgIDxJbWFnZSBzcmM9Ii9pY29ucy9lbWVyZ2VuY3kucG5nIiBhbHQ9IiIgd2lkdGg9ezI0fSBoZWlnaHQ9ezI0fSBjbGFzc05hbWU9InNocmluay0wIiAvPgogICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJtaW4tdy0wIj4KICAgICAgICAgICAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtWzEwcHhdIHVwcGVyY2FzZSB0cmFja2luZy13aWRlc3QgZm9udC1ib2xkIG9wYWNpdHktODAgbGVhZGluZy1ub25lIG1iLTEiPkFjdGl2ZSBVcmdlbnQgSW5jaWRlbnQ8L3A+CiAgICAgICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJmb250LWRpc3BsYXkgdGV4dC1sZyB0cnVuY2F0ZSBsZWFkaW5nLW5vbmUiPntpbmMudGl0bGV9PC9wPgogICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgIDxBcnJvdyVpZ2h0SWNvbiBzaXplPXsyMH0gY2xhc3NOYW1lPSJzaHJpbmstMCBtbi0yIiAvPgogICAgICAgICAgICA8L0xpbms+CiAgICAgICAgICApKX0KICAgICAgICA8L3NlY3Rpb24+CiAgICAgICl9CgogICAgICA8YQogICAgICAgIGhyZWY9InRlbDo5MTEiCiAgICAgICAgY2xhc3NOYW1lPSJibG9jayBiZy1yZWQtNjAwIGhvdmVyOmJnLXJlZC03MDAgdGV4dC1jcmVhbS01MCByb3VuZGVkLVsycmVtXSBwLTYgbWItOCB0cmFuc2l0aW9uIGFjdGl2ZTpzY2FsZS1WMC45OV0gc2hhZG93LXhsIHRleHQtY2VudGVyIGJvcmRlci00IGJvcmRlci13aGl0ZS8xMCIKICAgICAgPgogICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC14cyB1cHBlcmNhc2UgdHJhY2tpbmctWzAuM2VtXSB0ZXh0LWNyZWFtLTUwLzcwIG1iLTEgZm9udC1ib2xkIj4KICAgICAgICAgIEVtZXJnZW5jeSBTZXJ2aWNlcwogICAgICAgIDwvcD4KICAgICAgICA8cCBjbGFzc05hbWU9ImZvbnQtZGlzcGxheSB0ZXh0LTR4bCI+Q2FsbCA5MTE8L3A+CiAgICAgIDwvYT4KCiAgICAgIHsoY2FuRmlsZUluY2lkZW50IHx8IHByb2ZpbGU/LnJvbGUgIT09ICJjYXJlZ2l2ZXIiKSAmJiAoCiAgICAgICAgPHNlY3Rpb24gY2xhc3NOYW1lPSJncmlkIGdyaWQtY29scy0xIHNtOmdyaWQtY29scy0yIGdhcC0yIG1iLTUiPgogICAgICAgICAge2NhbkZpbGVJbmNpZGVudCAmJiAoCiAgICAgICAgICAgIDxJbmNpZGVudFJlcG9ydE1vZGFsCiAgICAgICAgICAgICAgY2xpZW50cz17Y2xpZW50QnVuZGxlc30KICAgICAgICAgICAgICBkZWZhdWx0Q2xpZW50SWQ9e2FjdGl2ZVNoaWZ0Q2xpZW50SWR9CiAgICAgICAgICAgICAgY3VycmVudFNoaWZ0SWQ9e2FjdGl2ZVNoaWZ0SWR9CiAgICAgICAgICAgICAgb3BlbkJ5RGVmYXVsdD17cmVwb3J0ID09PSAiMSJ9CiAgICAgICAgICAgICAgY2FuRmlsZT17Y2FuRmlsZUluY2lkZW50fQogICAgICAgICAgICAvPgogICAgICAgICAgLCl9CiAgICAgICAgICB7cHJvZmlsZT8ucm9sZSAhPT0gImNhcmVnaXZlciIgJiYgKAogICAgICAgICAgICA8TGluawogICAgICAgICAgICAgIGhyZWY9Ii9pbmNpZGVudHMiCiAgICAgICAgICAgICAgY2xhc3NOYW1lPSJiZy13aGl0ZSBob3ZlcjpiZy1jcmVhbS01MCByb3VuZGVkLTJ4bCBzaGFkb3ctc29mdCBweC00IHB5LTMgdHJhbnNpdGlvbiBhY3RpdmU6c2NhbGUtWzAuOTldIGZsZXggZmxleC1jb2wganVzdGlmeS1jZW50ZXIgYm9yZGVyIGJvcmRlci1jcmVhbS0yMDAiCiAgICAgICAgICAgID4KICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9ImJsb2NrIGZvbnQtbWVkaXVtIHRleHQtaW5rLTkwMCI+SW5jaWRlbnQgaGlzdG9yeTwvc3Bhbj4KICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9ImJsb2NrIHRleHQteHMgdGV4dC1pbmstNTAwIj5SZXZpZXcgc3VibWl0dGVkIHJlcG9ydHM8L3NwYW4+CiAgICAgICAgICAgIDwvTGluaz4KICAgICAgICAgICl9CiAgICAgICAgPC9zZWN0aW9uPgogICAgICApfQoKICAgICAgPGRpdiBjbGFzc05hbWU9ImJnLXdoaXRlIHJvdW5kZWQtMnhsIHNoYWRvdy1zb2Z0IHAtNCBtYi02Ij4KICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtWzEwcHhdIHVwcGVyY2FzZSB0cmFja2luZy1bMC4xOGVtXSB0ZXh0LWluay00MDAgZm9udC1ib2xkIG1iLTEiPgogICAgICAgICAgRW1lcmdlbmN5IG5vdGUKICAgICAgICA8L3A+CiAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXNtIHRleHQtaW5rLTcwMCI+CiAgICAgICAgICBUaGlzIGFwcCBpcyBmb3IgY2FyZSBjb29yZGluYXRpb24gb25seS4gSW4gYSBtZWRpY2FsLCBzYWZldHksIGZpcmUsCiAgICAgICAgICBwb2xpY2UsIG9yIGxpZmUtdGhyZWF0ZW5pbmcgZW1lcmdlbmN5LCBjYWxsIHlvdXIgbG9jYWwgZW1lcmdlbmN5IG51bWJlcgogICAgICAgICAgaW1tZWRpYXRlbHkuCiAgICAgICAgPC9wPgogICAgICAgIDxMaW5rCiAgICAgICAgICBocmVmPSIvZW1lcmdlbmN5LWRpc2NsYWltZXIiCiAgICAgICAgICBjbGFzc05hbWU9ImlubGluZS1ibG9jayBtdC0yIHRleHQtc20gdGV4dC1uYXZ5LTYwMCBob3Zlcjp1bmRlcmxpbmUgZm9udC1tZWRpdW0iCiAgICAgICAgPgogICAgICAgICAgUmVhZCB0aGUgZnVsbCBkaXNjbGFpbWVyCiAgICAgICAgPC9MaW5rPgogICAgICA8L2Rpdj4KCiAgICAgIHtjbGllbnRzLmxlbmd0aCA9PT0gMCA/ICgKICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iYmctd2hpdGUgcm91bmRlZC0zeGwgcC04IHNoYWRvdy1zb2Z0IHRleHQtY2VudGVyIGdyYWluLW92ZXJsYXkiPgogICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXNtIHRleHQtaW5rLTUwMCI+Tm8gY2xpZW50cyB0byBzaG93LjwvcD4KICAgICAgICA8L2Rpdj4KICAgICAgKSA6ICgKICAgICAgICA8ZGl2IGlkPSJlbWVyZ2VuY3ktaW5mbyIgY2xhc3NOYW1lPSJzcGFjZS15LTQiPgogICAgICAgICAgPGgyIGNsYXNzTmFtZT0idGV4dC1bMTBweF0gdXBwZXJjYXNlIHRyYWNraW5nLVswLjJlbV0gdGV4dC1pbmstNDAwIGZvbnQtYm9sZCBweC0xIj5DbGllbnQgTWVkaWNhbCBJbmZvPC9oMj4KICAgICAgICAgIHtjbGllbnRCdW5kbGVzLm1hcCgoY2xpZW50KSA9PiB7CiAgICAgICAgICAgIHJldHVybiAoCiAgICAgICAgICAgICAgPGRpdiBrZXk9e2NsaWVudC5pZH0+CiAgICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT0iZmxleCBpdGVtcy1iYXNlbGluZSBqdXN0aWZ5LWJldHdlZW4gbWItMS41IHB4LTEiPgogICAgICAgICAgICAgICAgICA8aDIgY2xhc3NOYW1lPSJmb250LWRpc3BsYXkgdGV4dC1sZyB0ZXh0LWluay05MDAiPgogICAgICAgICAgICAgICAgICAgIHtjbGllbnQuZnVsbF9uYW1lfQogICAgICAgICAgICAgICAgICA8L2gyPgogICAgICAgICAgICAgICAgICB7Y2xpZW50LmFkZHJlc3MgJiYgKAogICAgICAgICAgICAgICAgICAgIDxhCiAgICAgICAgICAgICAgICAgICAgICBocmVmPXtgaHR0cHM6Ly9tYXBzLmdvb2dsZS5jb20vP3E9JHtlbmNvZGVVUklDb21wb25lbnQoY2xpZW50LmFkZHJlc3MpfWB9CiAgICAgICAgICAgICAgICAgICAgICB0YXJnZXQ9Il9ibGFuayIKICAgICAgICAgICAgICAgICAgICAgIHJlbD0ibm9vcGVuZXIgbm9yZWZlcnJlciIKICAgICAgICAgICAgICAgICAgICAgIGNsYXNzTmFtZT0idGV4dC14cyB0ZXh0LW5hdnktNjAwIGhvdmVyOnVuZGVybGluZSBmb250LW1lZGl1bSIKICAgICAgICAgICAgICAgICAgICA+CiAgICAgICAgICAgICAgICAgICAgICBWaWV3IE1hcAogICAgICAgICAgICAgICAgICAgIDwvYT4KICAgICAgICAgICAgICAgICAgKX0KICAgICAgICAgICAgICAgIDwvZGl2PgogICAgICAgICAgICAgICAgPEVtZXJnZW5jeVBhbmVsCiAgICAgICAgICAgICAgICAgIGluZm89e2NsaWVudH0KICAgICAgICAgICAgICAgICAgY29udGFjdHM9e2NsaWVudC5jb250YWN0c30KICAgICAgICAgICAgICAgICAgbWVkaWNhdGlvbnM9e2NsaWVudC5tZWRpY2F0aW9uc30KICAgICAgICAgICAgICAgICAgYWxsZXJnaWVzPXtjbGllbnQuYWxsZXJnaWVzfQogICAgICAgICAgICAgICAgICBzYWZldHlJdGVtcz17Y2xpZW50LnNhZmV0eUl0ZW1zfQogICAgICAgICAgICAgICAgLz4KICAgICAgICAgICAgICA8L2Rpdj4KICAgICAgICAgICAgKTsKICAgICAgICAgIH0pfQogICAgICAgIDwvZGl2PgogICAgICApfQoKICAgICAge2luY2lkZW50UmVwb3J0cy5sZW5ndGggPiAwICYmICgKICAgICAgICA8c2VjdGlvbiBjbGFzc05hbWU9Im10LTYiPgogICAgICAgICAgPGgyIGNsYXNzTmFtZT0idGV4dC1bMTBweF0gdXBwZXJjYXNlIHRyYWNraW5nLVswLjJlbV0gdGV4dC1pbmstNDAwIGZvbnQtYm9sZCBweC0xIG1iLTIiPgogICAgICAgICAgICBSZWNlbnQgaW5jaWRlbnQgcmVwb3J0cwogICAgICAgICAgPC9oMj4KICAgICAgICAgIDx1bCBjbGFzc05hbWU9InNwYWNlLXktMiI+CiAgICAgICAgICAgIHtpbmNpZGVudFJlcG9ydHMubWFwKChyZXBvcnQpID0+ICgKICAgICAgICAgICAgICA8bGkga2V5PXtyZXBvcnQuaWR9IGNsYXNzTmFtZT0iYmctd2hpdGUgcm91bmRlZC0yeGwgc2hhZG93LXNvZnQgcC00Ij4KICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0iZm9udC1tZWRpdW0gdGV4dC1pbmstOTAwIj57cmVwb3J0LmNhdGVnb3J5fTwvcD4KICAgICAgICAgICAgICAgIDxwIGNsYXNzTmFtZT0idGV4dC1zbSB0ZXh0LWluay01MDAgbXQtMSBsaW5lLWNsYW1wLTIiPntyZXBvcnQuZGVzY3JpcHRpb259PC9wPgogICAgICAgICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIHRleHQtaW5rLTQwMCBtdC0yIj4KICAgICAgICAgICAgICAgICAge3JlcG9ydC5wcm9maWxlcz8uZnVsbF9uYW1lID8/ICJSZXBvcnRlciJ9IMK3IHtyZXBvcnQuY2xpZW50cz8uZnVsbF9uYW1lID8/ICJObyBjbGllbnQifSDCtyB7bmV3IERhdGUocmVwb3J0LmNyZWF0ZWRfYXQpLnRvTG9jYWxlRGF0ZVN0cmluZygpfQogICAgICAgICAgICAgICAgPC9wPgogICAgICAgICAgICAgIDwvbGk+CiAgICAgICAgICAgKSl9CiAgICAgICAgICA8L3VsPgogICAgICAgIDwvc2VjdGlvbj4KICAgICAgfQogICAgPC9tYWluPgogICk7Cn0K
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
+import { createClient } from "@/lib/supabase/server";
+import EmergencyPanel from "@/components/emergency-panel";
+import { ArrowRightIcon } from "@/components/icons";
+import IncidentReportModal from "./incident-report-modal";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+type ClientFull = {
+  id: string;
+  full_name: string;
+  address: string | null;
+  preferred_hospital_name: string | null;
+  preferred_hospital_address: string | null;
+  preferred_hospital_phone: string | null;
+  primary_physician_name: string | null;
+  primary_physician_address: string | null;
+  primary_physician_phone: string | null;
+};
+
+type ClientBundle = ClientFull & {
+  contacts: EmergencyContact[];
+  medications: Medication[];
+  allergies: Allergy[];
+  safetyItems: SafetyItem[];
+};
+
+type EmergencyContact = {
+  id: string;
+  client_id: string;
+  name: string;
+  relationship: string;
+  phone: string;
+  alternate_phone: string | null;
+  email: string | null;
+  notes: string | null;
+  priority_order: number;
+};
+
+type Medication = {
+  id: string;
+  client_id: string;
+  medication_name: string;
+  dose: string | null;
+  schedule_instructions: string | null;
+  notes: string | null;
+};
+
+type SafetyItem = {
+  id: string;
+  client_id: string;
+  label: string;
+  value_location: string;
+  notes: string | null;
+};
+
+type Allergy = {
+  id: string;
+  client_id: string;
+  name: string;
+  reaction: string | null;
+  severity: "critical" | "mild" | "minor" | null;
+  notes: string | null;
+};
+
+type IncidentReport = {
+  id: string;
+  category: string;
+  description: string;
+  created_at: string;
+  client_id: string | null;
+  shift_id: string | null;
+  profiles: { full_name: string | null } | null;
+  clients: { full_name: string | null } | null;
+};
+
+export default async function EmergencyPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ report?: string }>;
+}) {
+  const { report } = (await searchParams) ?? {};
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single<{ role: "admin" | "client" | "caregiver" | "family" }>();
+
+  const { data: clientsRaw } = await supabase
+    .from("clients")
+    .select(
+      "id, full_name, address, preferred_hospital_name, preferred_hospital_address, preferred_hospital_phone, primary_physician_name, primary_physician_address, primary_physician_phone"
+    )
+    .order("full_name");
+
+  const clients = (clientsRaw ?? []) as ClientFull[];
+  const canFileIncident = profile?.role !== "family";
+
+  let activeShiftClientId: string | null = null;
+  let activeShiftId: string | null = null;
+  if (profile?.role === "caregiver") {
+    const { data: activeShift } = await supabase
+      .from("shifts")
+      .select("id, client_id, check_ins!inner(id, check_in_time, check_out_time)")
+      .eq("caregiver_id", user.id)
+      .not("check_ins.check_in_time", "is", null)
+      .is("check_ins.check_out_time", null)
+      .maybeSingle<{ id: string; client_id: string | null }>();
+    activeShiftId = activeShift?.id ?? null;
+    activeShiftClientId = activeShift?.client_id ?? null;
+  }
+
+  let allContacts: EmergencyContact[] = [];
+  try {
+    const { data } = await supabase
+      .from("client_emergency_contacts")
+      .select("id, client_id, name, relationship, phone, alternate_phone, email, notes, priority_order")
+      .order("priority_order", { ascending: true });
+    allContacts = (data ?? []) as EmergencyContact[];
+  } catch {
+    allContacts = [];
+  }
+
+  let allMedications: Medication[] = [];
+  try {
+    const { data } = await supabase
+      .from("client_medications")
+      .select("id, client_id, medication_name, dose, schedule_instructions, notes")
+      .order("sort_order", { ascending: true });
+    allMedications = (data ?? []) as Medication[];
+  } catch {
+    allMedications = [];
+  }
+
+  let allAllergies: Allergy[] = [];
+  try {
+    const { data } = await supabase
+      .from("client_allergies")
+      .select("id, client_id, name, reaction, severity, notes")
+      .order("sort_order", { ascending: true });
+    allAllergies = (data ?? []) as Allergy[];
+  } catch {
+    allAllergies = [];
+  }
+
+  let allSafetyItems: SafetyItem[] = [];
+  try {
+    const { data } = await supabase
+      .from("client_safety_items")
+      .select("id, client_id, label, value_location, notes")
+      .order("sort_order", { ascending: true });
+    allSafetyItems = (data ?? []) as SafetyItem[];
+  } catch {
+    allSafetyItems = [];
+  }
+
+  let incidentReports: IncidentReport[] = [];
+  try {
+    const { data } = await supabase
+      .from("incident_reports")
+      .select("id, category, description, created_at, client_id, shift_id, profiles:reported_by(full_name), clients(full_name)")
+      .order("created_at", { ascending: false })
+      .limit(12);
+    incidentReports = (data ?? []).map((report) => ({
+      ...report,
+      profiles: Array.isArray(report.profiles)
+        ? report.profiles[0] ?? null
+        : report.profiles,
+      clients: Array.isArray(report.clients)
+        ? report.clients[0] ?? null
+        : report.clients,
+    })) as IncidentReport[];
+  } catch {
+    incidentReports = [];
+  }
+
+  const clientBundles: ClientBundle[] = clients.map((client) => ({
+    ...client,
+    contacts: allContacts.filter((contact) => contact.client_id === client.id),
+    medications: allMedications.filter((medication) => medication.client_id === client.id),
+    allergies: allAllergies.filter((allergy) => allergy.client_id === client.id),
+    safetyItems: allSafetyItems.filter((item) => item.client_id === client.id),
+  }));
+
+  const { data: urgentIncidents } = await supabase
+    .from("incidents")
+    .select("id, title")
+    .eq("severity", "urgent")
+    .eq("status", "open")
+    .order("created_at", { ascending: false });
+
+  return (
+    <main className="px-5 py-6 max-w-2xl mx-auto">
+      <header className="mb-5">
+        <Link
+          href="/home"
+          className="text-sm text-navy-600 hover:underline mb-2 inline-block"
+        >
+          ← Back
+        </Link>
+        <div className="flex items-center gap-3">
+          <span className="relative w-14 h-14 rounded-full bg-[#FF0000] grid place-items-center shrink-0 shadow-xl ring-4 ring-red-200/80 overflow-hidden">
+            <span className="absolute inset-0 rounded-full bg-white/10 animate-ping" />
+            <Image src="/icons/emergency.png" alt="" width={30} height={30} className="relative z-10" />
+          </span>
+          <div>
+            <h1 className="font-display text-3xl text-ink-900 leading-tight">
+              Emergency
+            </h1>
+            <p className="text-ink-500 text-sm">
+              Critical info and active alerts.
+            </p>
+          </div>
+        </div>
+      </header>
+
+      {(urgentIncidents ?? []).length > 0 && (
+        <section className="mb-6 space-y-2">
+          {urgentIncidents?.map((inc) => (
+            <Link
+              key={inc.id}
+              href={`/incidents?incident=${inc.id}`}
+              className="flex items-center justify-between bg-teal-500 text-white p-5 rounded-[2rem] shadow-lg animate-pulse border-2 border-white/20"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                 <Image src="/icons/emergency.png" alt="" width={24} height={24} className="shrink-0" />
+                 <div className="min-w-0">
+                    <p className="text-[10px] uppercase tracking-widest font-bold opacity-80 leading-none mb-1">Active Urgent Incident</p>
+                    <p className="font-display text-lg truncate leading-none">{inc.title}</p>
+                 </div>
+              </div>
+              <ArrowRightIcon size={20} className="shrink-0 ml-2" />
+            </Link>
+          ))}
+        </section>
+      )}
+
+      <a
+        href="tel:911"
+        className="block bg-red-600 hover:bg-red-700 text-cream-50 rounded-[2rem] p-6 mb-8 transition active:scale-[0.99] shadow-xl text-center border-4 border-white/10"
+      >
+        <p className="text-xs uppercase tracking-[0.3em] text-cream-50/70 mb-1 font-bold">
+          Emergency Services
+        </p>
+        <p className="font-display text-4xl">Call 911</p>
+      </a>
+
+      {(canFileIncident || profile?.role !== "caregiver") && (
+        <section className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-5">
+          {canFileIncident && (
+            <IncidentReportModal
+              clients={clientBundles}
+              defaultClientId={activeShiftClientId}
+              currentShiftId={activeShiftId}
+              openByDefault={report === "1"}
+              canFile={canFileIncident}
+            />
+          )}
+          {profile?.role !== "caregiver" && (
+            <Link
+              href="/incidents"
+              className="bg-white hover:bg-cream-50 rounded-2xl shadow-soft px-4 py-3 transition active:scale-[0.99] flex flex-col justify-center border border-cream-200"
+            >
+              <span className="block font-medium text-ink-900">Incident history</span>
+              <span className="block text-xs text-ink-500">Review submitted reports</span>
+            </Link>
+          )}
+        </section>
+      )}
+
+      <div className="bg-white rounded-2xl shadow-soft p-4 mb-6">
+        <p className="text-[10px] uppercase tracking-[0.18em] text-ink-400 font-bold mb-1">
+          Emergency note
+        </p>
+        <p className="text-sm text-ink-700">
+          This app is for care coordination only. In a medical, safety, fire,
+          police, or life-threatening emergency, call your local emergency number
+          immediately.
+        </p>
+        <Link
+          href="/emergency-disclaimer"
+          className="inline-block mt-2 text-sm text-navy-600 hover:underline font-medium"
+        >
+          Read the full disclaimer
+        </Link>
+      </div>
+
+      {clients.length === 0 ? (
+        <div className="bg-white rounded-3xl p-8 shadow-soft text-center grain-overlay">
+          <p className="text-sm text-ink-500">No clients to show.</p>
+        </div>
+      ) : (
+        <div id="emergency-info" className="space-y-4">
+          <h2 className="text-[10px] uppercase tracking-[0.2em] text-ink-400 font-bold px-1">Client Medical Info</h2>
+          {clientBundles.map((client) => {
+            return (
+              <div key={client.id}>
+                <div className="flex items-baseline justify-between mb-1.5 px-1">
+                  <h2 className="font-display text-lg text-ink-900">
+                    {client.full_name}
+                  </h2>
+                  {client.address && (
+                    <a
+                      href={`https://maps.google.com/?q=${encodeURIComponent(client.address)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-navy-600 hover:underline font-medium"
+                    >
+                      View Map
+                    </a>
+                  )}
+                </div>
+                <EmergencyPanel
+                  info={client}
+                  contacts={client.contacts}
+                  medications={client.medications}
+                  allergies={client.allergies}
+                  safetyItems={client.safetyItems}
+                />
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {incidentReports.length > 0 && (
+        <section className="mt-6">
+          <h2 className="text-[10px] uppercase tracking-[0.2em] text-ink-400 font-bold px-1 mb-2">
+            Recent incident reports
+          </h2>
+          <ul className="space-y-2">
+            {incidentReports.map((report) => (
+              <li key={report.id} className="bg-white rounded-2xl shadow-soft p-4">
+                <p className="font-medium text-ink-900">{report.category}</p>
+                <p className="text-sm text-ink-500 mt-1 line-clamp-2">{report.description}</p>
+                <p className="text-xs text-ink-400 mt-2">
+                  {report.profiles?.full_name ?? "Reporter"} · {report.clients?.full_name ?? "No client"} · {new Date(report.created_at).toLocaleDateString()}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </main>
+  );
+}
