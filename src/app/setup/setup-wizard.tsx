@@ -1,1 +1,186 @@
-InVzZSBjbGllbnQiOwoKaW1wb3J0IHsgdXNlU3RhdGUgfSBmcm9tICJyZWFjdCI7CmltcG9ydCB7IHVzZVJvdXRlciB9IGZyb20gIm5leHQvbmF2aWdhdGlvbiI7CmltcG9ydCBBcHBMb2dvIGZyb20gIkAvY29tcG9uZW50cy9hcHAtbG9nbyI7CmltcG9ydCB7IHVzZVRyYW5zbGF0aW9uIH0gZnJvbSAiQC9saWIvaTE4biI7Cgp0eXBlIFNldHVwVHlwZSA9ICJwZXJzb25hbF9mYW1pbHkiIHwgIm9yZ2FuaXphdGlvbiI7CnR5cGUgRmlyc3RSb2xlID0gImNsaWVudCIgfCAiZmFtaWx5IiB8ICJhZG1pbiI7CgpleHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBTZXR1cFdpemFyZCh7CiAgZGVmYXVsdE5hbWUsCiAgZW1haWwsCn06IHsKICBkZWZhdWx0TmFtZTogc3RyaW5nOwogIGVtYWlsOiBzdHJpbmc7Cn0pIHsKICBjb25zdCByb3V0ZXIgPSB1c2VSb3V0ZXIoKTsKICBjb25zdCB7IHQgfSA9IHVzZVRyYW5zbGF0aW9uKCk7CiAgY29uc3QgW2Z1bGxOYW1lLCBzZXRGdWxsTmFtZV0gPSB1c2VTdGF0ZShkZWZhdWx0TmFtZSk7CiAgY29uc3QgW29yZ2FuaXphdGlvbk5hbWUsIHNldE9yZ2FuaXphdGlvbiBOYW1lXSA9IHVzZVN0YXRlKCIiKTsKICBjb25zdCBbc2V0dXBUeXBlLCBzZXRTZXR1cFR5cGVdID0gdXNlU3RhdGU8U2V0dXBUeXBlPigicGVyc29uYWxfZmFtaWx5Iik7CiAgY29uc3QgW2ZpcnN0Um9sZSwgc2V0Rmlyc3RSb2xlXSA9IHVzZVN0YXRlPEZpcnN0Um9sZT4oImFkbWluIik7CiAgY29uc3QgW2NsaWVudE5hbWUsIHNldENsaWVudE5hbWVdID0gdXNlU3RhdGUoIiIpOwogIGNvbnN0IFtjbGllbnRBZGRyZXNzLCBzZXRDbGllbnRBZGRyZXNzXSA9IHVzZVN0YXRlKCIiKTsKICBjb25zdCBbZW1lcmdlbmN5TmFtZSwgc2V0RW1lcmdlbmN5TmFtZV0gPSB1c2VTdGF0ZSgiIik7CiAgY29uc3QgW2VtZXJnZW5jeVBob25lLCBzZXRFbWVyZ2VuY3lQaG9uZV0gPSB1c2VTdGF0ZSgiIik7CiAgY29uc3QgW2VtZXJnZW5jeVJlbGF0aW9uc2hpcCwgc2V0RW1lcmdlbmN5UmVsYXRpb25zaGlwXSA9IHVzZVN0YXRlKCIiKTsKICBjb25zdCBbaG9tZU5vdGVzLCBzZXRIb21lTm90ZXNdID0gdXNlU3RhdGUoIiIpOwogIGNvbnN0IFtpbnZpdGVFbWFpbHMsIHNldEludml0ZUVtYWlsc10gPSB1c2VTdGF0ZSgiIik7CiAgY29uc3QgW3N1Ym1pdHRpbmcsIHNldFN1Ym1pdHRpbmddID0gdXNlU3RhdGUoZmFsc2UpOwogIGNvbnN0IFtlcnJvciwgc2V0RXJyb3JdID0gdXNlU3RhdGU8c3RyaW5nIHwgbnVsbD4obnVsbCk7CgogIGFzeW5jIGZ1bmN0aW9uIHN1Ym1pdChldmVudDogUmVhY3QuRm9ybUV2ZW50KSB7CiAgICBldmVudC5wcmV2ZW50RGVmYXVsdCgpOwogICAgsetFcnJvcihudWxsKTsKICAgIHNldFN1Ym1pdHRpbmcodHJ1ZSk7CgogICAgY29uc3QgcmVzcG9uc2UgPSBhd2FpdCBmZXRjaCgiL2FwaS9vbmJvYXJkaW5nL2NvbXBsZXRlIiwgewogICAgICBtZXRob2Q6ICJQT1NUIiwKICAgICAgaGVhZGVyczogeyAiQ29udGVudC1UeXBlIjogImFwcGxpY2F0aW9uL2pzb24iIH0sCiAgICAgIGJvZHk6IEpTT04uc3RyaW5naWZ5KHsKICAgICAgICBmdWxsTmFtZSwKICAgICAgICBvcmdhbml6YXRpb25OYW1lLAogICAgICAgIHNldHVwVHlwZSwKICAgICAgICBmaXJzdFJvbGUsCiAgICAgICAgY2xpZW50TmFtZSwKICAgICAgICBjbGllbnRBZGRyZXNzLAogICAgICAgIGVtZXJnZW5jeU5hbWUsCiAgICAgICAgZW1lcmdlbmN5UGhvbmUsCiAgICAgICAgZW1lcmdlbmN5UmVsYXRpb25zaGlwLAogICAgICAgIGhvbWVOb3RlcywKICAgICAgICBpbnZpdGVFbWFpbHMsCiAgICAgIH0pLAogICAgfSk7CgogICAgY29uc3QgcmVzdWx0ID0gKGF3YWl0IHJlc3BvbnNlLmpzb24oKSkgYXMgeyBlcnJvcj86IHN0cmluZyB9OwogICAgaWYgKCFyZXNwb25zZS5vaykgewogICAgICBzZXRFcnJvcihyZXN1bHQuZXJyb3IgPz8gIkNvdWxkIG5vdCBjb21wbGV0ZSBzZXR1cC4iKTsKICAgICAgc2V0U3VibWl0dGluZyhmYWxzZSk7CiAgICAgIHJldHVybjsKICAgIH0KCiAgICByb3V0ZXIucHVzaCgiL2hvbWUiKTsKICAgIHJvdXRlci5yZWZyZXNoKCk7CiAgfQoKICByZXR1cm4gKAogICAgPG1haW4gY2xhc3NOYW1lPSJtaW4taC1kdmggYmctY3JlYW0tMTAwIHB4LTUgcHktOCI+CiAgICAgIDxmb3JtIG9uU3VibWl0PXtzdWJtaXR9IGNsYXNzTmFtZT0ibWF4LXctMnhsIG14LWF1dG8gc3BhY2UteS01Ij4KICAgICAgICA8aGVhZGVyIGNsYXNzTmFtZT0idGV4dC1jZW50ZXIgc206dGV4dC1sZWZ0Ij4KICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPSJtYi01IGZsZXgganVzdGlmeS1jZW50ZXIgc206anVzdGlmeS1zdGFydCI+CiAgICAgICAgICAgIDxBcHBMb2dvCiAgICAgICAgICAgICAgaHJlZj0iL3NldHVwIgogICAgICAgICAgICAgIHZhcmlhbnQ9ImF1dGgiCiAgICAgICAgICAgICAgc2hvd1RleHQ9e2ZhbHNlfQogICAgICAgICAgICAgIGNsYXNzTmFtZT0ianVzdGlmeS1jZW50ZXIiCiAgICAgICAgICAgIC8+CiAgICAgICAgICA8L2Rpdj4KICAgICAgICAgIDxwIGNsYXNzTmFtZT0iZm9udC1kaXNwbGF5IHRleHQtM3hsIHRleHQtaW5rLTkwMCBsZWFkaW5nLW5vbmUgbWItMyI+CiAgICAgICAgICAgIENhcmVyIFZpc3RhIFBybwogICAgICAgICAgPC9wPgogICAgICAgICAgPHAgY2xhc3NOYW1lPSJ0ZXh0LXhzIHVwcGVyY2FzZSB0cmFja2luZy1bMC4xOGVtXSB0ZXh0LW5hdnktNjAwIGZvbnQtYm9sZCBtYi0yIj4KICAgICAgICAgICAgRmlyc3QtcnVuIHNldHVwCiAgICAgICAgICA8L3A+CiAgICAgICAgICA8aDEgY2xhc3NOYW1lPSJmb250LWRpc3BsYXkgdGV4dC00eGwgdGV4dC1pbmstOTAwIj4KICAgICAgICAgICAgU2V0IHVwIHlvdXIgY2FyZSBjaXJjbGUKICAgICAgICAgIDwvaDE+CiAgICAgICAgICA8cCBjbGFzc05hbWU9InRleHQtc20gdGV4dC1pbmstNTAwIG10LTIiPgogICAgICAgICAgICBTaWduZWQgaW4gYXMge2VtYWlsfS4gQ3JlYXRlIGEgYmxhbmsgb3JnYW5pemF0aW9uIGFuZCBhZGQgdGhlIGZpcnN0IGNhcmUgcmVjaXBpZW50LgogICAgICAgICAgPC9wPgogICAgICAgIDwvaGVhZGVyPgoKICAgICAgICA8Q2FyZCB0aXRsZT0iWW91ciBhY2NvdW50Ij4KICAgICAgICAgIDxGaWVsZCBsYWJlbD0iWW91ciBmdWxsIG5hbWUiPgogICAgICAgICAgICA8aW5wdXQKICAgICAgICAgICAgICBjbGFzc05hbWU9e2lucHV0Q2xzfQogICAgICAgICAgICAgIHZhbHVlPXtmdWxsTmFtZX0KICAgICAgICAgICAgICBvbkNoYW5nZT17KGV2ZW50KSA9PiBzZXRGdWxsTmFtZShldmVudC50YXJnZXQudmFsdWUpfQogICAgICAgICAgICAgIHJlcXVpcmVkCiAgICAgICAgICAgICAgYXV0b0NvbXBsZXRlPSJuYW1lIgogICAgICAgICAgICAvPgogICAgICAgICAgPC9GaWVsZD4KICAgICAgICAgIDxGaWVsZCBsYWJlbD0iRmlyc3QgdXNlciByb2xlIj4KICAgICAgICAgICAgPHNlbGVjdAogICAgICAgICAgICAgIGNsYXNzTmFtZT17aW5wdXRDbHN9CiAgICAgICAgICAgICAgdmFsdWU9e2ZpcnN0Um9sZX0KICAgICAgICAgICAgICBvbkNoYW5nZT17KGV2ZW50KSA9PiBzZXRGaXJzdFJvbGUoZXZlbnQudGFyZ2V0LnZhbHVlIGFzIEZpcnN0Um9sZSl9CiAgICAgICAgICAgID4KICAgICAgICAgICAgICA8b3B0aW9uIHZhbHVlPSJhZG1pbiI+QWRtaW4vY29vcmRpbmF0b3I8L29wdGlvbj4KICAgICAgICAgICAgICA8b3B0aW9uIHZhbHVlPSJjbGllbnQiPkNsaWVudDwvb3B0aW9uPgogICAgICAgICAgICAgIDxvcHRpb24gdmFsdWU9ImZhbWlseSI+RmFtaWx5IG1lbWJlcjwvb3B0aW9uPgogICAgICAgICAgICA8L3NlbGVjdD4KICAgICAgICAgIDwvRmllbGQ+CiAgICAgICAgPC9DYXJkPgoKICAgICAgICA8Q2FyZCB0aXRsZT0iT3JnYW5pemF0aW9uIj4KICAgICAgICAgIDxGaWVsZCBsYWJlbD0iU2V0dXAgdHlwZSI+CiAgICAgICAgICAgIDxzZWxlY3QKICAgICAgICAgICAgICBjbGFzc05hbWU9e2lucHV0Q2xzfQogICAgICAgICAgICAgIHZhbHVlPXtzZXR1cFR5cGV9CiAgICAgICAgICAgICAgb25DaGFuZ2U9eyhldmVudCkgPT4gc2V0U2V0dXBUeXBlKGV2ZW50LnRhcmdldC52YWx1ZSBhcyBTZXR1cFR5cGUpfQogICAgICAgICAgICA+CiAgICAgICAgICAgICAgPG9wdGlvbiB2YWx1ZT0icGVyc29uYWxfZmFtaWx5Ij5QZXJzb25hbC9mYW1pbHk8L29wdGlvbj4KICAgICAgICAgICAgICA8b3B0aW9uIHZhbHVlPSJvcmdhbml6YXRpb24iPk9yZ2FuaXphdGlvbjwvb3B0aW9uPgogICAgICAgICAgICA8L3NlbGVjdD4KICAgICAgICAgIDwvRmllbGQ+CiAgICAgICAgICA8RmllbGQgbGFiZWw9IkNhcmUgY2lyY2xlIG9yIG9yZ2FuaXphdGlvbiBuYW1lIj4KICAgICAgICAgICAgPGlucHV0CiAgICAgICAgICAgICAgY2xhc3NOYW1lPXtpbnB1dENsc30KICAgICAgICAgICAgICB2YWx1ZT17b3JnYW5pemF0aW9uTmFtZX0KICAgIC20biBDaGFuZ2U9eyhldmVudCkgPT4gc2V0T3JnYW5pemF0aW9uTmFtZShldmVudC50YXJnZXQudmFsdWUpfQogICAgICAgICAgICAgIHBsYWNlaG9sZGVyPSJDYXJlIGNpcmNsZSBuYW1lIgogICAgICAgICAgICAgIHJlcXVpcmVkCiAgICAgICAgICAgIC8+CiAgICAgICAgICA8L0ZpZWxkPgogICAgICAgIDwvQ2FyZD4KCiAgICAgICAgPENhcmQgdGl0bGU9IkZpcnN0IGNhcmUgcmVjaXBpZW50Ij4KICAgICAgICAgIDxGaWVsZCBsYWJlbD0iTmFtZSI+CiAgICAgICAgICAgIDxpbnB1dAogICAgICAgICAgICAgIGNsYXNzTmFtZT17aW5wdXRDbHN9CiAgICAgICAgICAgICAgdmFsdWU9e2NsaWVudE5hbWV9CiAgICAgICAgICAgICAgb25DaGFuZ2U9eyhldmVudCkgPT4gc2V0Q2xpZW50TmFtZShldmVudC50YXJnZXQudmFsdWUpfQogICAgICAgICAgICAgIHBsYWNlaG9sZGVyPSJDYXJlIHJlY2lwaWVudCBuYW1lIgogICAgICAgICAgICAgIHJlcXVpcmVkCiAgICAgICAgICAgIC8+CiAgICAgICAgICA8L0ZpZWxkPgogICAgICAgIDwvQ2FyZD4KCiAgICAgICAgPGJ1dHRvbgogICAgICAgICAgdHlwZT0ic3VibWl0IgogICAgICAgICAgZGlzYWJsZWQ9e3N1Ym1pdHRpbmf9CiAgICAgICAgICBjbGFzc05hbWU9InctZnVsbCBiZy1uYXZ5LTYwMCBob3ZlcjpiZy1uYXZ5LTcwMCB0ZXh0LWNyZWFtLTUwIHB5LTMuNSByb3VuZGVkLTJ4bCBmb250LW1lZGl1bSB0cmFuc2l0aW9uIGRpc2FibGVkOm9wYWNpdHktNTAiCiAgICAgICAgPgogICAgICAgICAge3N1Ym1pdHRpbmcgPyAiRmluaXNoaW5nIHNldHVwLi4uIiA6ICJGaW5pc2ggc2V0dXAifQogICAgICAgIDwvYnV0dG9uPgogICAgICA8L2Zvcm0+CiAgICA8L21haW4+CiAgKTsKfQoKY29uc3QgaW5wdXRDbHMgPQogICJ3LWZ1bGwgcHgtNCBweS0zIGJnLWNyZWFtLTUwIGJvcmRlciBib3JkZXItY3JlYW0tMjAwIHJvdW5kZWQteGwgdGV4dC1pbmstOTAwIHBsYWNlaG9sZGVyOnRleHQtaW5rLTMwMCBmb2N1czpvdXRsaW5lLW5vbmUgZm9jdXM6Ym9yZGVyLW5hdnktNTAwIGZvY3VzOnJpbmctMiBmb2N1czpyaW5nLW5hdnktLTUwMC8yMCB0cmFuc2l0aW9uIjsKCmZ1bmN0aW9uIENhcmQoeyB0aXRsZSwgY2hpbGRyZW4gfTogeyB0aXRsZTogc3RyaW5nOyBjaGlsZHJlbjogUmVhY3QuUmVhY3ROb2RlIH0pIHsKICByZXR1cm4gKAogICAgPHNlY3Rpb24gY2xhc3NOYW1lPSJiZy13aGl0ZSByb3VuZGVkLTN4bCBzaGFkb3ctc29mdCBwLTUgZ3JhaW4tb3ZlcmxheSI+CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJyZWxhdGl2ZSI+CiAgICAgICAgPGgyIGNsYXNzTmFtZT0iZm9udC1kaXNwbGF5IHRleHQtYmFzZSB0ZXh0LWluay05MDAgbWItMyI+e3RpdGxlfTwvaDI+CiAgICAgICAgPGRpdiBjbGFzc05hbWU9InNwYWNlLXktMyI+e2NoaWxkcmVufTwvZGl2PgogICAgICA8L2Rpdj4KICAgIDwvc2VjdGlvbj4KICApOwp9CgpmdW5jdGlvbiBGaWVsZCh7IGxhYmVsLCBjaGlsZHJlbiB9OiB7IGxhYmVsOiBzdHJpbmc7IGNoaWxkcmVuOiBSZWFjdC5SZWFjdE5vZGUgfSkgewogIHJldHVybiAoCiAgICA8bGFiZWwgY2xhc3NOYW1lPSJibG9jayI+CiAgICAgIDxzcGFuIGNsYXNzTmFtZT0iYmxvY2sgdGV4dC14cyBmb250LW1lZGl1bSB0ZXh0LWluay03MDAgbWItMS41IHRyYWNraW5nLXdpZGUgdXBwZXJjYXNlIj4KICAgICAgICB7bGFiZWx9CiAgICAgIDwvc3Bhbj4KICAgICAge2NoaWxkcmVufQogICAgPC9sYWJlbD4KICApOwp9Cg==
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import AppLogo from "@/components/app-logo";
+import { useTranslation } from "@/lib/i18n";
+
+type SetupType = "personal_family" | "organization";
+type FirstRole = "client" | "family" | "admin";
+
+export default function SetupWizard({
+  defaultName,
+  email,
+}: {
+  defaultName: string;
+  email: string;
+}) {
+  const router = useRouter();
+  const { t } = useTranslation();
+  const [fullName, setFullName] = useState(defaultName);
+  const [organizationName, setOrganizationName] = useState("");
+  const [setupType, setSetupType] = useState<SetupType>("personal_family");
+  const [firstRole, setFirstRole] = useState<FirstRole>("admin");
+  const [clientName, setClientName] = useState("");
+  const [clientAddress, setClientAddress] = useState("");
+  const [emergencyName, setEmergencyName] = useState("");
+  const [emergencyPhone, setEmergencyPhone] = useState("");
+  const [emergencyRelationship, setEmergencyRelationship] = useState("");
+  const [homeNotes, setHomeNotes] = useState("");
+  const [inviteEmails, setInviteEmails] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function submit(event: React.FormEvent) {
+    event.preventDefault();
+    setError(null);
+    setSubmitting(true);
+
+    const response = await fetch("/api/onboarding/complete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fullName,
+        organizationName,
+        setupType,
+        firstRole,
+        clientName,
+        clientAddress,
+        emergencyName,
+        emergencyPhone,
+        emergencyRelationship,
+        homeNotes,
+        inviteEmails,
+      }),
+    });
+
+    const result = (await response.json()) as { error?: string };
+    if (!response.ok) {
+      setError(result.error ?? "Could not complete setup.");
+      setSubmitting(false);
+      return;
+    }
+
+    router.push("/home");
+    router.refresh();
+  }
+
+  return (
+    <main className="min-h-dvh bg-cream-100 px-5 py-8">
+      <form onSubmit={submit} className="max-w-2xl mx-auto space-y-5">
+        <header className="text-center sm:text-left">
+          <div className="mb-5 flex justify-center sm:justify-start">
+            <AppLogo
+              href="/setup"
+              variant="auth"
+              showText={false}
+              className="justify-center"
+            />
+          </div>
+          <p className="font-display text-3xl text-ink-900 leading-none mb-3">
+            Carer Vista Pro
+          </p>
+          <p className="text-xs uppercase tracking-[0.18em] text-navy-600 font-bold mb-2">
+            First-run setup
+          </p>
+          <h1 className="font-display text-4xl text-ink-900">
+            Set up your care circle
+          </h1>
+          <p className="text-sm text-ink-500 mt-2">
+            Signed in as {email}. Create a blank organization and add the first care recipient.
+          </p>
+        </header>
+
+        <Card title="Your account">
+          <Field label="Your full name">
+            <input
+              className={inputCls}
+              value={fullName}
+              onChange={(event) => setFullName(event.target.value)}
+              required
+              autoComplete="name"
+            />
+          </Field>
+          <Field label="First user role">
+            <select
+              className={inputCls}
+              value={firstRole}
+              onChange={(event) => setFirstRole(event.target.value as FirstRole)}
+            >
+              <option value="admin">Admin/coordinator</option>
+              <option value="client">Client</option>
+              <option value="family">Family member</option>
+            </select>
+          </Field>
+        </Card>
+
+        <Card title="Organization">
+          <Field label="Setup type">
+            <select
+              className={inputCls}
+              value={setupType}
+              onChange={(event) => setSetupType(event.target.value as SetupType)}
+            >
+              <option value="personal_family">Personal/family</option>
+              <option value="organization">Organization</option>
+            </select>
+          </Field>
+          <Field label="Care circle or organization name">
+            <input
+              className={inputCls}
+              value={organizationName}
+              onChange={(event) => setOrganizationName(event.target.value)}
+              placeholder="Care circle name"
+              required
+            />
+          </Field>
+        </Card>
+
+        <Card title="First care recipient">
+          <Field label="Name">
+            <input
+              className={inputCls}
+              value={clientName}
+              onChange={(event) => setClientName(event.target.value)}
+              placeholder="Care recipient name"
+              required
+            />
+          </Field>
+        </Card>
+
+        <button
+          type="submit"
+          disabled={submitting}
+          className="w-full bg-navy-600 hover:bg-navy-700 text-cream-50 py-3.5 rounded-2xl font-medium transition disabled:opacity-50"
+        >
+          {submitting ? "Finishing setup..." : "Finish setup"}
+        </button>
+      </form>
+    </main>
+  );
+}
+
+const inputCls =
+  "w-full px-4 py-3 bg-cream-50 border border-cream-200 rounded-xl text-ink-900 placeholder:text-ink-300 focus:outline-none focus:border-navy-500 focus:ring-2 focus:ring-navy-500/20 transition";
+
+function Card({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="bg-white rounded-3xl shadow-soft p-5 grain-overlay">
+      <div className="relative">
+        <h2 className="font-display text-base text-ink-900 mb-3">{title}</h2>
+        <div className="space-y-3">{children}</div>
+      </div>
+    </section>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="block text-xs font-medium text-ink-700 mb-1.5 tracking-wide uppercase">
+        {label}
+      </span>
+      {children}
+    </label>
+  );
+}
