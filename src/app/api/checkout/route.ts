@@ -143,7 +143,7 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           error: "Incomplete tasks require confirmation",
-          incompleteWount: incompleteTasks.length,
+          incompleteCount: incompleteTasks.length,
         },
         { status: 409 }
       );
