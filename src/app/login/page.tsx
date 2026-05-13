@@ -133,28 +133,28 @@ export default function LoginPage() {
             />
 
             {error && (
-              <div className="text-sm text-teal-600 bg-teal-400/10 blur-3xl border border-teal-400/20 px-3 py-2.5 rounded-xl">
+              <div className="text-sm text-teal-600 bg-teal-400/10 border border-teal-400/20 px-3 py-2.5 rounded-xl">
                 {error}
               </div>
             )}
-           {message && (
+            {message && (
               <div className="text-sm text-navy-700 bg-navy-400/10 border border-navy-400/20 px-3 py-2.5 rounded-xl">
                 {message}
               </div>
             )}
 
-            <button>
+            <button
               type="submit"
               disabled={loading}
               className="w-full bg-navy-600 hover:bg-navy-700 text-cream-50 py-3 rounded-2xl font-medium tracking-wide transition disabled:opacity-60 disabled:cursor-not-allowed shadow-soft active:scale-[0.99]"
             >
               {loading
-                ? mode === "signin"
+                ? (mode === "signin"
                   ? t("auth.signingIn")
-                  : t("auth.creating")
-                : mode === "signin"
+                  : t("auth.creating"))
+                : (mode === "signin"
                   ? t("auth.signIn")
-                  : t("auth.createAccount")}
+                  : t("auth.createAccount"))}
             </button>
           </div>
         </form>
@@ -203,7 +203,7 @@ function Field({
         onChange={(e) => onChange(e.target.value)}
         autoComplete={autoComplete}
         required={required}
-        className="w-full px-4 py-3 bg-cream-50 border border-cream-200 rounded-xl text-ink-900 placeholder:text-ink-300 focus:outline-none focus:border-navy-500 focus:ring-navy--500/20 transition"
+        className="w-full px-4 py-3 bg-cream-50 border border-cream-200 rounded-xl text-ink-900 placeholder:text-ink-300 focus:outline-none focus:border-navy-500 focus:ring-2 focus:ring-navy-500/20 transition"
       />
     </label>
   );
