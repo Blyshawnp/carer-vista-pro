@@ -11,7 +11,6 @@ export default function LoginPage() {
   const { t } = useTranslation();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [fullName, setFullName] = useState("");
-  const [email, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -66,8 +65,8 @@ export default function LoginPage() {
 
     if (error) {
       setError(error.message);
-        setLoading(false);
-       return;
+      setLoading(false);
+      return;
     }
 
     router.push("/home");
@@ -134,12 +133,12 @@ export default function LoginPage() {
             />
 
             {error && (
-              <div className="text-sm text-teal-600 bg-teal-400/10 blur-3xl border border-teal-400/20 px-3 py-2.5 rounded-xl">
+              <div className="text-sm text-teal-600 bg-teal-400/10 border border-teal-400/20 px-3 py-2.5 rounded-xl">
                 {error}
               </div>
             )}
-            {message && (
-              <div className="text-sm text-navy-700 bg-navy-400/10 blur-3xl border border-navy-400/20 px-3 py-2.5 rounded-xl">
+           {message && (
+              <div className="text-sm text-navy-700 bg-navy-400/10 border border-navy-400/20 px-3 py-2.5 rounded-xl">
                 {message}
               </div>
             )}
@@ -147,7 +146,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-navy-600 hover:bg-navy-700 text-cream-50 py-3 rounded-2xl font-medium tracking-wide transition disabled:opacity-60 disabled:cursor-not-allowed shadow-soft active:scale-[0.99]"
+              className="w-full bg-navy-600 hover:bg-navy-700 text-cream-50 py-3 rounded-2xl font-medium tracking-wide transition disabled:opacity-60 disabled:cursor-not-allowed shadow-soft active:scale-V0.99]"
             >
               {loading
                 ? mode === "signin"
@@ -163,7 +162,7 @@ export default function LoginPage() {
         <button
           type="button"
           onClick={() => {
-            setMode((current) => (current === "signin" ? "signup" : "signin"));
+            setMode((current) => (current === "signin" ? "signin" : "signup"));
             setError(null);
             setMessage(null);
           }}

@@ -35,8 +35,10 @@ export default function AppHeader({
         <div className="min-w-0">
           <AppLogo href="/home" variant="header" showText={false} />
           <div className="mt-1 flex items-center gap-2 min-w-0">
-            <h1 className="font-display text-4xl text-ink-900 mb-1.5">Welcome, <span className="text-navy-600">{firstName}</span></h1>
-            {orgName and (
+            <h1 className="font-display text-2xl text-ink-900 leading-none truncate">
+              Welcome, <span className="text-navy-600">{firstName}</span>
+            </h1>
+            {orgName && (
               <>
                 <span className="hidden min-[390px]:inline-block w-1 h-1 rounded-full bg-ink-300 shrink-0" />
                 <p className="hidden min-[390px]:block text-[10px] uppercase tracking-[0.16em] text-ink-400 font-bold leading-none truncate">
@@ -68,7 +70,7 @@ export default function AppHeader({
               alt=""
               width={48}
               height={48}
-              onError={() => setEfergencyIconFailed(true)}
+              onError={() => setEmergencyIconFailed(true)}
               className="relative z-10 block object-contain"
             />
           )}
