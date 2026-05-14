@@ -8,6 +8,7 @@ type Mode = "amount" | "hours_rate" | "clear";
 
 export default function PayOverrideButton({
   shiftId,
+  currentUserId,
   currentOverrideAmount,
   currentOverrideHours,
   currentOverrideRate,
@@ -18,6 +19,7 @@ export default function PayOverrideButton({
   isLocked,
 }: {
   shiftId: string;
+  currentUserId: string;
   currentOverrideAmount: number | null;
   currentOverrideHours: number | null;
   currentOverrideRate: number | null;
@@ -96,6 +98,7 @@ export default function PayOverrideButton({
         pay_override_rate: null,
         pay_override_reason: reason.trim(),
         pay_override_at: new Date().toISOString(),
+        pay_override_by: currentUserId,
       };
     } else {
       const h = parseFloat(hours);
@@ -111,6 +114,7 @@ export default function PayOverrideButton({
         pay_override_rate: r,
         pay_override_reason: reason.trim(),
         pay_override_at: new Date().toISOString(),
+        pay_override_by: currentUserId,
       };
     }
 

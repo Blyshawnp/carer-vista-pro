@@ -4,6 +4,7 @@
 
 @layer base {
   html {
+    --font-manrope: Manrope, ui-sans-serif, system-ui, sans-serif;
     color-scheme: light;
     -webkit-tap-highlight-color: transparent;
     /* Prevent iOS pull-to-refresh on the body so it feels app-like */
@@ -33,6 +34,12 @@
   input, textarea {
     -webkit-user-select: text;
     user-select: text;
+  }
+  input[type="time"] {
+    color-scheme: light;
+    min-width: 0;
+    max-width: 100%;
+    font-size: 16px;
   }
 }
 
@@ -93,4 +100,10 @@
 }
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+@media (max-width: 380px) {
+  .mobile-time-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

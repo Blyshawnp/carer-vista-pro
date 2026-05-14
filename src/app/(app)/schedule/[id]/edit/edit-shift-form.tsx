@@ -133,7 +133,7 @@ export default function EditShiftForm({
               className={inputCls}
             />
           </Field>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="mobile-time-grid grid grid-cols-2 gap-3">
             <Field label="Start">
               <input
                 type="time"
@@ -261,7 +261,7 @@ export default function EditShiftForm({
 }
 
 const inputCls =
-  "w-full px-4 py-3 bg-cream-50 border border-cream-200 rounded-xl text-ink-900 placeholder:text-ink-300 focus:outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-500/20 transition";
+  "w-full min-w-0 px-4 py-3 bg-cream-50 border border-cream-200 rounded-xl text-ink-900 placeholder:text-ink-300 focus:outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-500/20 transition";
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (

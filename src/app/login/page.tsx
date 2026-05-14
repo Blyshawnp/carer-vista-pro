@@ -65,8 +65,8 @@ export default function LoginPage() {
 
     if (error) {
       setError(error.message);
-      setLoading(false);
-      return;
+        setLoading(false);
+       return;
     }
 
     router.push("/home");
@@ -133,7 +133,7 @@ export default function LoginPage() {
             />
 
             {error && (
-              <div className="text-sm text-teal-600 bg-teal-400/10 border border-teal-400/20 px-3 py-2.5 rounded-xl">
+              <div className="text-sm text-terracotta-600 bg-terracotta-400/10 border border-terracotta-400/20 px-3 py-2.5 rounded-xl">
                 {error}
               </div>
             )}
@@ -146,15 +146,15 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-navy-600 hover:bg-navy-700 text-cream-50 py-3 rounded-2xl font-medium tracking-wide transition disabled:opacity-60 disabled:cursor-not-allowed shadow-soft active:scale-[0.99]"
+              className="w-full bg-forest-700 hover:bg-forest-800 text-white border border-forest-800 py-3 rounded-2xl font-semibold tracking-wide transition disabled:bg-forest-700/70 disabled:text-white/80 disabled:cursor-not-allowed shadow-lifted active:scale-[0.99]"
             >
               {loading
-                ? (mode === "signin"
+                ? mode === "signin"
                   ? t("auth.signingIn")
-                  : t("auth.creating"))
-                : (mode === "signin"
+                  : t("auth.creating")
+                : mode === "signin"
                   ? t("auth.signIn")
-                  : t("auth.createAccount"))}
+                  : t("auth.createAccount")}
             </button>
           </div>
         </form>

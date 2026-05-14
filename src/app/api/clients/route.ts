@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { lookupAddress } from "@/lib/address-lookup";
-import { normalizeCountry } from "@/lib/address";
+import { formatStructuredAddress, normalizeCountry } from "@/lib/address";
 
 type CreateClientRequest = {
   fullName?: string;
@@ -61,19 +61,30 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Admin or client-family admin access required." }, { status: 403 });
   }
 
+  const structuredAddress = {
+    street_address_1: clean(payload.streetAddress1),
+    street_address_2: clean(payload.streetAddress2),
+    city: clean(payload.city),
+    state_or_region: clean(payload.stateOrRegion ?? payload.state),
+    postal_code: clean(payload.postalCode),
+    country: normalizeCountry(payload.country),
+  };
+  const formattedAddress = formatStructuredAddress(structuredAddress);
+
   const { data: client, error: clientError } = await admin
     .from("clients")
     .insert({
       organization_id: profile.organization_id,
       full_name: fullName,
-      address: null,
-      street_address_1: clean(payload.streetAddress1),
-      street_address_2: clean(payload.streetAddress2),
-      city: clean(payload.city),
-      state: clean(payload.stateOrRegion ?? payload.state),
-      state_or_region: clean(payload.stateOrRegion ?? payload.state),
-      postal_code: clean(payload.postalCode),
-      country: normalizeCountry(payload.country),
+      address: formattedAddress,
+      formatted_address: formattedAddress,
+      street_address_1: structuredAddress.street_address_1,
+      street_address_2: structuredAddress.street_address_2,
+      city: structuredAddress.city,
+      state: structuredAddress.state_or_region,
+      state_or_region: structuredAddress.state_or_region,
+      postal_code: structuredAddress.postal_code,
+      country: structuredAddress.country,
       latitude: normalizeNumber(payload.latitude),
       longitude: normalizeNumber(payload.longitude),
       geofence_radius_meters: normalizeRadius(payload.geofenceRadiusMeters),

@@ -28,7 +28,7 @@ export default async function ClientsPage() {
 
   const { data: clients } = await supabase
     .from("clients")
-    .select("id, full_name, address, latitude, longitude, geofence_radius_meters")
+    .select("id, full_name, address, formatted_address, street_address_1, street_address_2, city, state, state_or_region, postal_code, country, latitude, longitude, geofence_radius_meters")
     .order("full_name");
 
   return (

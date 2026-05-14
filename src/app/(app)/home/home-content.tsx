@@ -15,6 +15,7 @@ import type { AssignedClient } from "./page";
 import type { ActiveShift } from "./page";
 import type { CareActivityItem } from "./page";
 import { getShiftStatus } from "@/lib/shift-status";
+import { formatStructuredAddress, normalizeCountry } from "@/lib/address";
 
 type State =
   | { kind: "checked_in"; shift: ShiftRow }
@@ -444,9 +445,9 @@ function AssignedClientsPanel({
                   <span className="block font-medium text-ink-900 truncate">
                     {client.full_name}
                   </span>
-                  {client.address && (
+                  {displayAddress(client) && (
                     <span className="block text-xs text-ink-500 truncate">
-                      {client.address}
+                      {displayAddress(client)}
                     </span>
                   )}
                 </span>
@@ -458,6 +459,21 @@ function AssignedClientsPanel({
       </div>
     </section>
   );
+}
+
+function displayAddress(client: AssignedClient) {
+  const fallback = client.formatted_address ?? client.address;
+  const country = normalizeCountry(client.country);
+  if (fallback?.trim() && fallback.trim() !== country) return fallback;
+
+  return formatStructuredAddress({
+    street_address_1: client.street_address_1,
+    street_address_2: client.street_address_2,
+    city: client.city,
+    state_or_region: client.state_or_region ?? client.state,
+    postal_code: client.postal_code,
+    country: client.country,
+  });
 }
 
 function CareActivityPanel({ items }: { items: CareActivityItem[] }) {

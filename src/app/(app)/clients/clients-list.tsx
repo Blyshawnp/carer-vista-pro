@@ -5,12 +5,21 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { getCurrentPosition } from "@/lib/geo";
+import { formatStructuredAddress, normalizeCountry } from "@/lib/address";
 import { MapPinIcon } from "@/components/icons";
 
 type Client = {
   id: string;
   full_name: string;
   address: string | null;
+  formatted_address: string | null;
+  street_address_1: string | null;
+  street_address_2: string | null;
+  city: string | null;
+  state: string | null;
+  state_or_region: string | null;
+  postal_code: string | null;
+  country: string | null;
   latitude: number | null;
   longitude: number | null;
   geofence_radius_meters: number;
@@ -77,7 +86,8 @@ function ClientCard({
 }) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
-  const [address, setAddress] = useState(client.address ?? "");
+  const meaningfulAddress = displayAddress(client);
+  const [address, setAddress] = useState(meaningfulAddress ?? "");
   const [latitude, setLatitude] = useState(
     client.latitude != null ? String(client.latitude) : ""
   );
@@ -157,8 +167,10 @@ function ClientCard({
               <h2 className="font-display text-lg text-ink-900">
                 {client.full_name}
               </h2>
-              {client.address && (
-                <p className="text-sm text-ink-500 mt-0.5">{client.address}</p>
+              {meaningfulAddress ? (
+                <p className="text-sm text-ink-500 mt-0.5">{meaningfulAddress}</p>
+              ) : (
+                <p className="text-sm text-ink-400 mt-0.5">Location not set</p>
               )}
             </div>
             {canManage && (
@@ -313,4 +325,19 @@ function Field({
       {children}
     </label>
   );
+}
+
+function displayAddress(client: Client) {
+  const fallback = client.formatted_address ?? client.address;
+  const country = normalizeCountry(client.country);
+  if (fallback?.trim() && fallback.trim() !== country) return fallback;
+
+  return formatStructuredAddress({
+    street_address_1: client.street_address_1,
+    street_address_2: client.street_address_2,
+    city: client.city,
+    state_or_region: client.state_or_region ?? client.state,
+    postal_code: client.postal_code,
+    country: client.country,
+  });
 }

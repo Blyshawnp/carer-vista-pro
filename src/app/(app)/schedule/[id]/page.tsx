@@ -1,11 +1,11 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import {
   ClockIcon,
   MapPinIcon,
   ArrowRightIcon,
-  StarOfLifeIcon,
 } from "@/components/icons";
 import DeleteShiftButton from "./delete-shift-button";
 import AcceptDeclineButtons from "./accept-decline-buttons";
@@ -24,6 +24,7 @@ import MedicationReminderPanel, {
 } from "./medication-reminder-panel";
 import TasksView from "@/app/(app)/tasks/tasks-view";
 import { getUserLanguage } from "@/lib/get-user-language";
+import { formatStructuredAddress, normalizeCountry } from "@/lib/address";
 import { t as tr } from "@/lib/i18n";
 import {
   computeShiftPay,
@@ -74,6 +75,14 @@ type ShiftDetail = {
   clients: {
     full_name: string;
     address: string | null;
+    formatted_address: string | null;
+    street_address_1: string | null;
+    street_address_2: string | null;
+    city: string | null;
+    state: string | null;
+    state_or_region: string | null;
+    postal_code: string | null;
+    country: string | null;
     home_notes: string | null;
   } | null;
   shift_types: { name: string; color: string } | null;
@@ -158,7 +167,7 @@ export default async function ShiftDetailPage({
       client_id,
       shift_type_id,
       profiles:caregiver_id ( id, full_name, avatar_url, avatar_color ),
-      clients ( full_name, address, home_notes ),
+      clients ( full_name, address, formatted_address, street_address_1, street_address_2, city, state, state_or_region, postal_code, country, home_notes ),
       shift_types ( name, color ),
       check_ins ( id, check_in_time, check_out_time, check_out_method, check_out_by, check_out_reason, total_minutes, flagged_outside_geofence, flag_reason ),
       shift_todos ( id, task_name, description, is_completed, completed_at, sort_order, notes, category )
@@ -557,9 +566,9 @@ export default async function ShiftDetailPage({
               <span className="text-sm text-ink-900 text-right">Unassigned</span>
             )}
           </div>
-          {canShowClientDetails && shift.clients?.address && (
+          {canShowClientDetails && shift.clients && displayAddress(shift.clients) && (
             <DetailIcon Icon={MapPinIcon} label="Location">
-              {shift.clients.address}
+              {displayAddress(shift.clients)}
             </DetailIcon>
           )}
           {shift.bonus_amount != null && shift.bonus_amount > 0 && (
@@ -597,8 +606,14 @@ export default async function ShiftDetailPage({
           className="flex items-center justify-between bg-white hover:bg-red-50 px-5 py-4 rounded-2xl shadow-soft transition"
         >
           <span className="flex items-center gap-3">
-            <span className="w-10 h-10 rounded-xl bg-red-600 text-cream-50 grid place-items-center shrink-0">
-              <StarOfLifeIcon size={20} />
+            <span className="w-10 h-10 grid place-items-center shrink-0">
+              <Image
+                src="/icons/emergency.png"
+                alt=""
+                width={36}
+                height={36}
+                className="object-contain"
+              />
             </span>
             <span>
               <span className="block font-medium text-ink-900">
@@ -821,6 +836,7 @@ export default async function ShiftDetailPage({
         {canEdit && shift.caregiver_id && (
           <PayOverrideButton
             shiftId={id}
+            currentUserId={profile.id}
             currentOverrideAmount={shift.pay_override_amount}
             currentOverrideHours={shift.pay_override_hours}
             currentOverrideRate={shift.pay_override_rate}
@@ -982,4 +998,20 @@ function formatEventMetadata(metadata: Record<string, unknown> | null) {
 function normalizeRows<T>(value: T[] | T | null | undefined): T[] {
   if (Array.isArray(value)) return value;
   return value ? [value] : [];
+}
+
+function displayAddress(client: ShiftDetail["clients"]) {
+  if (!client) return null;
+  const fallback = client.formatted_address ?? client.address;
+  const country = normalizeCountry(client.country);
+  if (fallback?.trim() && fallback.trim() !== country) return fallback;
+
+  return formatStructuredAddress({
+    street_address_1: client.street_address_1,
+    street_address_2: client.street_address_2,
+    city: client.city,
+    state_or_region: client.state_or_region ?? client.state,
+    postal_code: client.postal_code,
+    country: client.country,
+  });
 }

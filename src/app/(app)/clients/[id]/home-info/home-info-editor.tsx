@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import {
   COUNTRY_OPTIONS,
   buildAddressQuery,
+  formatStructuredAddress,
   getRegionOptions,
   normalizeCountry,
   postalLabel,
@@ -369,9 +370,20 @@ export default function HomeInfoEditor({
       resolvedLocationSource = "manual";
     }
 
+    const formattedAddress = formatStructuredAddress({
+      street_address_1: streetAddress1,
+      street_address_2: streetAddress2,
+      city,
+      state_or_region: stateOrRegion,
+      postal_code: postalCode,
+      country,
+    });
+
     const { error: updateError } = await supabase
       .from("clients")
       .update({
+        address: formattedAddress,
+        formatted_address: formattedAddress,
         street_address_1: streetAddress1.trim() || null,
         street_address_2: streetAddress2.trim() || null,
         city: city.trim() || null,
@@ -483,7 +495,7 @@ export default function HomeInfoEditor({
             </select>
           </label>
         </div>
-        <ReadOnly label="Formatted address" value={client.formatted_address ?? client.address ?? "Not set"} />
+        <ReadOnly label="Formatted address" value={displayAddress(client) ?? "Location not set"} />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Field label="Latitude" value={latitude} onChange={setLatitude} placeholder="Latitude" />
           <Field label="Longitude" value={longitude} onChange={setLongitude} placeholder="Longitude" />
@@ -1225,7 +1237,7 @@ function ReadOnlyHomeInfo({
   return (
     <div className="space-y-4">
       <Card title="Client location">
-        <ReadOnly label="Address" value={client.formatted_address ?? client.address ?? "Not set"} />
+        <ReadOnly label="Address" value={displayAddress(client) ?? "Location not set"} />
         <ReadOnly label="Latitude" value={client.latitude != null ? String(client.latitude) : "Not set"} />
         <ReadOnly label="Longitude" value={client.longitude != null ? String(client.longitude) : "Not set"} />
         <ReadOnly label="Geofence radius" value={`${client.geofence_radius_meters ?? 150}m`} />
@@ -1597,6 +1609,21 @@ function DocumentManager({
       {error && <p className="text-terracotta-600 text-xs">{error}</p>}
     </div>
   );
+}
+
+function displayAddress(client: ClientHomeInfo) {
+  const fallback = client.formatted_address ?? client.address;
+  const country = normalizeCountry(client.country);
+  if (fallback?.trim() && fallback.trim() !== country) return fallback;
+
+  return formatStructuredAddress({
+    street_address_1: client.street_address_1,
+    street_address_2: client.street_address_2,
+    city: client.city,
+    state_or_region: client.state_or_region ?? client.state,
+    postal_code: client.postal_code,
+    country: client.country,
+  });
 }
 
 function formatBytes(bytes: number) {
