@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import AppLogo from "@/components/app-logo";
 import { useTranslation } from "@/lib/i18n";
@@ -131,6 +132,16 @@ export default function LoginPage() {
               onChange={setPassword}
               required
             />
+            {mode === "signin" && (
+              <div className="-mt-2 text-right">
+                <Link
+                  href="/forgot-password"
+                  className="text-xs font-medium text-navy-600 hover:underline"
+                >
+                  {t("auth.forgotPassword")}
+                </Link>
+              </div>
+            )}
 
             {error && (
               <div className="text-sm text-terracotta-600 bg-terracotta-400/10 border border-terracotta-400/20 px-3 py-2.5 rounded-xl">

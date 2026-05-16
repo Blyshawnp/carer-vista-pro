@@ -28,6 +28,7 @@ type ClientFull = {
   primary_physician_name: string | null;
   primary_physician_address: string | null;
   primary_physician_phone: string | null;
+  show_medications_to_caregivers: boolean;
 };
 
 type EmergencyContact = {
@@ -123,7 +124,7 @@ export default async function EmergencyPage({
   const { data: clientsRaw } = await supabase
     .from("clients")
     .select(
-      "id, full_name, address, formatted_address, street_address_1, street_address_2, city, state, state_or_region, postal_code, country, preferred_hospital_name, preferred_hospital_address, preferred_hospital_phone, primary_physician_name, primary_physician_address, primary_physician_phone"
+      "id, full_name, address, formatted_address, street_address_1, street_address_2, city, state, state_or_region, postal_code, country, preferred_hospital_name, preferred_hospital_address, preferred_hospital_phone, primary_physician_name, primary_physician_address, primary_physician_phone, show_medications_to_caregivers"
     )
     .order("full_name");
 
@@ -296,6 +297,10 @@ export default async function EmergencyPage({
                 medications={client.medications}
                 allergies={client.allergies}
                 safetyItems={client.safetyItems}
+                medicationDetailsHidden={
+                  profile?.role === "caregiver" &&
+                  !client.show_medications_to_caregivers
+                }
               />
             </div>
           ))}

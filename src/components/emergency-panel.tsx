@@ -55,6 +55,7 @@ type EmergencyPanelProps = {
   medications: Medication[];
   allergies: Allergy[];
   safetyItems: SafetyItem[];
+  medicationDetailsHidden?: boolean;
 };
 
 export default function EmergencyPanel({
@@ -63,6 +64,7 @@ export default function EmergencyPanel({
   medications,
   allergies,
   safetyItems,
+  medicationDetailsHidden = false,
 }: EmergencyPanelProps) {
   const [emergencyIconFailed, setEmergencyIconFailed] = useState(false);
 
@@ -179,7 +181,9 @@ export default function EmergencyPanel({
           </InfoSection>
 
           <InfoSection title="Medications">
-            {medications.length > 0 ? (
+            {medicationDetailsHidden ? (
+              <EmptyText>Medication details are hidden by the client/admin.</EmptyText>
+            ) : medications.length > 0 ? (
               <ul className="space-y-2">
                 {medications.map((medication) => (
                   <li
@@ -205,7 +209,7 @@ export default function EmergencyPanel({
                 ))}
               </ul>
             ) : (
-              <EmptyText>No medications recorded.</EmptyText>
+              <EmptyText>No medications listed.</EmptyText>
             )}
           </InfoSection>
         </div>

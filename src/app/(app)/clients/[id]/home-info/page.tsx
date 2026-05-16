@@ -67,6 +67,7 @@ type AssignmentOption = {
   user_id: string;
   role: "caregiver" | "family" | "client" | "admin" | "viewer" | "client-like";
   relationship_role: "caregiver" | "family" | "client" | "admin" | "viewer";
+  is_active: boolean;
 };
 
 export default async function HomeInfoPage({
@@ -93,7 +94,7 @@ export default async function HomeInfoPage({
 
   const { data: assignment } = await supabase
     .from("client_user_assignments")
-    .select("user_id, role, relationship_role")
+    .select("user_id, role, relationship_role, is_active")
     .eq("client_id", id)
     .eq("user_id", user.id)
     .eq("is_active", true)
@@ -133,7 +134,15 @@ export default async function HomeInfoPage({
   const canViewMedicationDetails =
     canManage ||
     assignment?.role === "client-like" ||
-    (profile.role === "caregiver" && client.show_medications_to_caregivers);
+    (profile.role === "caregiver" &&
+      client.show_medications_to_caregivers &&
+      assignment?.is_active !== false &&
+      (assignment?.role === "caregiver" ||
+        assignment?.role === "admin" ||
+        assignment?.role === "viewer" ||
+        assignment?.relationship_role === "caregiver" ||
+        assignment?.relationship_role === "admin" ||
+        assignment?.relationship_role === "viewer"));
   const canViewAllergyDetails =
     canManage ||
     assignment?.role === "client-like" ||
@@ -236,7 +245,7 @@ export default async function HomeInfoPage({
         .order("full_name"),
       supabase
         .from("client_user_assignments")
-        .select("user_id, role, relationship_role")
+        .select("user_id, role, relationship_role, is_active")
         .eq("client_id", client.id)
         .eq("is_active", true),
     ]);
