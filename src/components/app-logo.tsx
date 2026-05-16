@@ -18,28 +18,28 @@ const logoSizes: Record<
   }
 > = {
   auth: {
-    wrapper: "w-[88px] h-[88px] sm:w-[104px] sm:h-[104px]",
-    image: "h-[88px] w-[88px] sm:h-[104px] sm:w-[104px]",
-    width: 104,
-    height: 104,
-    sizes: "(min-width: 640px) 104px, 88px",
-    fallback: "h-[88px] w-[88px] sm:h-[104px] sm:w-[104px] text-sm",
+    wrapper: "w-[220px] sm:w-[260px]",
+    image: "w-[220px] sm:w-[260px] h-auto",
+    width: 260,
+    height: 146,
+    sizes: "(min-width: 640px) 260px, 220px",
+    fallback: "w-[220px] sm:w-[260px] min-h-[82px] text-base",
   },
   header: {
-    wrapper: "w-[56px] h-[56px] sm:w-16 sm:h-16",
-    image: "h-14 w-14 sm:h-16 sm:w-16",
-    width: 64,
-    height: 64,
-    sizes: "(min-width: 640px) 64px, 56px",
-    fallback: "h-14 w-14 sm:h-16 sm:w-16 text-[10px]",
+    wrapper: "w-[120px] sm:w-[150px]",
+    image: "w-[120px] sm:w-[150px] h-auto",
+    width: 150,
+    height: 84,
+    sizes: "(min-width: 640px) 150px, 120px",
+    fallback: "w-[120px] sm:w-[150px] min-h-[54px] text-[10px]",
   },
   compact: {
-    wrapper: "w-12 h-12",
-    image: "h-12 w-12",
-    width: 48,
-    height: 48,
-    sizes: "48px",
-    fallback: "h-12 w-12 text-[9px]",
+    wrapper: "w-32",
+    image: "w-32 h-auto",
+    width: 128,
+    height: 72,
+    sizes: "128px",
+    fallback: "w-32 min-h-[46px] text-[9px]",
   },
 };
 
@@ -74,7 +74,7 @@ export default function AppLogo({
           </span>
         ) : (
           <Image
-            src="/icon.png"
+            src="/logo.png"
             alt="Carer Vista Pro"
             width={size.width}
             height={size.height}
