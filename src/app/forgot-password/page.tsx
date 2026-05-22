@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import AppLogo from "@/components/app-logo";
+import { buildBrowserAppUrl } from "@/lib/app-url";
 import { createClient } from "@/lib/supabase/client";
 
 export default function ForgotPasswordPage() {
@@ -18,8 +19,8 @@ export default function ForgotPasswordPage() {
     setMessage(null);
 
     const trimmedEmail = email.trim().toLowerCase();
-    if (!trimmedEmail) {
-      setError("Enter the email address for this account.");
+    if (!isValidEmail(trimmedEmail)) {
+      setError("Enter a valid email address.");
       setSubmitting(false);
       return;
     }
@@ -28,14 +29,21 @@ export default function ForgotPasswordPage() {
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(
       trimmedEmail,
       {
-        redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
+        redirectTo: buildBrowserAppUrl("/auth/reset-password"),
       }
     );
 
     setSubmitting(false);
 
     if (resetError) {
-      setError(resetError.message);
+      if (isRateLimitError(resetError.message)) {
+        setMessage("If an account exists, a reset link has been sent.");
+        return;
+      }
+
+      setError(
+        "We could not send the reset email right now. Check your connection and try again."
+      );
       return;
     }
 
@@ -91,7 +99,7 @@ export default function ForgotPasswordPage() {
             </button>
 
             <p className="text-xs text-ink-500 leading-snug">
-              No-email or username-only accounts cannot use email reset. Ask an admin to reset this account.
+              Accounts without an email must ask an admin to reset their password.
             </p>
           </div>
         </form>
@@ -101,5 +109,18 @@ export default function ForgotPasswordPage() {
         </Link>
       </div>
     </main>
+  );
+}
+
+function isValidEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function isRateLimitError(message: string) {
+  const normalized = message.toLowerCase();
+  return (
+    normalized.includes("rate limit") ||
+    normalized.includes("too many") ||
+    normalized.includes("security purposes")
   );
 }

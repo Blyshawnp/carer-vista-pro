@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { buildBrowserAppUrl } from "@/lib/app-url";
 import { createClient } from "@/lib/supabase/client";
 import { getFirstName } from "@/lib/name";
 
@@ -55,7 +56,7 @@ export default function AcceptInviteForm({
       email: email.trim().toLowerCase(),
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: buildBrowserAppUrl("/auth/callback"),
       },
     });
 

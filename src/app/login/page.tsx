@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import AppLogo from "@/components/app-logo";
+import { buildBrowserAppUrl } from "@/lib/app-url";
 import { useTranslation } from "@/lib/i18n";
 
 export default function LoginPage() {
@@ -38,7 +39,7 @@ export default function LoginPage() {
         password,
         options: {
           data: { full_name: fullName.trim() },
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=/setup`,
+          emailRedirectTo: buildBrowserAppUrl("/auth/callback?next=/setup"),
         },
       });
 
