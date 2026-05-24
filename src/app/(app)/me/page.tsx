@@ -25,7 +25,7 @@ export default async function MePage() {
   const { data: profile } = await supabase
     .from("profiles")
     .select(
-      "id, full_name, role, email, phone, language, avatar_url, avatar_color, owner_role_label, bio, vehicle_1_make_model, vehicle_1_color, vehicle_2_make_model, vehicle_2_color, organizations(name)"
+      "id, full_name, role, email, username, has_real_email, phone, language, avatar_url, avatar_color, owner_role_label, bio, vehicle_1_make_model, vehicle_1_color, vehicle_2_make_model, vehicle_2_color, organizations(name)"
     )
     .eq("id", user.id)
     .single<{
@@ -33,6 +33,8 @@ export default async function MePage() {
       full_name: string;
       role: "admin" | "client" | "caregiver" | "family" | "family";
       email: string;
+      username: string | null;
+      has_real_email: boolean | null;
       phone: string | null;
       language: Lang | null;
       avatar_url: string | null;
@@ -167,7 +169,14 @@ export default async function MePage() {
         </div>
 
         <dl className="text-sm">
-          <Row label={t("me.email", lang)} value={profile?.email} />
+          <Row
+            label={profile?.has_real_email === false ? "Username" : t("me.email", lang)}
+            value={
+              profile?.has_real_email === false && profile.username
+                ? profile.username
+                : profile?.email
+            }
+          />
           {profile && (
             <EditablePhone
               initialPhone={profile.phone}

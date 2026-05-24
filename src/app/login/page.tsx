@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import AppLogo from "@/components/app-logo";
 import { buildBrowserAppUrl } from "@/lib/app-url";
 import { useTranslation } from "@/lib/i18n";
+import { INVALID_LOGIN_MESSAGE, mapAuthErrorMessage } from "@/lib/auth-errors";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -44,7 +45,7 @@ export default function LoginPage() {
       });
 
       if (error) {
-        setError(error.message);
+        setError(mapAuthErrorMessage(error.message));
         setLoading(false);
         return;
       }
@@ -60,13 +61,32 @@ export default function LoginPage() {
       return;
     }
 
+    const loginId = email.trim().toLowerCase();
+    if (!loginId.includes("@")) {
+      const response = await fetch("/api/auth/username-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: loginId, password }),
+      });
+
+      if (!response.ok) {
+        setError(INVALID_LOGIN_MESSAGE);
+        setLoading(false);
+        return;
+      }
+
+      router.push("/home");
+      router.refresh();
+      return;
+    }
+
     const { error } = await supabase.auth.signInWithPassword({
-      email: email.trim().toLowerCase(),
+      email: loginId,
       password,
     });
 
     if (error) {
-      setError(error.message);
+      setError(INVALID_LOGIN_MESSAGE);
         setLoading(false);
        return;
     }
@@ -118,9 +138,9 @@ export default function LoginPage() {
               />
             )}
             <Field
-              label={t("auth.email")}
-              type="email"
-              autoComplete="email"
+              label={mode === "signin" ? "Email or username" : t("auth.email")}
+              type={mode === "signin" ? "text" : "email"}
+              autoComplete={mode === "signin" ? "username" : "email"}
               value={email}
               onChange={setEmail}
               required

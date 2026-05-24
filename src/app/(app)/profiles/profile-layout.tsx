@@ -16,6 +16,8 @@ type ProfileData = {
   full_name: string;
   role: string;
   email: string;
+  username: string | null;
+  has_real_email: boolean | null;
   phone: string | null;
   avatar_url: string | null;
   avatar_color: string | null;
@@ -83,7 +85,15 @@ export default function ProfileLayout({
             <section className="space-y-4">
               <h2 className="text-[10px] uppercase tracking-[0.2em] text-ink-400 font-bold">Contact Details</h2>
               <div className="grid gap-3">
-                <InfoRow icon={MailIcon} label="Email" value={profile.email} />
+                <InfoRow
+                  icon={MailIcon}
+                  label={profile.has_real_email === false ? "Username" : "Email"}
+                  value={
+                    profile.has_real_email === false && profile.username
+                      ? profile.username
+                      : profile.email
+                  }
+                />
                 {profile.phone && <InfoRow icon={PhoneIcon} label="Phone" value={profile.phone} />}
               </div>
             </section>

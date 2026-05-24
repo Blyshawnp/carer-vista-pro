@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { buildAppUrl } from "@/lib/app-url";
 import { isEmailConfigured, sendInvitationEmail } from "@/lib/email";
 import type { Role } from "@/lib/db-types";
+import { EMAIL_RATE_LIMIT_MESSAGE, isEmailRateLimitError } from "@/lib/auth-errors";
 
 type ActorProfile = {
   id: string;
@@ -113,7 +114,11 @@ export async function POST(
         sent: false,
         skipped: false,
         reason: "failed",
-        error: error instanceof Error ? error.message : "Email delivery failed.",
+        error: isEmailRateLimitError(error instanceof Error ? error.message : null)
+          ? EMAIL_RATE_LIMIT_MESSAGE
+          : error instanceof Error
+            ? error.message
+            : "Email delivery failed.",
       });
     }
   } catch (error) {

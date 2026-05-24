@@ -59,6 +59,8 @@ type UserOption = {
   id: string;
   full_name: string;
   email: string;
+  username: string | null;
+  has_real_email: boolean | null;
   role: "admin" | "client" | "caregiver" | "family";
   is_active: boolean;
 };
@@ -240,7 +242,7 @@ export default async function HomeInfoPage({
     const [{ data: usersData }, { data: assignmentsData }] = await Promise.all([
       supabase
         .from("profiles")
-        .select("id, full_name, email, role, is_active")
+        .select("id, full_name, email, username, has_real_email, role, is_active")
         .eq("organization_id", client.organization_id)
         .order("full_name"),
       supabase

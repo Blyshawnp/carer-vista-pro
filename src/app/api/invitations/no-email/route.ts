@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { Role } from "@/lib/db-types";
 
 type AdminProfile = {
   id: string;
   organization_id: string;
   role: Role;
+  is_owner: boolean | null;
 };
 
 type NoEmailInviteRequest = {
@@ -14,7 +15,9 @@ type NoEmailInviteRequest = {
   role?: Role;
   usernamePart?: string;
   password?: string;
+  phone?: string | null;
   hourlyRate?: number | null;
+  clientIds?: string[];
 };
 
 const NO_EMAIL_ROLES: Role[] = ["admin", "caregiver", "client", "family"];
@@ -32,20 +35,25 @@ export async function POST(request: Request) {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("id, organization_id, role")
+      .select("id, organization_id, role, is_owner")
       .eq("id", user.id)
       .maybeSingle<AdminProfile>();
 
-    if (!profile || profile.role !== "admin") {
-      return NextResponse.json({ error: "Admin access required." }, { status: 403 });
+    if (!profile?.organization_id || !canCreateNoEmailUser(profile)) {
+      return NextResponse.json(
+        { error: "Admin or client-family admin access required." },
+        { status: 403 }
+      );
     }
 
     const payload = (await request.json()) as NoEmailInviteRequest;
     const fullName = payload.fullName?.trim() ?? "";
     const usernamePart = payload.usernamePart?.trim().toLowerCase() ?? "";
-    const password = payload.password ?? "";
+    const password = payload.password?.trim() || generateTemporaryPassword();
+    const phone = payload.phone?.trim() || null;
     const role = payload.role;
     const hourlyRate = normalizeHourlyRate(payload.hourlyRate);
+    const clientIds = Array.from(new Set(payload.clientIds ?? []));
 
     if (!fullName) {
       return NextResponse.json({ error: "Full name is required." }, { status: 400 });
@@ -75,14 +83,29 @@ export async function POST(request: Request) {
     }
 
     const admin = createAdminClient();
-    const placeholderEmail = `${cleanUser}@noemail.local`;
+    const { data: existingUsername } = await admin
+      .from("profiles")
+      .select("id")
+      .eq("username", cleanUser)
+      .eq("has_real_email", false)
+      .limit(1)
+      .maybeSingle<{ id: string }>();
+
+    if (existingUsername) {
+      return NextResponse.json(
+        { error: "That username is taken. Pick another." },
+        { status: 400 }
+      );
+    }
+
+    const placeholderEmail = `${cleanUser}+${profile.organization_id.slice(0, 8)}@noemail.local`;
 
     const { data: invitation, error: invitationError } = await admin
       .from("invitations")
       .insert({
         organization_id: profile.organization_id,
         full_name: fullName,
-        email: placeholderEmail,
+        email: null,
         role,
         invited_by: profile.id,
         created_by: profile.id,
@@ -100,13 +123,15 @@ export async function POST(request: Request) {
     }
 
     const createdUser = await admin.auth.admin.createUser({
-      email: placeholderEmail,
-      password,
-      email_confirm: true,
-      user_metadata: {
-        full_name: fullName,
-      },
-    });
+        email: placeholderEmail,
+        password,
+        email_confirm: true,
+        user_metadata: {
+          full_name: fullName,
+          username: cleanUser,
+          has_real_email: false,
+        },
+      });
 
     if (createdUser.error || !createdUser.data.user) {
       await admin.from("invitations").delete().eq("id", invitation.id);
@@ -130,7 +155,9 @@ export async function POST(request: Request) {
         role,
         full_name: fullName,
         email: placeholderEmail,
-        phone: null,
+        phone,
+        username: cleanUser,
+        has_real_email: false,
       },
       { onConflict: "id" }
     );
@@ -169,6 +196,22 @@ export async function POST(request: Request) {
       }
     }
 
+    if (clientIds.length > 0) {
+      const { assignmentError } = await assignClients({
+        admin,
+        actorId: profile.id,
+        organizationId: profile.organization_id,
+        userId: invitedUserId,
+        role,
+        clientIds,
+      });
+
+      if (assignmentError) {
+        await rollbackNoEmailInvite(admin, invitation.id, invitedUserId);
+        return NextResponse.json({ error: assignmentError }, { status: 400 });
+      }
+    }
+
     const { error: updateInvitationError } = await admin
       .from("invitations")
       .update({
@@ -187,8 +230,9 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({
-      email: placeholderEmail,
+      username: cleanUser,
       password,
+      role,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Could not create account.";
@@ -196,20 +240,8 @@ export async function POST(request: Request) {
   }
 }
 
-function createAdminClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!url || !serviceRoleKey) {
-    throw new Error("Supabase service role configuration is missing.");
-  }
-
-  return createSupabaseClient(url, serviceRoleKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  });
+function canCreateNoEmailUser(profile: AdminProfile) {
+  return profile.role === "admin" || profile.is_owner === true;
 }
 
 function normalizeHourlyRate(value: number | null | undefined) {
@@ -221,9 +253,60 @@ function normalizeHourlyRate(value: number | null | undefined) {
 }
 
 function mapAuthCreationError(message: string) {
-  return message.toLowerCase().includes("already")
+  const normalized = message.toLowerCase();
+  return normalized.includes("already") || normalized.includes("duplicate")
     ? "That username is taken. Pick another."
     : message;
+}
+
+function generateTemporaryPassword() {
+  return `Cv${crypto.randomUUID().replace(/-/g, "").slice(0, 10)}!`;
+}
+
+async function assignClients({
+  admin,
+  actorId,
+  organizationId,
+  userId,
+  role,
+  clientIds,
+}: {
+  admin: ReturnType<typeof createAdminClient>;
+  actorId: string;
+  organizationId: string;
+  userId: string;
+  role: Role;
+  clientIds: string[];
+}) {
+  const { data: clients, error: clientError } = await admin
+    .from("clients")
+    .select("id")
+    .eq("organization_id", organizationId)
+    .in("id", clientIds);
+
+  if (clientError) return { assignmentError: clientError.message };
+  if ((clients ?? []).length !== clientIds.length) {
+    return { assignmentError: "One or more selected clients were not found." };
+  }
+
+  const rows = (clients ?? []).map((client) => ({
+    organization_id: organizationId,
+    client_id: client.id,
+    user_id: userId,
+    relationship_role: role,
+    role: normalizeAssignmentRole(role),
+    assigned_by: actorId,
+    is_active: true,
+  }));
+
+  const { error } = await admin.from("client_user_assignments").insert(rows);
+
+  return { assignmentError: error?.message };
+}
+
+function normalizeAssignmentRole(role: Role) {
+  if (role === "family") return "viewer";
+  return role;
 }
 
 async function rollbackNoEmailInvite(
@@ -233,6 +316,7 @@ async function rollbackNoEmailInvite(
 ) {
   await admin.from("invitations").delete().eq("id", invitationId);
   await admin.from("caregiver_rates").delete().eq("caregiver_id", userId);
+  await admin.from("client_user_assignments").delete().eq("user_id", userId);
   await admin.from("profiles").delete().eq("id", userId);
   await admin.auth.admin.deleteUser(userId);
 }

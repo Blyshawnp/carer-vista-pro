@@ -5,6 +5,7 @@ import Link from "next/link";
 import AppLogo from "@/components/app-logo";
 import { buildBrowserAppUrl } from "@/lib/app-url";
 import { createClient } from "@/lib/supabase/client";
+import { EMAIL_RATE_LIMIT_SHORT_MESSAGE, isEmailRateLimitError } from "@/lib/auth-errors";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -36,8 +37,8 @@ export default function ForgotPasswordPage() {
     setSubmitting(false);
 
     if (resetError) {
-      if (isRateLimitError(resetError.message)) {
-        setMessage("If an account exists, a reset link has been sent.");
+      if (isEmailRateLimitError(resetError.message)) {
+        setError(EMAIL_RATE_LIMIT_SHORT_MESSAGE);
         return;
       }
 
@@ -99,7 +100,7 @@ export default function ForgotPasswordPage() {
             </button>
 
             <p className="text-xs text-ink-500 leading-snug">
-              Accounts without an email must ask an admin to reset their password.
+              No-email accounts must ask an admin to reset their password.
             </p>
           </div>
         </form>
@@ -114,13 +115,4 @@ export default function ForgotPasswordPage() {
 
 function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-}
-
-function isRateLimitError(message: string) {
-  const normalized = message.toLowerCase();
-  return (
-    normalized.includes("rate limit") ||
-    normalized.includes("too many") ||
-    normalized.includes("security purposes")
-  );
 }

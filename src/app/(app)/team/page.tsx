@@ -8,6 +8,8 @@ type TeamMember = {
   id: string;
   full_name: string;
   email: string;
+  username: string | null;
+  has_real_email: boolean | null;
   role: "admin" | "client" | "caregiver" | "family";
   is_active: boolean;
   avatar_url: string | null;
@@ -66,7 +68,7 @@ export default async function TeamPage() {
   // Fetch all profiles in org
   const { data: peopleRaw } = await supabase
     .from("profiles")
-    .select("id, full_name, email, role, is_active, avatar_url, avatar_color")
+    .select("id, full_name, email, username, has_real_email, role, is_active, avatar_url, avatar_color")
     .eq("organization_id", profile.organization_id)
     .order("role")
     .order("full_name");
@@ -241,7 +243,9 @@ function PersonRow({ person }: { person: TeamMember }) {
                   ? `$${person.current_rate.toFixed(2)}/hr`
                   : "No rate set"
               }`
-            : person.email}
+            : person.has_real_email === false && person.username
+              ? person.username
+              : person.email}
         </p>
       </div>
       <Link

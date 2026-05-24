@@ -22,5 +22,11 @@ export default async function InvitePage() {
 
   if (!profile || (profile.role !== "admin" && !profile.is_owner)) redirect("/team");
 
-  return <InviteForm />;
+  const { data: clients } = await supabase
+    .from("clients")
+    .select("id, full_name")
+    .eq("organization_id", profile.organization_id)
+    .order("full_name");
+
+  return <InviteForm clients={clients ?? []} />;
 }
