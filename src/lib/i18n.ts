@@ -100,6 +100,28 @@ const en = {
   "schedule.past": "Past",
   "schedule.noShifts": "No shifts scheduled.",
   "schedule.newShift": "New shift",
+  "task.required": "Required",
+  "task.optional": "Optional",
+  "task.prn": "PRN",
+  "task.importance": "Importance",
+  "task.importanceLow": "Low",
+  "task.importanceMedium": "Medium",
+  "task.importanceHigh": "High",
+  "task.importanceCritical": "Critical",
+  "task.timeMode": "Time",
+  "task.timeOfDay": "Time of day",
+  "task.exactTime": "Exact time",
+  "task.unscheduled": "Unscheduled",
+  "task.morning": "Morning",
+  "task.earlyAfternoon": "Early afternoon",
+  "task.lateAfternoon": "Late afternoon",
+  "task.evening": "Evening",
+  "task.bedtime": "Bedtime",
+  "task.allowRepeat": "Allow repeat",
+  "task.single": "Single",
+  "task.manualOrder": "Manual order",
+  "task.group.unscheduled": "Unscheduled",
+  "task.occurrence": "Occurrence {n}",
   "role.admin": "Admin",
   "role.client": "Client",
   "role.caregiver": "Caregiver",
@@ -208,6 +230,28 @@ const es: Record<TranslationKey, string> = {
   "schedule.past": "Pasados",
   "schedule.noShifts": "No hay turnos programados.",
   "schedule.newShift": "Nuevo turno",
+  "task.required": "Requerido",
+  "task.optional": "Opcional",
+  "task.prn": "PRN",
+  "task.importance": "Importancia",
+  "task.importanceLow": "Baja",
+  "task.importanceMedium": "Media",
+  "task.importanceHigh": "Alta",
+  "task.importanceCritical": "Crítica",
+  "task.timeMode": "Hora",
+  "task.timeOfDay": "Momento del día",
+  "task.exactTime": "Hora exacta",
+  "task.unscheduled": "Sin horario",
+  "task.morning": "Mañana",
+  "task.earlyAfternoon": "Tarde temprana",
+  "task.lateAfternoon": "Tarde",
+  "task.evening": "Noche",
+  "task.bedtime": "Hora de dormir",
+  "task.allowRepeat": "Permitir repetición",
+  "task.single": "Una sola vez",
+  "task.manualOrder": "Orden manual",
+  "task.group.unscheduled": "Sin horario",
+  "task.occurrence": "Ocurrencia {n}",
   "role.admin": "Administrador",
   "role.client": "Cliente",
   "role.caregiver": "Cuidador",
@@ -234,9 +278,20 @@ export function t(
   return s;
 }
 
-export function useTranslation() {
-  const lang = "en"; 
-  return { t: (key: TranslationKey, vars?: Record<string, string | number>) => t(key, lang, vars), lang };
+export function useTranslation(initialLang?: Lang) {
+  const lang =
+    initialLang === "es" || initialLang === "en"
+      ? initialLang
+      : typeof document !== "undefined" &&
+          (document.documentElement.lang === "es" || document.documentElement.lang === "en")
+        ? (document.documentElement.lang as Lang)
+        : "en";
+
+  return {
+    t: (key: TranslationKey, vars?: Record<string, string | number>) =>
+      t(key, lang, vars),
+    lang,
+  };
 }
 
 export type { TranslationKey };
