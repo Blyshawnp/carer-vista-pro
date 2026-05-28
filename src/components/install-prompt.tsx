@@ -128,7 +128,7 @@ export default function InstallPrompt() {
               </span>
             ) : (
               <img
-                src="/logo.png"
+                src="/CVPlogo.png"
                 alt="Carer Vista Pro"
                 onError={() => setLogoFailed(true)}
                 className="w-24 h-auto object-contain shrink-0"

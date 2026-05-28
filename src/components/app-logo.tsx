@@ -74,7 +74,7 @@ export default function AppLogo({
           </span>
         ) : (
           <Image
-            src="/logo.png"
+            src="/CVPlogo.png"
             alt="Carer Vista Pro"
             width={size.width}
             height={size.height}
