@@ -77,9 +77,6 @@ export default function SetupWizard({
               className="justify-center"
             />
           </div>
-          <p className="font-display text-3xl text-ink-900 leading-none mb-3">
-            Carer Vista Pro
-          </p>
           <p className="text-xs uppercase tracking-[0.18em] text-navy-600 font-bold mb-2">
             First-run setup
           </p>

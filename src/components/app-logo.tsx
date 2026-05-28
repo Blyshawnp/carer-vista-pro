@@ -18,12 +18,12 @@ const logoSizes: Record<
   }
 > = {
   auth: {
-    wrapper: "w-[220px] sm:w-[260px]",
-    image: "w-[220px] sm:w-[260px] h-auto",
-    width: 260,
-    height: 146,
-    sizes: "(min-width: 640px) 260px, 220px",
-    fallback: "w-[220px] sm:w-[260px] min-h-[82px] text-base",
+    wrapper: "w-[280px] sm:w-[340px]",
+    image: "w-[280px] sm:w-[340px] h-auto",
+    width: 340,
+    height: 190,
+    sizes: "(min-width: 640px) 340px, 280px",
+    fallback: "w-[280px] sm:w-[340px] min-h-[112px] text-base",
   },
   header: {
     wrapper: "w-[120px] sm:w-[150px]",
