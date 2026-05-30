@@ -47,6 +47,25 @@ export default function TermsPage() {
         </ul>
       </Section>
 
+      <Section title="Payroll, Tax, and Classification Compliance">
+        <ul className="list-disc pl-5 space-y-1.5">
+          <li>Organizations and clients are solely responsible for all payroll, tax, legal, and regulatory compliance.</li>
+          <li>This app does not provide payroll, tax, legal, accounting, or employment advice.</li>
+          <li>Organizations and clients are fully responsible for setting correct rates, generating accurate invoices, paying taxes, managing payments, determining worker classification (such as W-2 vs. 1099), and maintaining correct business and employment records.</li>
+          <li>Year-end summaries and client invoices are for recordkeeping and administration only, unless official tax documents are separately issued by the organization.</li>
+          <li>The app does not prepare, file, or submit W-2 forms, 1099 forms, payroll taxes, or tax returns.</li>
+          <li>Organizations must independently verify and document caregiver employee or contractor classification.</li>
+        </ul>
+      </Section>
+
+      <Section title="Manual Payments, Invoices, and Appreciation Bonuses">
+        <ul className="list-disc pl-5 space-y-1.5">
+          <li><strong>Manual Payment Records:</strong> The invoicing, payment logging, and balance tracking tools in this app are for manual recordkeeping only. The app does not process real payments, credit card transactions, or bank transfers unless a dedicated payment processor is explicitly added and configured.</li>
+          <li><strong>Appreciation Bonuses:</strong> Optional caregiver appreciation, holiday, performance, or other bonuses funded by clients are subject to organization rules and configuration. In Agency / Company mode, all client-submitted caregiver appreciation bonuses are subject to organization and administrator approval before affecting caregiver payouts, pay summaries, or client invoices.</li>
+          <li>Clients and families are not allowed to directly pay caregivers through the application. All monetary records and transactions must align with the organization's policies.</li>
+        </ul>
+      </Section>
+
       <Section title="No medical advice">
         <p>
           Content in the app is for reference and coordination only. It is not

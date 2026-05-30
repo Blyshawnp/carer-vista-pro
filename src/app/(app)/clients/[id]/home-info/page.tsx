@@ -9,6 +9,9 @@ import HomeInfoEditor, {
   type SafetyItem,
 } from "./home-info-editor";
 import ClientUsersManager from "./client-users-manager";
+import EmergencyGuideEditor from "./emergency-guide-editor";
+import PetsEditor from "./pets-editor";
+import ClientChecklist from "./checklist";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -74,10 +77,15 @@ type AssignmentOption = {
 
 export default async function HomeInfoPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams?: Promise<{ tab?: string }>;
 }) {
   const { id } = await params;
+  const { tab } = (await searchParams) ?? {};
+  const currentTab = tab === "guide" ? "guide" : tab === "pets" ? "pets" : "info";
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -86,9 +94,9 @@ export default async function HomeInfoPage({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, organization_id")
     .eq("id", user.id)
-    .single<{ role: "admin" | "client" | "caregiver" | "family" }>();
+    .single<{ role: "admin" | "client" | "caregiver" | "family"; organization_id: string }>();
 
   if (!profile) redirect("/me");
   const canManage = profile.role === "admin" || profile.role === "client";
@@ -257,6 +265,30 @@ export default async function HomeInfoPage({
     assignedUserIds = assignments.map((row) => row.user_id);
   }
 
+  // Fetch emergency preparedness guide
+  const { data: guide } = await supabase
+    .from("client_emergency_guides")
+    .select("*")
+    .eq("client_id", client.id)
+    .maybeSingle();
+
+  // Fetch pet details
+  const { data: petsData } = await supabase
+    .from("client_pets")
+    .select("*")
+    .eq("client_id", client.id)
+    .order("created_at", { ascending: true });
+
+  const pets = petsData ?? [];
+
+  // Compute checklist metrics
+  const isGeofenceSet = !!(client.address && client.latitude && client.longitude);
+  const isContactsAdded = contacts.length > 0;
+  const isPetsConfigured = pets.length > 0;
+  const isGuideConfigured = !!(guide?.enabled);
+  const isNotesAdded = !!client.home_notes;
+  const isAllergiesConfigured = allergies.length > 0 || medications.length > 0;
+
   return (
     <main className="px-5 py-6 max-w-2xl mx-auto">
       <header className="mb-6">
@@ -278,27 +310,88 @@ export default async function HomeInfoPage({
         </p>
       </header>
 
-      <HomeInfoEditor
-        client={client}
-        contacts={contacts}
-        medications={medications}
-        allergies={allergies}
-        safetyItems={safetyItems}
-        documents={documents}
-        canManage={canManage}
-        canEditWifi={canManage}
-        canViewMedicationDetails={canViewMedicationDetails}
-        canViewAllergyDetails={canViewAllergyDetails}
-        canViewSafetyDetails={canViewSafetyDetails}
-        assignmentRole={assignment?.role ?? null}
-      />
       {canManage && (
-        <ClientUsersManager
-          clientId={client.id}
-          users={users}
-          assignedUserIds={assignedUserIds}
-          assignments={assignments}
-        />
+        <>
+          {/* Completion Checklist */}
+          <ClientChecklist
+            isGeofenceSet={isGeofenceSet}
+            isContactsAdded={isContactsAdded}
+            isPetsConfigured={isPetsConfigured}
+            isGuideConfigured={isGuideConfigured}
+            isNotesAdded={isNotesAdded}
+            isAllergiesConfigured={isAllergiesConfigured}
+          />
+
+          {/* Navigation tabs */}
+          <div className="flex gap-1.5 p-1 bg-cream-50 rounded-2xl border border-cream-200/80 mb-5 text-center no-print">
+            <Link
+              href={`/clients/${client.id}/home-info?tab=info`}
+              className={`flex-1 text-xs py-2.5 rounded-xl font-medium transition ${
+                currentTab === "info"
+                  ? "bg-white text-forest-700 shadow-sm"
+                  : "text-ink-500 hover:text-ink-900"
+              }`}
+            >
+              General & Home Info
+            </Link>
+            <Link
+              href={`/clients/${client.id}/home-info?tab=guide`}
+              className={`flex-1 text-xs py-2.5 rounded-xl font-medium transition ${
+                currentTab === "guide"
+                  ? "bg-white text-forest-700 shadow-sm"
+                  : "text-ink-500 hover:text-ink-900"
+              }`}
+            >
+              Emergency Guide
+            </Link>
+            <Link
+              href={`/clients/${client.id}/home-info?tab=pets`}
+              className={`flex-1 text-xs py-2.5 rounded-xl font-medium transition ${
+                currentTab === "pets"
+                  ? "bg-white text-forest-700 shadow-sm"
+                  : "text-ink-500 hover:text-ink-900"
+              }`}
+            >
+              Pet Records
+            </Link>
+          </div>
+        </>
+      )}
+
+      {/* Tab content */}
+      {(!canManage || currentTab === "info") && (
+        <>
+          <HomeInfoEditor
+            client={client}
+            contacts={contacts}
+            medications={medications}
+            allergies={allergies}
+            safetyItems={safetyItems}
+            documents={documents}
+            canManage={canManage}
+            canEditWifi={canManage}
+            canViewMedicationDetails={canViewMedicationDetails}
+            canViewAllergyDetails={canViewAllergyDetails}
+            canViewSafetyDetails={canViewSafetyDetails}
+            assignmentRole={assignment?.role ?? null}
+          />
+          {canManage && (
+            <ClientUsersManager
+              clientId={client.id}
+              users={users}
+              assignedUserIds={assignedUserIds}
+              assignments={assignments}
+            />
+          )}
+        </>
+      )}
+
+      {canManage && currentTab === "guide" && (
+        <EmergencyGuideEditor clientId={client.id} initialGuide={guide} />
+      )}
+
+      {canManage && currentTab === "pets" && (
+        <PetsEditor clientId={client.id} initialPets={pets} orgId={profile.organization_id} />
       )}
     </main>
   );

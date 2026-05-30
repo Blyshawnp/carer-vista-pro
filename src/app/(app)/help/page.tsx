@@ -164,6 +164,8 @@ export default async function HelpPage() {
             <li>Caregivers can see the home info needed to do their work, but never edit Wi-Fi or sensitive admin settings.</li>
             <li>Admins can do everything in their org.</li>
             <li>Clients and family users can only see information allowed by their assignment and privacy settings.</li>
+            <li><strong>Sensitive Documents:</strong> Shared documents may contain highly sensitive medical or personal information. Users should only upload, view, or share documents they are explicitly authorized to share.</li>
+            <li><strong>Print Approvals & Acknowledgments:</strong> Printing sensitive documents may require administrator approval. When a document requires acknowledgment, your read/acknowledgment records will be stored and made visible to administrators.</li>
           </ul>
         </Section>
 
@@ -178,6 +180,36 @@ export default async function HelpPage() {
               <LegalCard href="/account/deletion-requests" title="Deletion Requests" description="Review deletion requests from your care circle." />
             ) : null}
           </div>
+        </Section>
+
+        <Section title="Feedback & Commendations">
+          <ul className="text-sm text-ink-700 space-y-1.5 list-disc pl-5">
+            <li>Clients and families can submit positive commendations, thank you notes, concerns, or complaints about caregivers via <strong>Me &rarr; Submit caregiver feedback</strong>.</li>
+            <li><strong>Admin Review:</strong> All feedback is securely sent to administrators. Complaints and concerns are never shared with caregivers automatically.</li>
+            <li><strong>Commendations & Appreciation:</strong> Administrators can choose to share positive commendations or appreciations directly with the caregiver to recognize their good work.</li>
+            <li><strong>Emergency Warning:</strong> Caregiver feedback is NOT monitored 24/7 and should never be used for emergencies or active safety issues. Please report emergencies via 911 immediately.</li>
+          </ul>
+        </Section>
+
+        <Section title="Emergency Prep & Pet Records">
+          <ul className="text-sm text-ink-700 space-y-1.5 list-disc pl-5">
+            <li><strong>Accuracy:</strong> Pet information and emergency preparedness instructions are user-entered and must be kept up-to-date and accurate.</li>
+            <li><strong>Not a Substitute:</strong> This app is NOT a substitute for professional emergency services (such as calling 911).</li>
+            <li><strong>Caregiver Instructions:</strong> Caregivers must follow the organization and client's instructions during an event and immediately call emergency services (911) when appropriate.</li>
+          </ul>
+        </Section>
+
+        <Section title="Invoices, Payments, & Year-End Summaries">
+          <ul className="text-sm text-ink-700 space-y-1.5 list-disc pl-5">
+            <li><strong>How to Print Invoices:</strong> Go to <strong>Me &rarr; Invoices</strong>, select any locked invoice statement, and click the <strong>🖨️ Print Invoice</strong> button.</li>
+            <li><strong>Manual Payment Records:</strong> All logged invoices, payments, and balances are for administrative recordkeeping only. The app does not process real payments or bank transfers unless a specific payment processor integration is added.</li>
+            <li><strong>Custom Invoice Schedules:</strong> Organizations can set custom frequencies (weekly, every other week, twice monthly, monthly, or custom start/end dates), along with custom timezone-aware release days and times.</li>
+            <li><strong>Caregiver Appreciation Bonuses:</strong> Optional caregiver appreciation, holiday, performance, or manual adjustments can be funded by clients. In Agency/Company mode, bonuses submitted by clients must be approved by an administrator before they are visible to caregivers or added to the client invoice.</li>
+            <li><strong>Role-Based Financial Visibility:</strong> Caregivers see their own pay, bonuses, holiday multipliers, and total earned only. Clients and families see invoices, payments, and balances due (when allowed) but never see caregivers' pay rates or organization margins. Admins have full visibility of all charges, payouts, and margins.</li>
+            <li><strong>Year-End Earning Reports:</strong> Optional and enabled/scheduled by organization administrators. Go to <strong>Me &rarr; Year-End Summaries</strong> to view them once released. Works on mobile, PWA, and desktop browsers.</li>
+            <li><strong>Compliance Notice & No Advice:</strong> Employing organizations and clients are fully responsible for setting correct rates, invoices, taxes, payments, worker classification (W-2 vs. 1099), and business records. The app does not provide payroll, tax, legal, accounting, or employment advice.</li>
+            <li><strong>Organization Modes:</strong> The app supports Personal/Family Care, Agency/Company, Solo Caregiver, and Client-Directed Care. Permissions automatically scale based on the mode.</li>
+          </ul>
         </Section>
 
         <Section title="Trouble?">

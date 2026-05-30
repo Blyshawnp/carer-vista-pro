@@ -14,15 +14,20 @@ export default function ScheduleView({
   role,
   archiveMode,
   assignedClientCount = 0,
+  canCreateShifts = false,
+  canRequestShifts = false,
+  organizationMode = "personal_family",
 }: {
   shifts: ScheduleShift[];
   role: "admin" | "client" | "caregiver" | "family";
   archiveMode?: boolean;
   assignedClientCount?: number;
+  canCreateShifts?: boolean;
+  canRequestShifts?: boolean;
+  organizationMode?: string;
 }) {
   const [view, setView] = useState<View>("list");
   const [now, setNow] = useState(() => new Date());
-  const canCreate = role === "admin" || role === "client";
 
   useEffect(() => {
     const t = setInterval(() => setNow(new Date()), 60_000);
@@ -53,48 +58,66 @@ export default function ScheduleView({
               Archive
             </Link>
           </div>
-          {canCreate && (
-            <div className="flex gap-2 mt-2">
-              <Link
-                href="/schedule/new"
-                className="text-xs text-forest-600 hover:underline"
-              >
-                New shift
-              </Link>
-              {role === "admin" && (
+          <div className="flex gap-3 mt-2.5 flex-wrap items-center">
+            {canCreateShifts && (
+              <>
                 <Link
-                  href="/schedule/recurring"
+                  href="/schedule/new"
+                  className="text-xs text-forest-600 hover:underline font-semibold"
+                >
+                  New shift
+                </Link>
+                {role === "admin" && (
+                  <Link
+                    href="/schedule/recurring"
+                    className="text-xs text-forest-600 hover:underline"
+                  >
+                    Recurring templates
+                  </Link>
+                )}
+                <Link
+                  href="/schedule/proposals"
                   className="text-xs text-forest-600 hover:underline"
                 >
-                  Recurring templates
+                  Shift proposals
                 </Link>
-              )}
-              <Link
-                href="/schedule/proposals"
-                className="text-xs text-forest-600 hover:underline"
-              >
-                Shift proposals
-              </Link>
-              <Link
-                href="/schedule/shift-types"
-                className="text-xs text-forest-600 hover:underline"
-              >
-                Shift types
-              </Link>
-              {role === "admin" && (
                 <Link
-                  href="/schedule/trades"
+                  href="/schedule/shift-types"
                   className="text-xs text-forest-600 hover:underline"
                 >
-                  Shift trades
+                  Shift types
                 </Link>
-              )}
-            </div>
-          )}
+                {role === "admin" && (
+                  <Link
+                    href="/schedule/trades"
+                    className="text-xs text-forest-600 hover:underline"
+                  >
+                    Shift trades
+                  </Link>
+                )}
+              </>
+            )}
+            {canRequestShifts && (
+              <Link
+                href="/schedule/requests/new"
+                className="text-xs text-forest-700 hover:underline font-semibold bg-forest-100/70 px-2 py-0.5 rounded-lg"
+              >
+                Request care coverage
+              </Link>
+            )}
+            {(role === "admin" || canRequestShifts) && (
+              <Link
+                href="/schedule/requests"
+                className="text-xs text-forest-600 hover:underline font-medium"
+              >
+                {role === "admin" ? "Manage coverage requests" : "My coverage requests"}
+              </Link>
+            )}
+          </div>
         </div>
 
         {/* View toggle */}
-        <div className="bg-white rounded-2xl p-1 flex shadow-soft">
+        <div className="bg-white rounded-2xl p-1 flex shadow-soft shrink-0">
           <ToggleBtn
             active={view === "list"}
             onClick={() => setView("list")}
@@ -151,7 +174,7 @@ export default function ScheduleView({
         <CalendarView shifts={shifts} now={now} />
       )}
 
-      {canCreate && (
+      {canCreateShifts && (
         <Link
           href="/schedule/new"
           className="fixed bottom-28 right-5 z-20 w-14 h-14 rounded-full bg-forest-600 hover:bg-forest-700 text-cream-50 shadow-lifted grid place-items-center transition active:scale-95"
