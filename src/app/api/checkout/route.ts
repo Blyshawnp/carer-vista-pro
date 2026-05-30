@@ -28,7 +28,10 @@ type ShiftRecord = {
   caregiver_id: string | null;
   shift_todos: Array<{
     id: string;
+    task_name: string;
     is_completed: boolean;
+    is_optional: boolean;
+    is_prn: boolean;
   }> | null;
 };
 
@@ -72,7 +75,7 @@ export async function POST(request: Request) {
 
     const { data: shiftRaw } = await supabase
       .from("shifts")
-      .select("id, caregiver_id, shift_todos ( id, is_completed )")
+      .select("id, caregiver_id, shift_todos ( id, task_name, is_completed, is_optional, is_prn )")
       .eq("id", payload.shiftId)
       .maybeSingle();
 
@@ -106,9 +109,10 @@ export async function POST(request: Request) {
       );
     }
 
-    const incompleteCount = (shift.shift_todos ?? []).filter(
-      (todo) => !todo.is_completed
-    ).length;
+    const incompleteTasks = (shift.shift_todos ?? []).filter(
+      (todo) => !todo.is_completed && !todo.is_optional && !todo.is_prn
+    );
+    const incompleteCount = incompleteTasks.length;
     if (incompleteCount > 0 && !payload.allowIncomplete) {
       return NextResponse.json(
         {
