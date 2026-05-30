@@ -12,6 +12,7 @@ import {
   getPreviousPayPeriod,
   formatPayPeriod,
   roundUpToQuarter,
+  formatPay,
 } from "@/lib/pay";
 import { t, type Lang } from "@/lib/i18n";
 
@@ -228,7 +229,7 @@ export default async function MePage() {
                   {t("pay.thisPeriod", lang)}
                 </p>
                 <p className="font-display text-3xl">
-                  ${currentTotalRounded.toFixed(2)}
+                  {formatPay(currentTotalRounded)}
                 </p>
                 <p className="text-xs text-cream-50/70">
                   {currentHours.toFixed(1)} {t("pay.hours", lang)}
@@ -242,7 +243,7 @@ export default async function MePage() {
                   {t("pay.lastPeriod", lang)}
                 </p>
                 <p className="font-display text-3xl">
-                  ${previousTotalRounded.toFixed(2)}
+                  {formatPay(previousTotalRounded)}
                 </p>
                 <p className="text-xs text-cream-50/70">
                   {previousHours.toFixed(1)} {t("pay.hours", lang)}
