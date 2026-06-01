@@ -19,6 +19,11 @@ export default function AppHeader({
   notificationCount = 0,
   role,
   lang = "en",
+  enableCustomBranding = false,
+  customLogoUrl = null,
+  customBrandName = null,
+  brandPrimaryColor = null,
+  brandAccentColor = null,
 }: {
   fullName: string;
   orgName: string;
@@ -28,6 +33,11 @@ export default function AppHeader({
   notificationCount?: number;
   role: Role;
   lang?: Lang;
+  enableCustomBranding?: boolean;
+  customLogoUrl?: string | null;
+  customBrandName?: string | null;
+  brandPrimaryColor?: string | null;
+  brandAccentColor?: string | null;
 }) {
   const firstName = getFirstName(fullName);
   const [emergencyIconFailed, setEmergencyIconFailed] = useState(false);
@@ -38,11 +48,23 @@ export default function AppHeader({
     <header className="px-5 pt-5 pb-3 flex items-center justify-between gap-3 sticky top-0 bg-cream-100/85 backdrop-blur-md z-20">
       <div className="flex items-center gap-3 min-w-0">
         <div className="min-w-0">
-          <AppLogo href="/home" variant="header" showText={false} />
+          <AppLogo
+            href="/home"
+            variant="header"
+            showText={false}
+            enableCustomBranding={enableCustomBranding}
+            customLogoUrl={customLogoUrl}
+            customBrandName={customBrandName}
+          />
           <div className="mt-1 flex items-center gap-2 min-w-0">
             <h1 className="font-display text-4xl text-ink-900 mb-1.5">
               {t("header.welcome", lang)},{" "}
-              <span className="text-navy-600">{firstName}</span>
+              <span
+                className="text-navy-600 font-bold"
+                style={{ color: enableCustomBranding && brandPrimaryColor ? brandPrimaryColor : undefined }}
+              >
+                {firstName}
+              </span>
             </h1>
             {orgName && (
               <>

@@ -49,12 +49,18 @@ export default function AppLogo({
   textSize = "text-[11px]",
   variant = "compact",
   className = "",
+  enableCustomBranding = false,
+  customLogoUrl = null,
+  customBrandName = null,
 }: {
   href?: string;
   showText?: boolean;
   textSize?: string;
   variant?: AppLogoVariant;
   className?: string;
+  enableCustomBranding?: boolean;
+  customLogoUrl?: string | null;
+  customBrandName?: string | null;
 }) {
   const [logoFailed, setLogoFailed] = useState(false);
   const size = logoSizes[variant];
@@ -62,15 +68,22 @@ export default function AppLogo({
   return (
     <Link
       href={href}
-      aria-label="Carer Vista Pro home"
+      aria-label={`${enableCustomBranding ? (customBrandName || "Company") : "Carer Vista Pro"} home`}
       className={`flex items-center gap-3 min-w-0 ${className}`}
     >
       <span className={`relative shrink-0 overflow-visible ${size.wrapper}`}>
-        {logoFailed ? (
+        {enableCustomBranding && customLogoUrl ? (
+          <img
+            src={customLogoUrl}
+            alt={customBrandName || "Company Logo"}
+            onError={() => setLogoFailed(true)}
+            className={`object-contain max-h-[54px] ${size.image}`}
+          />
+        ) : logoFailed ? (
           <span
             className={`flex items-center justify-center text-center font-extrabold uppercase leading-none text-forest-700 ${size.fallback}`}
           >
-            Carer Vista Pro
+            {enableCustomBranding ? (customBrandName || "Company") : "Carer Vista Pro"}
           </span>
         ) : (
           <Image
@@ -88,7 +101,7 @@ export default function AppLogo({
       {(showText || logoFailed) && (
         <span className="min-w-0 leading-none">
           <span className={`block uppercase tracking-[0.18em] font-extrabold text-forest-700 ${textSize} truncate`}>
-            Carer Vista Pro
+            {enableCustomBranding ? (customBrandName || "Company") : "Carer Vista Pro"}
           </span>
         </span>
       )}

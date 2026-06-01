@@ -18,7 +18,24 @@ export default async function TemplatesPage() {
     .eq("id", user.id)
     .single<{ role: "admin" | "client" | "caregiver" | "family"; organization_id: string }>();
 
-  if (!profile || (profile.role === "caregiver" || profile.role === "family")) redirect("/tasks");
+  if (!profile) redirect("/tasks");
+
+  let canClientManage = false;
+  if (profile.organization_id) {
+    const { data: org } = await supabase
+      .from("organizations")
+      .select("organization_mode, allow_client_admin_for_personal_use")
+      .eq("id", profile.organization_id)
+      .single();
+    if (org) {
+      const isPersonalFamily = org.organization_mode === "personal_family";
+      const isClientDirected = org.organization_mode === "client_directed_care";
+      canClientManage = (isPersonalFamily && org.allow_client_admin_for_personal_use) || isClientDirected;
+    }
+  }
+
+  const isAllowed = profile.role === "admin" || (profile.role === "client" && canClientManage);
+  if (!isAllowed) redirect("/tasks");
   const lang = await getUserLanguage();
 
   const [templatesRes, caregiversRes, categoriesRes] = await Promise.all([

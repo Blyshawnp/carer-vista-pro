@@ -35,6 +35,8 @@ type DashboardClientProps = {
   caregiversList: { id: string; full_name: string }[];
   isPublicApp: boolean;
   orgSettings?: {
+    organization_mode?: string;
+    allow_client_admin_for_personal_use?: boolean;
     enable_year_end_summary: boolean;
     year_end_summary_release_month: number;
     year_end_summary_release_day: number;
@@ -53,7 +55,16 @@ export default function YearEndDashboardClient({
   const [isPending, startTransition] = useTransition();
 
   const isCaregiver = role === "caregiver";
-  const isAdmin = role === "admin" || role === "client";
+  
+  const isPersonalFamily = orgSettings?.organization_mode === "personal_family";
+  const isClientDirected = orgSettings?.organization_mode === "client_directed_care";
+  const allowClientAdmin = orgSettings?.allow_client_admin_for_personal_use;
+
+  const isAdmin = role === "admin" || 
+    (role === "client" && (
+      (isPersonalFamily && allowClientAdmin) || 
+      isClientDirected
+    ));
 
   // Caregiver state
   const [selectedSummary, setSelectedSummary] = useState<SummaryRow | null>(

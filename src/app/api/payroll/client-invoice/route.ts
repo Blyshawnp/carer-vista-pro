@@ -194,5 +194,19 @@ export async function PUT(request: Request) {
       note: actionNote.trim(),
     });
 
+  // Record financial audit log
+  try {
+    await supabase.from("financial_audit_logs").insert({
+      organization_id: profile.organization_id,
+      actor_user_id: user.id,
+      action_type: release ? "release_invoice" : adjustments !== undefined ? "override_invoice" : "edit_invoice",
+      affected_record_id: invoice_id,
+      affected_record_type: "client_invoices",
+      note: actionNote.trim() || "Manual invoice adjustments",
+    });
+  } catch (auditErr) {
+    console.error("Failed to write invoice financial audit log:", auditErr);
+  }
+
   return NextResponse.json({ ok: true, invoice: updatedInv });
 }

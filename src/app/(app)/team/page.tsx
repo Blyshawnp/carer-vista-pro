@@ -47,7 +47,23 @@ export default async function TeamPage() {
       is_owner: boolean;
     }>();
 
-  if (!profile || (profile.role !== "admin" && !profile.is_owner)) {
+  let canClientManage = false;
+  if (profile?.organization_id) {
+    const { data: org } = await supabase
+      .from("organizations")
+      .select("organization_mode, allow_client_admin_for_personal_use")
+      .eq("id", profile.organization_id)
+      .single();
+    if (org) {
+      const isPersonalFamily = org.organization_mode === "personal_family";
+      const isClientDirected = org.organization_mode === "client_directed_care";
+      canClientManage = (isPersonalFamily && org.allow_client_admin_for_personal_use) || isClientDirected;
+    }
+  }
+
+  const isAllowed = profile?.role === "admin" || profile?.is_owner || (profile?.role === "client" && canClientManage);
+
+  if (!profile || !isAllowed) {
     return (
       <main className="px-5 py-10 max-w-2xl mx-auto">
         <div className="bg-white rounded-3xl p-8 shadow-soft text-center">

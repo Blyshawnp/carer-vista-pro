@@ -74,31 +74,113 @@ export default async function AdminClientInvoicePage({
     .select("caregiver_id, base_hourly_rate, effective_from")
     .order("effective_from", { ascending: false });
 
+  // Fetch org settings for breaks & pay deductions
+  const { data: org } = await supabase
+    .from("organizations")
+    .select("enable_break_tracking, enable_pay_deductions, deduction_label, deduction_type, deduction_amount, deduction_applies_to, deduction_active")
+    .eq("id", profile.organization_id)
+    .single();
+
+  const enableBreakTracking = org?.enable_break_tracking !== false;
+  const enablePayDeductions = !!org?.enable_pay_deductions;
+  const deductionActive = !!org?.deduction_active;
+  const deductionLabel = org?.deduction_label;
+  const deductionType = org?.deduction_type;
+  const deductionAmount = org?.deduction_amount;
+  const deductionAppliesTo = org?.deduction_applies_to;
+
+  // Fetch breaks for all shifts
+  const shiftIds = (shiftsRaw || []).map((s) => s.id);
+  let allBreaks: any[] = [];
+  if (shiftIds.length > 0) {
+    const { data: bData } = await supabase
+      .from("shift_breaks")
+      .select("*")
+      .in("shift_id", shiftIds);
+    allBreaks = bData || [];
+  }
+
+  // Fetch active holidays
+  const { data: holidays } = await supabase
+    .from("holidays")
+    .select("*")
+    .eq("is_active", true)
+    .or(`organization_id.eq.${profile.organization_id},organization_id.is.null`);
+
   // Compute shift pay and client charges
   let computedSubtotal = 0;
   let computedHours = 0;
   
   const shiftBreakdown = (shiftsRaw || []).map((s) => {
     const checkIn = Array.isArray(s.check_ins) ? s.check_ins[0] : s.check_ins;
-    let minutes = 0;
+    let rawMinutes = 0;
     if (checkIn && checkIn.total_minutes !== null) {
-      minutes = Number(checkIn.total_minutes);
+      rawMinutes = Number(checkIn.total_minutes);
     } else if (checkIn?.check_in_time && checkIn?.check_out_time) {
-      minutes = (new Date(checkIn.check_out_time).getTime() - new Date(checkIn.check_in_time).getTime()) / 60000;
+      rawMinutes = (new Date(checkIn.check_out_time).getTime() - new Date(checkIn.check_in_time).getTime()) / 60000;
     } else {
-      minutes = (new Date(s.scheduled_end).getTime() - new Date(s.scheduled_start).getTime()) / 60000;
+      rawMinutes = (new Date(s.scheduled_end).getTime() - new Date(s.scheduled_start).getTime()) / 60000;
     }
+
+    // Deduct unpaid breaks if enabled
+    const shiftBreaks = allBreaks.filter((b) => b.shift_id === s.id);
+    const unpaidBreakMinutes = shiftBreaks
+      .filter((b) => !b.is_paid)
+      .reduce((sum, b) => {
+        if (b.duration_minutes != null) return sum + b.duration_minutes;
+        if (b.start_time && b.end_time) {
+          const diffMs = new Date(b.end_time).getTime() - new Date(b.start_time).getTime();
+          return sum + Math.max(0, Math.round(diffMs / 60000));
+        }
+        return sum;
+      }, 0);
+
+    const minutes = Math.max(0, rawMinutes - (enableBreakTracking ? unpaidBreakMinutes : 0));
     const hours = roundUpToQuarter(minutes / 60);
 
-    // Compute caregiver rate
+    // Compute holiday multiplier & bonus for caregiver
+    const shiftDateStr = s.scheduled_start.split("T")[0];
+    const sDate = new Date(s.scheduled_start);
+    const shiftMonthDay = `${String(sDate.getMonth() + 1).padStart(2, '0')}-${String(sDate.getDate()).padStart(2, '0')}`;
+
+    const matchingHoliday = holidays?.find((h) => {
+      if (h.applies_every_year) {
+        const holidayMD = h.holiday_date.split("-").slice(1).join("-");
+        return holidayMD === shiftMonthDay;
+      }
+      return h.holiday_date === shiftDateStr;
+    });
+
     const cgRate = caregiverRates?.find(
       (r) => r.caregiver_id === s.caregiver_id && new Date(r.effective_from) <= new Date(s.scheduled_start)
     )?.base_hourly_rate || 20.00;
-    const cgPay = roundUpToQuarter(hours * Number(cgRate));
 
-    // Compute client charge rate
+    let payMultiplier = 1.0;
+    let flatCgBonus = 0;
+    if (matchingHoliday) {
+      payMultiplier = matchingHoliday.pay_multiplier ? Number(matchingHoliday.pay_multiplier) : 1.0;
+      flatCgBonus = matchingHoliday.flat_caregiver_bonus ? Number(matchingHoliday.flat_caregiver_bonus) : 0;
+      
+      if (flatCgBonus > 0 && (matchingHoliday.bonus_applied_mode === "instead_of" || matchingHoliday.bonus_applied_mode === "bonus_only")) {
+        payMultiplier = 1.0;
+      }
+    }
+
+    const cgPay = roundUpToQuarter(hours * Number(cgRate) * payMultiplier) + flatCgBonus;
+
+    // Compute client charge rate & surcharges
+    let clientChargeMultiplier = 1.0;
+    let clientHourlySurcharge = 0;
+    let flatClientSurcharge = 0;
+
+    if (matchingHoliday) {
+      clientChargeMultiplier = matchingHoliday.client_charge_multiplier ? Number(matchingHoliday.client_charge_multiplier) : 1.0;
+      clientHourlySurcharge = matchingHoliday.client_hourly_surcharge ? Number(matchingHoliday.client_hourly_surcharge) : 0;
+      flatClientSurcharge = matchingHoliday.flat_client_surcharge ? Number(matchingHoliday.flat_client_surcharge) : 0;
+    }
+
     const billingRate = Number(s.billing_rate_override || client.hourly_billing_rate || 40.00);
-    const clientCharge = roundUpToQuarter(hours * billingRate);
+    const clientCharge = roundUpToQuarter(hours * (billingRate * clientChargeMultiplier + clientHourlySurcharge)) + flatClientSurcharge;
 
     computedHours += hours;
     computedSubtotal += clientCharge;
@@ -127,6 +209,18 @@ export default async function AdminClientInvoicePage({
   const totalBonuses = (bonuses || []).reduce((sum, b) => sum + Number(b.amount), 0);
   const invoiceSubtotal = computedSubtotal + totalBonuses;
 
+  // Calculate optional pay deductions applied to the client invoice total
+  let invoiceDeduction = 0;
+  if (enablePayDeductions && deductionActive && deductionAppliesTo === "invoice_record" && deductionAmount != null) {
+    if (deductionType === "flat_amount") {
+      invoiceDeduction = Number(deductionAmount);
+    } else if (deductionType === "percentage") {
+      invoiceDeduction = invoiceSubtotal * (Number(deductionAmount) / 100);
+    }
+  }
+
+  const invoiceTotalWithDeductions = Math.max(0, invoiceSubtotal - invoiceDeduction);
+
   // Retrieve or bootstrap the client_invoices row
   let invoice: any = null;
   const { data: invData } = await supabase
@@ -139,7 +233,7 @@ export default async function AdminClientInvoicePage({
   if (invData) {
     invoice = invData;
   } else {
-    // Bootstrap the invoice row
+    // Bootstrap the invoice row with deductions subtracted if applicable
     const { data: newInv, error: bootstrapErr } = await supabase
       .from("client_invoices")
       .insert({
@@ -147,9 +241,9 @@ export default async function AdminClientInvoicePage({
         client_id: clientId,
         pay_period_id: periodId,
         subtotal: invoiceSubtotal,
-        total_amount: invoiceSubtotal,
-        balance_due: invoiceSubtotal,
-        status: invoiceSubtotal === 0 ? "paid" : "unpaid",
+        total_amount: invoiceTotalWithDeductions,
+        balance_due: invoiceTotalWithDeductions,
+        status: invoiceTotalWithDeductions === 0 ? "paid" : "unpaid",
       })
       .select()
       .single();
@@ -207,6 +301,11 @@ export default async function AdminClientInvoicePage({
         subtotal={computedSubtotal}
         totalBonuses={totalBonuses}
         totalHours={computedHours}
+        enablePayDeductions={enablePayDeductions}
+        deductionLabel={deductionLabel}
+        deductionType={deductionType}
+        deductionAmount={deductionAmount != null ? Number(deductionAmount) : null}
+        deductionAppliesTo={deductionAppliesTo}
       />
     </main>
   );

@@ -54,19 +54,30 @@ export default async function YearEndSummariesPage() {
 
   if (!profile) redirect("/login");
 
-  const isCaregiver = profile.role === "caregiver";
-  const isAdmin = profile.role === "admin" || profile.role === "client";
-
   // Fetch organization settings
   const { data: org } = await supabase
     .from("organizations")
-    .select("enable_year_end_summary, year_end_summary_release_month, year_end_summary_release_day")
+    .select("organization_mode, allow_client_admin_for_personal_use, enable_year_end_summary, year_end_summary_release_month, year_end_summary_release_day")
     .eq("id", profile.organization_id)
     .single<{
+      organization_mode: string;
+      allow_client_admin_for_personal_use: boolean;
       enable_year_end_summary: boolean;
       year_end_summary_release_month: number;
       year_end_summary_release_day: number;
     }>();
+
+  const isCaregiver = profile.role === "caregiver";
+  
+  const isPersonalFamily = org?.organization_mode === "personal_family";
+  const isClientDirected = org?.organization_mode === "client_directed_care";
+  const allowClientAdmin = org?.allow_client_admin_for_personal_use;
+
+  const isAdmin = profile.role === "admin" || 
+    (profile.role === "client" && (
+      (isPersonalFamily && allowClientAdmin) || 
+      isClientDirected
+    ));
 
   // If EOY summaries are disabled for the organization and user is caregiver, show disabled message
   if (isCaregiver && !org?.enable_year_end_summary) {

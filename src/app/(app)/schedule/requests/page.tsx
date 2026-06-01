@@ -19,7 +19,21 @@ export default async function ScheduleRequestsPage() {
 
   if (!profile) redirect("/me");
 
-  const isAdmin = profile.role === "admin";
+  let canClientManage = false;
+  if (profile?.organization_id) {
+    const { data: org } = await supabase
+      .from("organizations")
+      .select("organization_mode, allow_client_admin_for_personal_use")
+      .eq("id", profile.organization_id)
+      .single();
+    if (org) {
+      const isPersonalFamily = org.organization_mode === "personal_family";
+      const isClientDirected = org.organization_mode === "client_directed_care";
+      canClientManage = (isPersonalFamily && org.allow_client_admin_for_personal_use) || isClientDirected;
+    }
+  }
+
+  const isAdmin = profile.role === "admin" || (profile.role === "client" && canClientManage);
 
   // Query coverage requests
   let q = supabase

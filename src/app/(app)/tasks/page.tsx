@@ -21,9 +21,9 @@ export default async function TasksPage({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, role")
+    .select("id, role, organization_id")
     .eq("id", user.id)
-    .single<{ id: string; role: "admin" | "client" | "caregiver" | "family" }>();
+    .single<{ id: string; role: "admin" | "client" | "caregiver" | "family"; organization_id: string }>();
 
   if (!profile) redirect("/login");
 
@@ -65,7 +65,22 @@ export default async function TasksPage({
     }
   }
 
-  const canManageTemplates = profile.role !== "caregiver";
+  let canClientManage = false;
+  if (profile?.organization_id) {
+    const { data: org } = await supabase
+      .from("organizations")
+      .select("organization_mode, allow_client_admin_for_personal_use")
+      .eq("id", profile.organization_id)
+      .single();
+    if (org) {
+      const isPersonalFamily = org.organization_mode === "personal_family";
+      const isClientDirected = org.organization_mode === "client_directed_care";
+      canClientManage = (isPersonalFamily && org.allow_client_admin_for_personal_use) || isClientDirected;
+    }
+  }
+
+  const isAdmin = profile.role === "admin" || (profile.role === "client" && canClientManage);
+  const canManageTemplates = profile.role !== "caregiver" && (profile.role !== "client" || canClientManage);
 
   if (!shiftId) {
     return (
@@ -199,7 +214,7 @@ export default async function TasksPage({
       <TasksView
         shiftId={shift.id}
         todos={todos}
-        canManageTasks={profile.role === "admin" || profile.role === "client"}
+        canManageTasks={isAdmin}
         canCompleteTasks={isAssignedCaregiver && isOnShift}
         currentUserId={profile.id}
         categories={normalizeTaskCategories(categoryRows as TaskCategoryOption[] | null)}

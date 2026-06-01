@@ -19,6 +19,24 @@ export default async function NewScheduleRequestPage() {
 
   if (!profile) redirect("/me");
 
+  // Check settings for schedule requests
+  let clientCanRequestShifts = true;
+  if (profile?.organization_id) {
+    const { data: org } = await supabase
+      .from("organizations")
+      .select("client_can_request_shifts")
+      .eq("id", profile.organization_id)
+      .single();
+    if (org) {
+      clientCanRequestShifts = org.client_can_request_shifts;
+    }
+  }
+
+  const isClientOrFamily = profile.role === "client" || profile.role === "family";
+  if (isClientOrFamily && !clientCanRequestShifts) {
+    redirect("/schedule");
+  }
+
   // Fetch clients based on user role and assignments
   let clients: Array<{ id: string; full_name: string }> = [];
 

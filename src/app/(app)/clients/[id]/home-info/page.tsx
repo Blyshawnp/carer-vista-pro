@@ -99,7 +99,23 @@ export default async function HomeInfoPage({
     .single<{ role: "admin" | "client" | "caregiver" | "family"; organization_id: string }>();
 
   if (!profile) redirect("/me");
-  const canManage = profile.role === "admin" || profile.role === "client";
+
+  // Fetch organization settings to check mode
+  const { data: org } = await supabase
+    .from("organizations")
+    .select("organization_mode, allow_client_admin_for_personal_use")
+    .eq("id", profile.organization_id)
+    .single();
+
+  const isPersonalFamily = org?.organization_mode === "personal_family";
+  const isClientDirected = org?.organization_mode === "client_directed_care";
+  const allowClientAdmin = org?.allow_client_admin_for_personal_use;
+
+  const canManage = profile.role === "admin" || 
+    (profile.role === "client" && (
+      (isPersonalFamily && allowClientAdmin) || 
+      isClientDirected
+    ));
   const backLabel = profile.role === "family" ? "Back to family" : "Back to clients";
 
   const { data: assignment } = await supabase

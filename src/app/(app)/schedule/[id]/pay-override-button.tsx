@@ -129,6 +129,28 @@ export default function PayOverrideButton({
       return;
     }
 
+    try {
+      const { data: shiftObj } = await supabase
+        .from("shifts")
+        .select("organization_id")
+        .eq("id", shiftId)
+        .single();
+      if (shiftObj?.organization_id) {
+        await supabase.from("financial_audit_logs").insert({
+          organization_id: shiftObj.organization_id,
+          actor_user_id: currentUserId,
+          action_type: mode === "clear" ? "clear_pay_override" : "override_pay",
+          affected_record_id: shiftId,
+          affected_record_type: "shifts",
+          note: mode === "clear"
+            ? "Cleared caregiver pay override."
+            : `Set caregiver pay override (Reason: ${reason.trim()}). Details: ${JSON.stringify(update)}`,
+        });
+      }
+    } catch (auditErr) {
+      console.error("Failed to write pay override financial audit log:", auditErr);
+    }
+
     window.location.reload();
   }
 

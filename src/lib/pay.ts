@@ -58,6 +58,8 @@ export function computeShiftPay(input: {
   overrideAmount: number | null;
   overrideHours: number | null;
   overrideRate: number | null;
+  flatCaregiverBonus?: number | null;
+  bonusAppliedMode?: string | null;
 }): { hours: number; rate: number; amount: number; isOverridden: boolean } {
   // Override amount wins
   if (input.overrideAmount != null) {
@@ -79,10 +81,20 @@ export function computeShiftPay(input: {
   const rate =
     input.overrideRate != null ? input.overrideRate : (input.hourlyRate ?? 0);
 
-  const multiplier = input.holidayMultiplier ?? 1;
-  const bonus = input.bonusAmount ?? 0;
+  let multiplier = input.holidayMultiplier ?? 1;
+  const flatCgBonus = input.flatCaregiverBonus ?? 0;
+  const appliedMode = input.bonusAppliedMode ?? "in_addition";
 
-  const amount = hours * rate * multiplier + bonus;
+  if (flatCgBonus > 0) {
+    if (appliedMode === "instead_of" || appliedMode === "bonus_only") {
+      multiplier = 1.0;
+    }
+  }
+
+  const baseBonus = input.bonusAmount ?? 0;
+  const totalBonus = baseBonus + flatCgBonus;
+
+  const amount = hours * rate * multiplier + totalBonus;
 
   return {
     hours,

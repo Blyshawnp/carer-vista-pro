@@ -17,6 +17,11 @@ export default function InvoiceDetailsForm({
   subtotal,
   totalBonuses,
   totalHours,
+  enablePayDeductions = false,
+  deductionLabel = null,
+  deductionType = null,
+  deductionAmount = null,
+  deductionAppliesTo = null,
 }: {
   invoice: any;
   shifts: any[];
@@ -28,6 +33,11 @@ export default function InvoiceDetailsForm({
   subtotal: number;
   totalBonuses: number;
   totalHours: number;
+  enablePayDeductions?: boolean;
+  deductionLabel?: string | null;
+  deductionType?: string | null;
+  deductionAmount?: number | null;
+  deductionAppliesTo?: string | null;
 }) {
   const router = useRouter();
 
@@ -47,6 +57,16 @@ export default function InvoiceDetailsForm({
   const [error, setError] = useState<string | null>(null);
 
   // Computed total cost metrics
+  let deductionVal = 0;
+  if (enablePayDeductions && deductionAmount != null && deductionAppliesTo === "invoice_record") {
+    const baseForDeduction = subtotal + totalBonuses;
+    if (deductionType === "flat_amount") {
+      deductionVal = deductionAmount;
+    } else if (deductionType === "percentage") {
+      deductionVal = baseForDeduction * (deductionAmount / 100);
+    }
+  }
+
   const caregiverCost = shifts.reduce((sum, s) => sum + s.cgPay, 0);
   const margin = invoice.total_amount - caregiverCost;
 
@@ -311,6 +331,13 @@ export default function InvoiceDetailsForm({
             <span className="text-ink-500">Appreciation Bonuses Added</span>
             <span className="font-medium text-ink-950">{formatCurrency(totalBonuses)}</span>
           </div>
+
+          {enablePayDeductions && deductionVal > 0 && (
+            <div className="flex justify-between py-2.5 bg-terracotta-50/50 px-2 rounded-lg text-terracotta-700 font-semibold">
+              <span>Pay Deduction ({deductionLabel || "Estimate"})</span>
+              <span>-{formatCurrency(deductionVal)}</span>
+            </div>
+          )}
 
           <div className="flex justify-between py-2.5">
             <span className="text-ink-500">Manual Adjustments</span>

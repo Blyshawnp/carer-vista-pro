@@ -19,6 +19,7 @@ import CancelReleaseButton from "./cancel-release-button";
 import PayOverrideButton from "./pay-override-button";
 import HandoffNote from "./handoff-note";
 import ShiftViewMarker from "./shift-view-marker";
+import BreakAdjuster from "./break-adjuster";
 import MedicationReminderPanel, {
   type ShiftMedication,
   type ShiftMedicationReminder,
@@ -147,9 +148,9 @@ export default async function ShiftDetailPage({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role, id")
+    .select("role, id, organization_id")
     .eq("id", user.id)
-    .single<{ role: Role; id: string }>();
+    .single<{ role: Role; id: string; organization_id: string | null }>();
 
   const { data: shiftRaw, error: shiftError } = await supabase
     .from("shifts")
@@ -233,18 +234,74 @@ export default async function ShiftDetailPage({
     hourlyRate = rate?.base_hourly_rate ?? null;
   }
 
+  // Load organization settings
+  let enableBreakTracking = true;
+  let requireLunchCheckInOut = true;
+  let requireBreakCheckInOut = false;
+  let enablePayDeductions = false;
+  let deductionLabel = null;
+  let deductionType = null;
+  let deductionAmount = null;
+  let deductionAppliesTo = null;
+  let deductionActive = false;
+
+  if (shift.organization_id) {
+    const { data: org } = await supabase
+      .from("organizations")
+      .select("enable_break_tracking, require_lunch_check_in_out, require_break_check_in_out, enable_pay_deductions, deduction_label, deduction_type, deduction_amount, deduction_applies_to, deduction_active")
+      .eq("id", shift.organization_id)
+      .single();
+    if (org) {
+      enableBreakTracking = org.enable_break_tracking !== false;
+      requireLunchCheckInOut = org.require_lunch_check_in_out;
+      requireBreakCheckInOut = org.require_break_check_in_out;
+      enablePayDeductions = org.enable_pay_deductions;
+      deductionLabel = org.deduction_label;
+      deductionType = org.deduction_type;
+      deductionAmount = org.deduction_amount;
+      deductionAppliesTo = org.deduction_applies_to;
+      deductionActive = org.deduction_active;
+    }
+  }
+
+  // Fetch breaks for this shift
+  const { data: breaks } = await supabase
+    .from("shift_breaks")
+    .select("*")
+    .eq("shift_id", id);
+
+  const unpaidBreakMinutes = (breaks ?? [])
+    .filter((b) => !b.is_paid)
+    .reduce((sum, b) => {
+      if (b.duration_minutes != null) {
+        return sum + b.duration_minutes;
+      }
+      if (b.start_time && b.end_time) {
+        const diffMs = new Date(b.end_time).getTime() - new Date(b.start_time).getTime();
+        return sum + Math.max(0, Math.round(diffMs / 60000));
+      }
+      return sum;
+    }, 0);
+
   // Check holiday multiplier
-  const shiftDate = shift.scheduled_start.split("T")[0];
-  const { data: holiday } = await supabase
+  const { data: activeHolidays } = await supabase
     .from("holidays")
-    .select("pay_multiplier")
-    .eq("holiday_date", shiftDate)
-    .or(
-      `organization_id.eq.${shift.organization_id},organization_id.is.null`
-    )
-    .order("organization_id", { nullsFirst: false })
-    .limit(1)
-    .maybeSingle<{ pay_multiplier: number }>();
+    .select("holiday_name, holiday_date, applies_every_year, is_active, pay_multiplier, flat_caregiver_bonus, bonus_applied_mode")
+    .eq("is_active", true)
+    .or(`organization_id.eq.${shift.organization_id},organization_id.is.null`)
+    .order("organization_id", { nullsFirst: false });
+
+  const shiftDateStr = shift.scheduled_start.split("T")[0];
+  const sDateObj = new Date(shift.scheduled_start);
+  const shiftMonthDay = `${String(sDateObj.getMonth() + 1).padStart(2, '0')}-${String(sDateObj.getDate()).padStart(2, '0')}`;
+
+  const matchingHoliday = activeHolidays?.find((h) => {
+    if (h.applies_every_year) {
+      const holidayMD = h.holiday_date.split("-").slice(1).join("-");
+      return holidayMD === shiftMonthDay;
+    }
+    return h.holiday_date === shiftDateStr;
+  }) ?? null;
 
   // Compute current pay for this shift
   const normalizedCheckIns = normalizeRows(shift.check_ins);
@@ -252,7 +309,8 @@ export default async function ShiftDetailPage({
     normalizedCheckIns.find((row) => row.check_in_time && !row.check_out_time) ??
     normalizedCheckIns[0] ??
     null;
-  const totalMinutes =
+
+  const rawTotalMinutes =
     checkIn0?.check_in_time && checkIn0?.check_out_time
       ? Math.round(
           (new Date(checkIn0.check_out_time).getTime() -
@@ -260,14 +318,21 @@ export default async function ShiftDetailPage({
             60000
         )
       : null;
+
+  const totalMinutes = rawTotalMinutes != null
+    ? Math.max(0, rawTotalMinutes - (enableBreakTracking ? unpaidBreakMinutes : 0))
+    : null;
+
   const computedPay = computeShiftPay({
     totalMinutes,
     hourlyRate,
     bonusAmount: shift.bonus_amount,
-    holidayMultiplier: holiday?.pay_multiplier ?? null,
+    holidayMultiplier: matchingHoliday?.pay_multiplier ? Number(matchingHoliday.pay_multiplier) : null,
     overrideAmount: shift.pay_override_amount,
     overrideHours: shift.pay_override_hours,
     overrideRate: shift.pay_override_rate,
+    flatCaregiverBonus: matchingHoliday?.flat_caregiver_bonus ? Number(matchingHoliday.flat_caregiver_bonus) : null,
+    bonusAppliedMode: matchingHoliday?.bonus_applied_mode ?? null,
   });
 
   // Is this shift in a locked period?
@@ -330,7 +395,21 @@ export default async function ShiftDetailPage({
     }
   }
 
-  const canEdit = profile?.role === "admin" || profile?.role === "client";
+  let canClientManage = false;
+  if (profile?.organization_id) {
+    const { data: org } = await supabase
+      .from("organizations")
+      .select("organization_mode, allow_client_admin_for_personal_use")
+      .eq("id", profile.organization_id)
+      .single();
+    if (org) {
+      const isPersonalFamily = org.organization_mode === "personal_family";
+      const isClientDirected = org.organization_mode === "client_directed_care";
+      canClientManage = (isPersonalFamily && org.allow_client_admin_for_personal_use) || isClientDirected;
+    }
+  }
+
+  const canEdit = profile?.role === "admin" || (profile?.role === "client" && canClientManage);
   const isAssignedCaregiver =
     profile?.role === "caregiver" && profile.id === shift.caregiver_id;
   const isCaregiver = profile?.role === "caregiver";
@@ -471,6 +550,13 @@ export default async function ShiftDetailPage({
         hourlyRate={hourlyRate}
         caregiverId={profile?.id ?? ""}
         showPay={isAssignedCaregiver || profile?.role === "admin"}
+        enableBreakTracking={enableBreakTracking}
+        holidayName={matchingHoliday?.holiday_name ?? null}
+        holidayMultiplier={matchingHoliday?.pay_multiplier ? Number(matchingHoliday.pay_multiplier) : null}
+        holidayBonus={matchingHoliday?.flat_caregiver_bonus ? Number(matchingHoliday.flat_caregiver_bonus) : null}
+        deductionLabel={enablePayDeductions && deductionActive && deductionAppliesTo === "caregiver_pay_summary" ? deductionLabel : null}
+        deductionAmount={enablePayDeductions && deductionActive && deductionAppliesTo === "caregiver_pay_summary" && deductionAmount != null ? Number(deductionAmount) : null}
+        deductionType={enablePayDeductions && deductionActive && deductionAppliesTo === "caregiver_pay_summary" ? deductionType : null}
       />
 
       {/* Header */}
@@ -722,6 +808,46 @@ export default async function ShiftDetailPage({
           medications={medications}
           canMark={canEdit || isAssignedCaregiver}
         />
+      )}
+
+      {/* Break & Lunch log list for shifts */}
+      {enableBreakTracking && (breaks ?? []).length > 0 && (
+        <section className="bg-white rounded-3xl shadow-soft p-5 mt-4">
+          <h2 className="font-display text-xl text-ink-900 mb-3">Break & lunch log</h2>
+          <div className="space-y-3">
+            {(breaks ?? []).map((b) => (
+              <div key={b.id} className="border-l-2 border-amber-300 pl-3 py-1">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <span className="text-sm font-semibold capitalize text-ink-900">
+                      {b.break_type === "lunch" ? "Lunch" : "Rest Break"}
+                    </span>
+                    <span className={`ml-2 text-[10px] uppercase px-1.5 py-0.5 rounded font-bold ${
+                      b.is_paid ? "bg-forest-100 text-forest-700" : "bg-cream-200 text-ink-600"
+                    }`}>
+                      {b.is_paid ? "Paid" : "Unpaid"}
+                    </span>
+                  </div>
+                  {b.duration_minutes != null && (
+                    <span className="text-xs font-mono text-ink-600 bg-cream-100 px-2 py-0.5 rounded-lg">
+                      {b.duration_minutes} mins
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-ink-500 mt-1">
+                  {new Date(b.start_time).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+                  {b.end_time ? ` – ${new Date(b.end_time).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}` : " (In progress)"}
+                </p>
+                {b.note && <p className="text-xs text-ink-600 mt-1 italic">Note: {b.note}</p>}
+                
+                {/* Admin adjustment options */}
+                {profile?.role === "admin" && (
+                  <BreakAdjuster breakItem={b} shiftId={id} />
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
       )}
 
       {/* Read receipt indicator for admin/client/family */}

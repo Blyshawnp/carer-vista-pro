@@ -18,7 +18,16 @@ type ProfileWithOrg = {
   language: Lang | null;
   avatar_url: string | null;
   avatar_color: string | null;
-  organizations: { name: string; onboarding_complete: boolean | null } | null;
+  organizations: {
+    name: string;
+    onboarding_complete: boolean | null;
+    enable_custom_branding?: boolean;
+    custom_logo_url?: string | null;
+    brand_primary_color?: string | null;
+    brand_accent_color?: string | null;
+    custom_brand_name?: string | null;
+    plan_allows_custom_branding?: boolean;
+  } | null;
 };
 
 type ActiveShiftRow = {
@@ -59,7 +68,7 @@ export default async function AppLayout({
   const { data: profile } = await supabase
     .from("profiles")
     .select(
-      "id, full_name, role, organization_id, language, avatar_url, avatar_color, organizations(name, onboarding_complete)"
+      "id, full_name, role, organization_id, language, avatar_url, avatar_color, organizations(name, onboarding_complete, enable_custom_branding, custom_logo_url, brand_primary_color, brand_accent_color, custom_brand_name, plan_allows_custom_branding)"
     )
     .eq("id", user.id)
     .single<ProfileWithOrg>();
@@ -142,6 +151,17 @@ export default async function AppLayout({
     }
   }
 
+  const orgBranding = profile?.organizations ? {
+    enable_custom_branding: !!profile.organizations.enable_custom_branding,
+    custom_logo_url: profile.organizations.custom_logo_url ?? null,
+    brand_primary_color: profile.organizations.brand_primary_color ?? null,
+    brand_accent_color: profile.organizations.brand_accent_color ?? null,
+    custom_brand_name: profile.organizations.custom_brand_name ?? null,
+    plan_allows_custom_branding: profile.organizations.plan_allows_custom_branding !== false,
+  } : null;
+
+  const showCustomBranding = !!(orgBranding?.enable_custom_branding && orgBranding?.plan_allows_custom_branding);
+
   return (
     <div className="min-h-dvh flex flex-col bg-cream-100">
       <AppHeader
@@ -153,6 +173,11 @@ export default async function AppLayout({
         notificationCount={notificationCount}
         role={profile?.role ?? "caregiver"}
         lang={lang}
+        enableCustomBranding={showCustomBranding}
+        customLogoUrl={orgBranding?.custom_logo_url}
+        customBrandName={orgBranding?.custom_brand_name}
+        brandPrimaryColor={orgBranding?.brand_primary_color}
+        brandAccentColor={orgBranding?.brand_accent_color}
       />
 
       <div className="flex-1 pb-24">
@@ -162,6 +187,13 @@ export default async function AppLayout({
           </div>
         )}
         {children}
+
+        {/* Platform identity reference */}
+        <div className="mt-8 mb-4 text-center">
+          <p className="text-[10px] text-ink-300 font-semibold tracking-wider uppercase">
+            Powered by Carer Vista Pro
+          </p>
+        </div>
       </div>
 
       <BottomNav
