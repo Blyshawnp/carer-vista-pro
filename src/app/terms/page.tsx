@@ -1,4 +1,4 @@
-const LAST_UPDATED = "May 31, 2026";
+const LAST_UPDATED = "June 1, 2026";
 
 export default function TermsPage() {
   return (
@@ -46,6 +46,7 @@ export default function TermsPage() {
           <li>Use your own account and protect your password, device, and session.</li>
           <li>Do not share passwords or let others use your login.</li>
           <li>Follow applicable laws, care plans, workplace rules, and professional requirements.</li>
+          <li><strong>Bulk Actions Liability:</strong> Deleting or cancelling shifts bulk will permanently delete associated tasks, check-in history, and records, which can affect invoices, caregiver pay histories, and reports. Users are strictly responsible for reviewing and confirming all selections before executing bulk actions.</li>
         </ul>
       </Section>
 

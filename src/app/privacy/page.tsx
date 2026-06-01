@@ -1,4 +1,4 @@
-const LAST_UPDATED = "May 31, 2026";
+const LAST_UPDATED = "June 1, 2026";
 
 export default function PrivacyPage() {
   return (
@@ -16,7 +16,7 @@ export default function PrivacyPage() {
           Carer Vista Pro collects and processes the following information to facilitate care coordination:
         </p>
         <ul className="list-disc pl-5 space-y-1.5 text-sm text-ink-700">
-          <li><strong>Account Details:</strong> Name, email address, password hashes, and profile settings.</li>
+          <li><strong>Account Details:</strong> Name, email address, password hashes, profile settings, and theme color scheme preferences.</li>
           <li><strong>Role &amp; Organization:</strong> User role (admin, caregiver, client, family) and linked organization.</li>
           <li><strong>Client &amp; Recipient Profiles:</strong> Names, addresses, home access instructions, Wi-Fi networks, and home notes.</li>
           <li><strong>Health &amp; Emergency Logs:</strong> Emergency contacts, allergy severity lists, medication instructions, physician contacts, and hospital preferences.</li>

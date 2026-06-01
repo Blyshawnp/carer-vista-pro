@@ -68,10 +68,10 @@ export default async function AppLayout({
   const { data: profile } = await supabase
     .from("profiles")
     .select(
-      "id, full_name, role, organization_id, language, avatar_url, avatar_color, organizations(name, onboarding_complete, enable_custom_branding, custom_logo_url, brand_primary_color, brand_accent_color, custom_brand_name, plan_allows_custom_branding)"
+      "id, full_name, role, organization_id, language, avatar_url, avatar_color, theme_preference, organizations(name, onboarding_complete, enable_custom_branding, custom_logo_url, brand_primary_color, brand_accent_color, custom_brand_name, plan_allows_custom_branding)"
     )
     .eq("id", user.id)
-    .single<ProfileWithOrg>();
+    .single<ProfileWithOrg & { theme_preference: string }>();
 
   if (!profile?.organization_id || profile.organizations?.onboarding_complete === false) {
     redirect("/setup");
@@ -162,8 +162,10 @@ export default async function AppLayout({
 
   const showCustomBranding = !!(orgBranding?.enable_custom_branding && orgBranding?.plan_allows_custom_branding);
 
+  const themeClass = showCustomBranding ? "default" : (profile?.theme_preference ?? "default");
+
   return (
-    <div className="min-h-dvh flex flex-col bg-cream-100">
+    <div className={`min-h-dvh flex flex-col bg-cream-100 theme-${themeClass}`}>
       <AppHeader
         fullName={profile?.full_name ?? "There"}
         orgName={profile?.organizations?.name ?? ""}
