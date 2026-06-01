@@ -69,6 +69,17 @@ type SafetyItem = {
   notes: string | null;
 };
 
+type EmergencyPet = {
+  id: string;
+  client_id: string;
+  name: string;
+  pet_type: string;
+  emergency_notes: string | null;
+  vet_name: string | null;
+  vet_phone: string | null;
+  emergency_vet_phone: string | null;
+};
+
 type ClientBundle = Omit<
   ClientFull,
   | "formatted_address"
@@ -84,6 +95,7 @@ type ClientBundle = Omit<
   medications: Medication[];
   allergies: Allergy[];
   safetyItems: SafetyItem[];
+  pets: EmergencyPet[];
 };
 
 export default async function EmergencyPage({
@@ -134,7 +146,7 @@ export default async function EmergencyPage({
   }));
   const clientIds = clients.map((client) => client.id);
 
-  const [contactsResult, medicationsResult, allergiesResult, safetyResult, incidentsResult] =
+  const [contactsResult, medicationsResult, allergiesResult, safetyResult, petsResult, incidentsResult] =
     await Promise.all([
       clientIds.length
         ? supabase
@@ -164,6 +176,13 @@ export default async function EmergencyPage({
             .in("client_id", clientIds)
             .order("sort_order", { ascending: true })
         : Promise.resolve({ data: [] }),
+      clientIds.length
+        ? supabase
+            .from("client_pets")
+            .select("id, client_id, name, pet_type, emergency_notes, vet_name, vet_phone, emergency_vet_phone")
+            .in("client_id", clientIds)
+            .order("created_at", { ascending: true })
+        : Promise.resolve({ data: [] }),
       supabase
         .from("incident_reports")
         .select("id, category, description, created_at, client_id, shift_id, profiles:reported_by(full_name), clients(full_name)")
@@ -175,6 +194,7 @@ export default async function EmergencyPage({
   const medications = (medicationsResult.data ?? []) as Medication[];
   const allergies = (allergiesResult.data ?? []) as Allergy[];
   const safetyItems = (safetyResult.data ?? []) as SafetyItem[];
+  const pets = (petsResult.data ?? []) as EmergencyPet[];
   const incidentReports = ((incidentsResult.data ?? []) as unknown as Array<{
     id: string;
     category: string;
@@ -194,6 +214,7 @@ export default async function EmergencyPage({
     medications: medications.filter((medication) => medication.client_id === client.id),
     allergies: allergies.filter((allergy) => allergy.client_id === client.id),
     safetyItems: safetyItems.filter((item) => item.client_id === client.id),
+    pets: pets.filter((pet) => pet.client_id === client.id),
   }));
 
   return (
@@ -297,6 +318,7 @@ export default async function EmergencyPage({
                 medications={client.medications}
                 allergies={client.allergies}
                 safetyItems={client.safetyItems}
+                pets={client.pets}
                 medicationDetailsHidden={
                   profile?.role === "caregiver" &&
                   !client.show_medications_to_caregivers
