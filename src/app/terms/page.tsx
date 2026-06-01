@@ -99,6 +99,14 @@ export default function TermsPage() {
         </ul>
       </Section>
 
+      <Section title="Shift Cancellations & Cancellation Fees">
+        <ul className="list-disc pl-5 space-y-1.5">
+          <li><strong>Cancellation Request Workflow:</strong> In Agency/Company mode, clients cannot directly delete shifts; instead, they submit a cancellation request. Administrators can approve the request (applying or waiving any cancellation fee) or decline it with a reason.</li>
+          <li><strong>Organization Responsibility:</strong> Cancellation fee policies, rates, and criteria are configured solely by the employing organization. The organization is fully responsible for ensuring compliance and legal enforceability of cancellation fees under local laws.</li>
+          <li><strong>No App Responsibility:</strong> The application does not determine the validity, fairness, or legal enforceability of cancellation fees. The app acts solely as a logging, notification, and calculation record tool for administrative convenience.</li>
+        </ul>
+      </Section>
+
       <Section title="No medical advice">
         <p>
           Content in the app is for reference and coordination only. It is not

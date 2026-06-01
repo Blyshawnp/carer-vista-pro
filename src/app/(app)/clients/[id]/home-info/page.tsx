@@ -403,7 +403,7 @@ export default async function HomeInfoPage({
       )}
 
       {canManage && currentTab === "guide" && (
-        <EmergencyGuideEditor clientId={client.id} initialGuide={guide} />
+        <EmergencyGuideEditor clientId={client.id} initialGuide={guide} client={client} />
       )}
 
       {canManage && currentTab === "pets" && (

@@ -147,8 +147,9 @@ export default async function HelpPage() {
 
         {role !== "caregiver" && (
           <Section title="Home info & emergency">
-            <ul className="text-sm text-ink-700 space-y-1.5 list-disc pl-5">
+            <ul className="text-sm text-ink-750 space-y-1.5 list-disc pl-5">
               <li>Visit <strong>Me → Clients → Edit home info</strong> to manage everything caregivers see on the shift detail page.</li>
+              <li>Stable profile, contact, Wi-Fi, and preferred hospital details reside in <strong>General & Home Info</strong>, whereas emergency evacuation action plans are managed separately under the <strong>Emergency Guide</strong> to prevent duplicate entries and keep care circles aligned.</li>
               <li>Add <strong>allergies</strong> with severity (critical, mild, minor) so caregivers can see them at a glance.</li>
               <li>Set the <strong>preferred hospital</strong> and <strong>primary physician</strong> for emergencies.</li>
               <li>Document the location of the <strong>first aid kit, hypoglycemia kit, fire extinguisher, AED</strong>.</li>
@@ -238,10 +239,11 @@ export default async function HelpPage() {
 
         <Section title="Account Settings & PWA Installation">
           <p className="text-sm text-ink-700 mb-2">
-            Manage your credentials and offline standalone experience in <strong>Account & Settings</strong>:
+            Manage your credentials, notification audio alerts, and offline standalone experience in <strong>Account & Settings</strong>:
           </p>
-          <ul className="text-sm text-ink-700 space-y-1.5 list-disc pl-5">
+          <ul className="text-sm text-ink-750 space-y-1.5 list-disc pl-5">
             <li><strong>Theme Preference:</strong> Choose a curated primary color scheme (Teal, Blue, Green, Purple, Rose, High Contrast) that overrides default styles safely. Note: Organization custom branding overrides local themes.</li>
+            <li><strong>Notification Sounds & Volume:</strong> Customize your notification settings, including enabling/disabling synthesized alerts and adjusting playback volume (default 80%). Use the "Play test sound" option to verify audio permissions.</li>
             <li><strong>Email & Password changes:</strong> Change your signed-in email address or password securely.</li>
             <li><strong>PWA Banners & Prompts:</strong> Control progressive web app banners. You can dismiss them for 24 hours, suppress them permanently, or access manual device installation guides.</li>
           </ul>

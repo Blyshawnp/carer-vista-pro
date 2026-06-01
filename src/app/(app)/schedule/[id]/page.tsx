@@ -8,6 +8,8 @@ import {
   ArrowRightIcon,
 } from "@/components/icons";
 import DeleteShiftButton from "./delete-shift-button";
+import RequestRemovalButton from "./request-removal-button";
+import AdminRemovalReview from "./admin-removal-review";
 import AcceptDeclineButtons from "./accept-decline-buttons";
 import LiveOnShiftCard from "./live-on-shift-card";
 import TopShiftActionArea from "./top-shift-action-area";
@@ -396,6 +398,7 @@ export default async function ShiftDetailPage({
   }
 
   let canClientManage = false;
+  let organizationMode = "personal_family";
   if (profile?.organization_id) {
     const { data: org } = await supabase
       .from("organizations")
@@ -403,10 +406,22 @@ export default async function ShiftDetailPage({
       .eq("id", profile.organization_id)
       .single();
     if (org) {
+      organizationMode = org.organization_mode;
       const isPersonalFamily = org.organization_mode === "personal_family";
       const isClientDirected = org.organization_mode === "client_directed_care";
       canClientManage = (isPersonalFamily && org.allow_client_admin_for_personal_use) || isClientDirected;
     }
+  }
+
+  // Check if a request already exists
+  let existingRemovalRequest = null;
+  if (profile?.role === "client" || profile?.role === "admin") {
+    const { data: req } = await supabase
+      .from("shift_removal_requests")
+      .select("*")
+      .eq("shift_id", id)
+      .maybeSingle();
+    existingRemovalRequest = req;
   }
 
   const canEdit = profile?.role === "admin" || (profile?.role === "client" && canClientManage);
@@ -568,11 +583,11 @@ export default async function ShiftDetailPage({
               backgroundColor: shift.shift_types?.color ?? "#0D6587",
             }}
           />
-          <p className="text-xs uppercase tracking-[0.18em] text-ink-500">
+          <p className="text-xs uppercase tracking-wider text-ink-500">
             {shift.shift_types?.name ?? "Shift"}
           </p>
         </div>
-        <h1 className="font-display text-3xl text-ink-900 leading-tight">
+        <h1 className="font-sans font-bold text-3xl text-ink-900 leading-tight">
           {formatDateInTz(start)}
         </h1>
         <p className="text-ink-500 text-sm">
@@ -588,7 +603,7 @@ export default async function ShiftDetailPage({
             className="absolute -top-12 -right-10 w-32 h-32 rounded-full bg-cream-50/10 blur-2xl"
           />
           <div className="relative">
-            <p className="text-[10px] uppercase tracking-[0.18em] text-cream-50/70 mb-0.5">
+            <p className="text-[10px] uppercase tracking-wider text-cream-50/70 mb-0.5">
               Available
             </p>
             <p className="font-display text-xl leading-tight mb-0.5">
@@ -643,7 +658,7 @@ export default async function ShiftDetailPage({
 
       {isOpenShift && (
         <div className="bg-forest-100 border border-forest-200 rounded-2xl px-4 py-3 mt-3">
-          <p className="text-[10px] uppercase tracking-[0.18em] text-forest-700 font-medium mb-0.5">
+          <p className="text-[10px] uppercase tracking-wider text-forest-700 font-medium mb-0.5">
             Open shift
           </p>
           <p className="text-sm text-ink-900">
@@ -657,7 +672,7 @@ export default async function ShiftDetailPage({
       {/* Flagged-check-in/out reason banner */}
       {checkIn?.flagged_outside_geofence && checkIn?.flag_reason && (
         <div className="bg-terracotta-400/10 border border-terracotta-400/30 rounded-2xl px-4 py-3 mt-3">
-          <p className="text-[10px] uppercase tracking-[0.18em] text-terracotta-600 font-medium mb-0.5">
+          <p className="text-[10px] uppercase tracking-wider text-terracotta-600 font-medium mb-0.5">
             Flagged
           </p>
           <p className="text-sm text-ink-900">{checkIn.flag_reason}</p>
@@ -666,7 +681,7 @@ export default async function ShiftDetailPage({
 
       {checkIn?.check_out_method === "auto_geofence_after_checkout_reminder" && (
         <div className="bg-forest-100 border border-forest-200 rounded-2xl px-4 py-3 mt-3">
-          <p className="text-[10px] uppercase tracking-[0.18em] text-forest-700 font-medium mb-0.5">
+          <p className="text-[10px] uppercase tracking-wider text-forest-700 font-medium mb-0.5">
             Auto checkout
           </p>
           <p className="text-sm text-ink-900">
@@ -1038,6 +1053,22 @@ export default async function ShiftDetailPage({
             <DeleteShiftButton shiftId={id} />
           </>
         )}
+        {organizationMode === "agency_company" && profile?.role === "client" && shift.client_id && (
+          <RequestRemovalButton
+            shiftId={id}
+            clientId={shift.client_id}
+            organizationId={shift.organization_id}
+            requestedBy={profile.id}
+            existingRequest={existingRemovalRequest}
+          />
+        )}
+        {profile?.role === "admin" && existingRemovalRequest && (
+          <AdminRemovalReview
+            request={existingRemovalRequest}
+            shiftId={id}
+            actorId={profile.id}
+          />
+        )}
       </div>
     </main>
   );
@@ -1065,7 +1096,7 @@ function StatusBanner({
       />
       <div>
         <p
-          className={`text-[10px] uppercase tracking-[0.18em] ${
+          className={`text-[10px] uppercase tracking-wider ${
             tone === "muted" ? "text-ink-500" : "text-cream-50/70"
           }`}
         >
