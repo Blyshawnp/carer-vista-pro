@@ -10,6 +10,8 @@ import {
 import DeleteShiftButton from "./delete-shift-button";
 import RequestRemovalButton from "./request-removal-button";
 import AdminRemovalReview from "./admin-removal-review";
+import RequestCorrectionButton from "./request-correction-button";
+import AdminCorrectionReview from "./admin-correction-review";
 import AcceptDeclineButtons from "./accept-decline-buttons";
 import LiveOnShiftCard from "./live-on-shift-card";
 import TopShiftActionArea from "./top-shift-action-area";
@@ -424,6 +426,17 @@ export default async function ShiftDetailPage({
     existingRemovalRequest = req;
   }
 
+  // Check if a time correction request already exists
+  let existingCorrectionRequest = null;
+  if (profile?.role === "caregiver" || profile?.role === "admin") {
+    const { data: corrReq } = await supabase
+      .from("shift_time_change_requests")
+      .select("*")
+      .eq("shift_id", id)
+      .maybeSingle();
+    existingCorrectionRequest = corrReq;
+  }
+
   const canEdit = profile?.role === "admin" || (profile?.role === "client" && canClientManage);
   const isAssignedCaregiver =
     profile?.role === "caregiver" && profile.id === shift.caregiver_id;
@@ -584,7 +597,7 @@ export default async function ShiftDetailPage({
             }}
           />
           <p className="text-xs uppercase tracking-wider text-ink-500">
-            {shift.shift_types?.name ?? "Shift"}
+            {shift.shift_types?.name ?? "Shift"} · #{id.slice(0, 8).toUpperCase()}
           </p>
         </div>
         <h1 className="font-sans font-bold text-3xl text-ink-900 leading-tight">
@@ -1065,6 +1078,23 @@ export default async function ShiftDetailPage({
         {profile?.role === "admin" && existingRemovalRequest && (
           <AdminRemovalReview
             request={existingRemovalRequest}
+            shiftId={id}
+            actorId={profile.id}
+          />
+        )}
+        {isAssignedCaregiver && (
+          <RequestCorrectionButton
+            shiftId={id}
+            scheduledStart={shift.scheduled_start}
+            scheduledEnd={shift.scheduled_end}
+            existingCheckIn={checkIn?.check_in_time}
+            existingCheckOut={checkIn?.check_out_time}
+            existingRequest={existingCorrectionRequest}
+          />
+        )}
+        {profile?.role === "admin" && existingCorrectionRequest && (
+          <AdminCorrectionReview
+            request={existingCorrectionRequest}
             shiftId={id}
             actorId={profile.id}
           />
