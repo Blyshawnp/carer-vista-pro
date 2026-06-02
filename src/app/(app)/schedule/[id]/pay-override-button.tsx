@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { roundUpToQuarter } from "@/lib/pay";
+import { roundUpToQuarter, formatCurrency, formatPay } from "@/lib/pay";
 
 type Mode = "amount" | "hours_rate" | "clear";
 
 export default function PayOverrideButton({
   shiftId,
+  currentUserId,
   currentOverrideAmount,
   currentOverrideHours,
   currentOverrideRate,
@@ -18,6 +19,7 @@ export default function PayOverrideButton({
   isLocked,
 }: {
   shiftId: string;
+  currentUserId: string;
   currentOverrideAmount: number | null;
   currentOverrideHours: number | null;
   currentOverrideRate: number | null;
@@ -96,6 +98,7 @@ export default function PayOverrideButton({
         pay_override_rate: null,
         pay_override_reason: reason.trim(),
         pay_override_at: new Date().toISOString(),
+        pay_override_by: currentUserId,
       };
     } else {
       const h = parseFloat(hours);
@@ -111,6 +114,7 @@ export default function PayOverrideButton({
         pay_override_rate: r,
         pay_override_reason: reason.trim(),
         pay_override_at: new Date().toISOString(),
+        pay_override_by: currentUserId,
       };
     }
 
@@ -123,6 +127,28 @@ export default function PayOverrideButton({
       setError(updateError.message);
       setSubmitting(false);
       return;
+    }
+
+    try {
+      const { data: shiftObj } = await supabase
+        .from("shifts")
+        .select("organization_id")
+        .eq("id", shiftId)
+        .single();
+      if (shiftObj?.organization_id) {
+        await supabase.from("financial_audit_logs").insert({
+          organization_id: shiftObj.organization_id,
+          actor_user_id: currentUserId,
+          action_type: mode === "clear" ? "clear_pay_override" : "override_pay",
+          affected_record_id: shiftId,
+          affected_record_type: "shifts",
+          note: mode === "clear"
+            ? "Cleared caregiver pay override."
+            : `Set caregiver pay override (Reason: ${reason.trim()}). Details: ${JSON.stringify(update)}`,
+        });
+      }
+    } catch (auditErr) {
+      console.error("Failed to write pay override financial audit log:", auditErr);
     }
 
     window.location.reload();
@@ -153,8 +179,8 @@ export default function PayOverrideButton({
           Adjust pay for this shift
         </p>
         <p className="text-xs text-ink-500">
-          Computed: ${roundUpToQuarter(computedAmount).toFixed(2)} (
-          {computedHours.toFixed(2)} hrs × ${computedRate.toFixed(2)}/hr)
+          Computed: {formatPay(computedAmount)} (
+          {computedHours.toFixed(1)} hrs × {formatCurrency(computedRate)}/hr)
         </p>
 
         {/* Mode tabs */}
@@ -231,7 +257,7 @@ export default function PayOverrideButton({
             New pay
           </span>
           <span className="font-display text-lg text-forest-700">
-            ${roundUpToQuarter(previewAmount).toFixed(2)}
+            {formatPay(previewAmount)}
           </span>
         </div>
 

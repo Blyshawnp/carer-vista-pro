@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { buildAppUrl } from "@/lib/app-url";
 import { isEmailConfigured, sendInvitationEmail } from "@/lib/email";
 import type { Role } from "@/lib/db-types";
+import { EMAIL_RATE_LIMIT_MESSAGE, isEmailRateLimitError } from "@/lib/auth-errors";
 
 type CreateInvitationRequest = {
   fullName?: string;
@@ -147,8 +149,7 @@ function normalizeHourlyRate(value: number | null | undefined) {
 }
 
 function buildInviteLink(request: Request, token: string) {
-  const origin = request.headers.get("origin") ?? new URL(request.url).origin;
-  return `${origin}/accept-invite?token=${encodeURIComponent(token)}`;
+  return buildAppUrl(`/accept-invite?token=${encodeURIComponent(token)}`, request);
 }
 
 async function maybeSendInviteEmail({
@@ -215,7 +216,11 @@ async function maybeSendInviteEmail({
       sent: false,
       skipped: false,
       reason: "failed" as const,
-      error: error instanceof Error ? error.message : "Email delivery failed.",
+      error: isEmailRateLimitError(error instanceof Error ? error.message : null)
+        ? EMAIL_RATE_LIMIT_MESSAGE
+        : error instanceof Error
+          ? error.message
+          : "Email delivery failed.",
     };
   }
 }

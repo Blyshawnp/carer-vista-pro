@@ -26,15 +26,33 @@ type InviteResponse = {
   error?: string;
 };
 
-export default function InviteForm() {
+type NoEmailResponse = {
+  username?: string;
+  password?: string;
+  role?: CreatedInvitation["role"];
+  error?: string;
+};
+
+type ClientOption = {
+  id: string;
+  full_name: string;
+};
+
+export default function InviteForm({ clients }: { clients: ClientOption[] }) {
   const [fullName, setFullName] = useState("");
+  const [accountMode, setAccountMode] = useState<"email" | "no-email">("email");
   const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
+  const [phone, setPhone] = useState("");
+  const [temporaryPassword, setTemporaryPassword] = useState("");
   const [role, setRole] = useState<"caregiver" | "client" | "admin" | "family">("caregiver");
   const [hourlyRate, setHourlyRate] = useState("");
+  const [selectedClientIds, setSelectedClientIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [createdInvitation, setCreatedInvitation] = useState<CreatedInvitation | null>(null);
   const [inviteLink, setInviteLink] = useState<string | null>(null);
+  const [createdCredentials, setCreatedCredentials] = useState<NoEmailResponse | null>(null);
   const [emailDelivery, setEmailDelivery] = useState<InviteResponse["emailDelivery"] | null>(
     null
   );
@@ -45,22 +63,39 @@ export default function InviteForm() {
     setSubmitting(true);
 
     try {
-      const response = await fetch("/api/invitations", {
+      const response = await fetch(
+        accountMode === "no-email" ? "/api/invitations/no-email" : "/api/invitations",
+        {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           fullName: fullName.trim(),
-          email: email.trim() || null,
+          email: accountMode === "email" ? email.trim() || null : null,
+          usernamePart: username.trim(),
+          phone: phone.trim() || null,
+          password: temporaryPassword.trim() || undefined,
           role,
           hourlyRate: role === "caregiver" && hourlyRate ? Number(hourlyRate) : null,
+          clientIds: selectedClientIds,
         }),
-      });
+      }
+      );
 
-      const result = (await response.json()) as InviteResponse;
+      const result = (await response.json()) as InviteResponse & NoEmailResponse;
 
-      if (!response.ok || !result.invitation || !result.inviteLink) {
+      if (!response.ok) {
+        setError(result.error ?? "Could not create invitation.");
+        return;
+      }
+
+      if (accountMode === "no-email") {
+        setCreatedCredentials(result);
+        return;
+      }
+
+      if (!result.invitation || !result.inviteLink) {
         setError(result.error ?? "Could not create invitation.");
         return;
       }
@@ -73,6 +108,40 @@ export default function InviteForm() {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  if (createdCredentials?.username && createdCredentials.password) {
+    return (
+      <main className="px-5 py-6 max-w-2xl mx-auto">
+        <header className="mb-6">
+          <Link href="/team" className="text-sm text-forest-600 hover:underline mb-2 inline-block">
+            ← Back to team
+          </Link>
+          <h1 className="font-display text-3xl text-ink-900">Local account ready</h1>
+          <p className="text-ink-500 text-sm">
+            Save or share this now. The password will not be shown again.
+          </p>
+        </header>
+
+        <section className="bg-white rounded-3xl shadow-soft p-5 mb-4 grain-overlay">
+          <div className="relative space-y-3">
+            <CredentialRow label="Username" value={createdCredentials.username} />
+            <CredentialRow label="Temporary password" value={createdCredentials.password} />
+            <CredentialRow label="Role" value={createdCredentials.role ?? role} />
+            {selectedClientIds.length > 0 && (
+              <CredentialRow label="Assigned clients" value={String(selectedClientIds.length)} />
+            )}
+          </div>
+        </section>
+
+        <Link
+          href="/team"
+          className="block w-full bg-white hover:bg-cream-50 text-ink-700 py-3.5 rounded-2xl font-medium text-center shadow-soft transition"
+        >
+          Done
+        </Link>
+      </main>
+    );
   }
 
   if (createdInvitation && inviteLink) {
@@ -158,7 +227,7 @@ export default function InviteForm() {
         </Link>
         <h1 className="font-display text-3xl text-ink-900">Invite someone</h1>
         <p className="text-ink-500 text-sm">
-          Create a shareable invite link now. Add email if you want the app to send it later.
+          Create a shareable invite link or a no-email local account.
         </p>
       </header>
 
@@ -189,6 +258,35 @@ export default function InviteForm() {
           </Field>
         </Card>
 
+        <Card title="Account type">
+          <div className="grid grid-cols-2 gap-2 rounded-2xl bg-cream-100 p-1">
+            <button
+              type="button"
+              onClick={() => setAccountMode("email")}
+              className={`rounded-xl px-3 py-2 text-sm font-medium transition ${
+                accountMode === "email" ? "bg-white text-ink-900 shadow-sm" : "text-ink-500"
+              }`}
+            >
+              Has email
+            </button>
+            <button
+              type="button"
+              onClick={() => setAccountMode("no-email")}
+              className={`rounded-xl px-3 py-2 text-sm font-medium transition ${
+                accountMode === "no-email" ? "bg-white text-ink-900 shadow-sm" : "text-ink-500"
+              }`}
+            >
+              No email
+            </button>
+          </div>
+          {accountMode === "no-email" && (
+            <p className="text-xs text-ink-500">
+              Use this when the person does not have an email address. They will sign in with a username and password.
+            </p>
+          )}
+        </Card>
+
+        {accountMode === "email" ? (
         <Card title="Invite link and email">
           <Field label="Email (optional)">
             <input
@@ -204,6 +302,47 @@ export default function InviteForm() {
             </p>
           </Field>
         </Card>
+        ) : (
+          <Card title="Local sign-in">
+            <Field label="Username">
+              <input
+                type="text"
+                required
+                value={username}
+                onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ""))}
+                placeholder="janedoe"
+                className={inputCls}
+                minLength={2}
+                maxLength={32}
+                autoComplete="off"
+              />
+              <p className="text-xs text-ink-500 mt-1.5">
+                Letters and numbers only. Keep it short and easy to remember.
+              </p>
+            </Field>
+            <Field label="Temporary password">
+              <input
+                type="text"
+                value={temporaryPassword}
+                onChange={(e) => setTemporaryPassword(e.target.value)}
+                placeholder="Leave blank to generate"
+                className={inputCls}
+                minLength={8}
+                autoComplete="off"
+              />
+            </Field>
+            <Field label="Phone (optional)">
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="Phone number"
+                className={inputCls}
+                autoComplete="off"
+              />
+            </Field>
+          </Card>
+        )}
 
         {role === "caregiver" && (
           <Card title="Pay (optional)">
@@ -221,6 +360,30 @@ export default function InviteForm() {
             <p className="text-xs text-ink-500">
               Can be set or changed later from the team page.
             </p>
+          </Card>
+        )}
+
+        {accountMode === "no-email" && clients.length > 0 && (
+          <Card title="Client assignment">
+            <div className="space-y-2">
+              {clients.map((client) => (
+                <label key={client.id} className="flex items-center gap-3 rounded-xl bg-cream-50 px-3 py-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={selectedClientIds.includes(client.id)}
+                    onChange={(event) => {
+                      setSelectedClientIds((current) =>
+                        event.target.checked
+                          ? [...current, client.id]
+                          : current.filter((id) => id !== client.id)
+                      );
+                    }}
+                    className="h-4 w-4 accent-forest-600"
+                  />
+                  <span className="text-ink-800">{client.full_name}</span>
+                </label>
+              ))}
+            </div>
           </Card>
         )}
 
@@ -242,11 +405,28 @@ export default function InviteForm() {
             disabled={submitting}
             className="flex-1 bg-forest-600 hover:bg-forest-700 text-cream-50 py-3.5 rounded-2xl font-medium transition disabled:opacity-50 active:scale-[0.99]"
           >
-            {submitting ? "Creating..." : "Create invitation"}
+            {submitting
+              ? "Creating..."
+              : accountMode === "no-email"
+                ? "Create local account"
+                : "Create invitation"}
           </button>
         </div>
       </form>
     </main>
+  );
+}
+
+function CredentialRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs uppercase tracking-wide font-medium text-ink-500 mb-1">
+        {label}
+      </p>
+      <div className="bg-cream-50 border border-cream-200 rounded-xl px-4 py-3 font-mono text-sm break-all">
+        {value}
+      </div>
+    </div>
   );
 }
 

@@ -25,12 +25,14 @@ export default async function TeamMemberPage({
 
   const { data: person } = await supabase
     .from("profiles")
-    .select("id, full_name, email, phone, role, is_active, avatar_url, avatar_color")
+    .select("id, full_name, email, username, has_real_email, phone, role, is_active, avatar_url, avatar_color")
     .eq("id", id)
     .single<{
       id: string;
       full_name: string;
       email: string;
+      username: string | null;
+      has_real_email: boolean | null;
       phone: string | null;
       role: "admin" | "client" | "caregiver" | "family";
       is_active: boolean;

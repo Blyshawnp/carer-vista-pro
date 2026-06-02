@@ -18,28 +18,28 @@ const logoSizes: Record<
   }
 > = {
   auth: {
-    wrapper: "w-[88px] h-[88px] sm:w-[104px] sm:h-[104px]",
-    image: "h-[88px] w-[88px] sm:h-[104px] sm:w-[104px]",
-    width: 104,
-    height: 104,
-    sizes: "(min-width: 640px) 104px, 88px",
-    fallback: "h-[88px] w-[88px] sm:h-[104px] sm:w-[104px] text-sm",
+    wrapper: "w-[280px] sm:w-[340px]",
+    image: "w-[280px] sm:w-[340px] h-auto",
+    width: 340,
+    height: 190,
+    sizes: "(min-width: 640px) 340px, 280px",
+    fallback: "w-[280px] sm:w-[340px] min-h-[112px] text-base",
   },
   header: {
-    wrapper: "w-[56px] h-[56px] sm:w-16 sm:h-16",
-    image: "h-14 w-14 sm:h-16 sm:w-16",
-    width: 64,
-    height: 64,
-    sizes: "(min-width: 640px) 64px, 56px",
-    fallback: "h-14 w-14 sm:h-16 sm:w-16 text-[10px]",
+    wrapper: "w-[120px] sm:w-[150px]",
+    image: "w-[120px] sm:w-[150px] h-auto",
+    width: 150,
+    height: 84,
+    sizes: "(min-width: 640px) 150px, 120px",
+    fallback: "w-[120px] sm:w-[150px] min-h-[54px] text-[10px]",
   },
   compact: {
-    wrapper: "w-12 h-12",
-    image: "h-12 w-12",
-    width: 48,
-    height: 48,
-    sizes: "48px",
-    fallback: "h-12 w-12 text-[9px]",
+    wrapper: "w-32",
+    image: "w-32 h-auto",
+    width: 128,
+    height: 72,
+    sizes: "128px",
+    fallback: "w-32 min-h-[46px] text-[9px]",
   },
 };
 
@@ -49,12 +49,18 @@ export default function AppLogo({
   textSize = "text-[11px]",
   variant = "compact",
   className = "",
+  enableCustomBranding = false,
+  customLogoUrl = null,
+  customBrandName = null,
 }: {
   href?: string;
   showText?: boolean;
   textSize?: string;
   variant?: AppLogoVariant;
   className?: string;
+  enableCustomBranding?: boolean;
+  customLogoUrl?: string | null;
+  customBrandName?: string | null;
 }) {
   const [logoFailed, setLogoFailed] = useState(false);
   const size = logoSizes[variant];
@@ -62,19 +68,26 @@ export default function AppLogo({
   return (
     <Link
       href={href}
-      aria-label="Carer Vista Pro home"
+      aria-label={`${enableCustomBranding ? (customBrandName || "Company") : "Carer Vista Pro"} home`}
       className={`flex items-center gap-3 min-w-0 ${className}`}
     >
       <span className={`relative shrink-0 overflow-visible ${size.wrapper}`}>
-        {logoFailed ? (
+        {enableCustomBranding && customLogoUrl ? (
+          <img
+            src={customLogoUrl}
+            alt={customBrandName || "Company Logo"}
+            onError={() => setLogoFailed(true)}
+            className={`object-contain max-h-[54px] ${size.image}`}
+          />
+        ) : logoFailed ? (
           <span
             className={`flex items-center justify-center text-center font-extrabold uppercase leading-none text-forest-700 ${size.fallback}`}
           >
-            Carer Vista Pro
+            {enableCustomBranding ? (customBrandName || "Company") : "Carer Vista Pro"}
           </span>
         ) : (
           <Image
-            src="/icon.png"
+            src="/CVPlogo.png"
             alt="Carer Vista Pro"
             width={size.width}
             height={size.height}
@@ -88,7 +101,7 @@ export default function AppLogo({
       {(showText || logoFailed) && (
         <span className="min-w-0 leading-none">
           <span className={`block uppercase tracking-[0.18em] font-extrabold text-forest-700 ${textSize} truncate`}>
-            Carer Vista Pro
+            {enableCustomBranding ? (customBrandName || "Company") : "Carer Vista Pro"}
           </span>
         </span>
       )}

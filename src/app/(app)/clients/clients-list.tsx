@@ -5,15 +5,27 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { getCurrentPosition } from "@/lib/geo";
+import { formatStructuredAddress, normalizeCountry } from "@/lib/address";
+import ClientPhoto from "@/components/client-photo";
 import { MapPinIcon } from "@/components/icons";
 
 type Client = {
   id: string;
   full_name: string;
+  photo_url: string | null;
+  photo_display_url?: string | null;
   address: string | null;
+  formatted_address: string | null;
+  street_address_1: string | null;
+  street_address_2: string | null;
+  city: string | null;
+  state: string | null;
+  state_or_region: string | null;
+  postal_code: string | null;
+  country: string | null;
   latitude: number | null;
   longitude: number | null;
-  geofence_radius_meters: number;
+  geofence_radius_meters: number | null;
 };
 
 export default function ClientsList({
@@ -77,14 +89,15 @@ function ClientCard({
 }) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
-  const [address, setAddress] = useState(client.address ?? "");
+  const meaningfulAddress = displayAddress(client);
+  const [address, setAddress] = useState(meaningfulAddress ?? "");
   const [latitude, setLatitude] = useState(
     client.latitude != null ? String(client.latitude) : ""
   );
   const [longitude, setLongitude] = useState(
     client.longitude != null ? String(client.longitude) : ""
   );
-  const [radius, setRadius] = useState(String(client.geofence_radius_meters));
+  const [radius, setRadius] = useState(String(client.geofence_radius_meters ?? 150));
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [locating, setLocating] = useState(false);
@@ -153,14 +166,23 @@ function ClientCard({
       <div className="bg-white rounded-2xl shadow-soft p-5 grain-overlay">
         <div className="relative">
           <div className="flex items-start justify-between gap-3 mb-3">
-            <div>
-              <h2 className="font-display text-lg text-ink-900">
+            <Link href={`/clients/${client.id}/home-info`} className="flex items-start gap-3 min-w-0">
+              <ClientPhoto
+                name={client.full_name}
+                photoUrl={client.photo_display_url ?? client.photo_url}
+                size="sm"
+              />
+              <div className="min-w-0">
+                <h2 className="font-display text-lg text-ink-900 truncate">
                 {client.full_name}
-              </h2>
-              {client.address && (
-                <p className="text-sm text-ink-500 mt-0.5">{client.address}</p>
-              )}
-            </div>
+                </h2>
+                {meaningfulAddress ? (
+                  <p className="text-sm text-ink-500 mt-0.5">{meaningfulAddress}</p>
+                ) : (
+                  <p className="text-sm text-ink-400 mt-0.5">Location not set</p>
+                )}
+              </div>
+            </Link>
             {canManage && (
               <button
                 onClick={() => setEditing(true)}
@@ -179,7 +201,7 @@ function ClientCard({
             <span className={hasCoords ? "text-ink-700" : "text-terracotta-600"}>
               {hasCoords ? (
                 <>
-                  Geofence set · {client.geofence_radius_meters}m radius
+                  Geofence set · {client.geofence_radius_meters ?? 150}m radius
                 </>
               ) : (
                 "No geofence set yet"
@@ -191,7 +213,7 @@ function ClientCard({
             href={`/clients/${client.id}/home-info`}
             className="block mt-4 bg-cream-50 hover:bg-cream-100 text-forest-600 border border-forest-500/20 px-4 py-2.5 rounded-xl text-sm font-medium text-center transition"
           >
-            {canManage ? "Edit home info" : "View home info"} →
+            View profile →
           </a>
         </div>
       </div>
@@ -313,4 +335,19 @@ function Field({
       {children}
     </label>
   );
+}
+
+function displayAddress(client: Client) {
+  const fallback = client.formatted_address ?? client.address;
+  const country = normalizeCountry(client.country);
+  if (fallback?.trim() && fallback.trim() !== country) return fallback;
+
+  return formatStructuredAddress({
+    street_address_1: client.street_address_1,
+    street_address_2: client.street_address_2,
+    city: client.city,
+    state_or_region: client.state_or_region ?? client.state,
+    postal_code: client.postal_code,
+    country: client.country,
+  });
 }

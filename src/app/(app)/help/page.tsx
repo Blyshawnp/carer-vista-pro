@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 type Role = "admin" | "client" | "caregiver" | "family";
 
-const LAST_UPDATED = "May 11, 2026";
+const LAST_UPDATED = "June 2, 2026";
 
 export default async function HelpPage() {
   const supabase = await createClient();
@@ -79,7 +79,8 @@ export default async function HelpPage() {
             <ul className="text-sm text-ink-700 space-y-1.5 list-disc pl-5">
               <li>If you check in or out outside the geofence, the shift gets <strong>flagged</strong> and the admin sees the reason.</li>
               <li>If you leave the location after your scheduled end time, you'll be checked out automatically.</li>
-              <li>Tasks don't have to be 100% complete to check out, but a warning will show.</li>
+              <li>Shift action buttons (Accept, Check in, Check out, Lunch and Break timers) are located at the top of the shift detail page for easy mobile access.</li>
+              <li>Unfinished required tasks will prompt a checkout warning, but optional and PRN tasks will not block checkout.</li>
             </ul>
           ) : (
             <ul className="text-sm text-ink-700 space-y-1.5 list-disc pl-5">
@@ -96,6 +97,7 @@ export default async function HelpPage() {
               <li>Your <strong>Me</strong> tab shows your running pay for the current period.</li>
               <li>Pay periods run <strong>Friday 9 PM to Friday 9 PM</strong> (Eastern). Each period locks automatically at the end.</li>
               <li>Once locked, the invoice can't change. Older invoices are paginated under <strong>Me → My invoices</strong>.</li>
+              <li>If you forgot to check out or need to correct your hours, tap <strong>Request Time Correction</strong> on the shift details page to submit corrected check-in/out times. Approved corrections will reflect on the next invoice.</li>
               <li>All amounts are <strong>rounded up to the nearest $0.25</strong>.</li>
             </ul>
           ) : (
@@ -103,6 +105,7 @@ export default async function HelpPage() {
               <li>The <strong>Payroll</strong> page shows live current-period totals per caregiver.</li>
               <li>Pay periods auto-release at <strong>Friday 9 PM Eastern</strong>. Once released, invoices are locked.</li>
               <li>Adjust a specific shift's pay using <strong>Adjust pay for this shift</strong> on the shift detail page. Changes are logged with a reason.</li>
+              <li>Review caregiver time corrections directly from the shift details page. Approved corrections update check-in details and automatically reflect on the next invoice.</li>
               <li>All amounts round up to the nearest $0.25.</li>
             </ul>
           )}
@@ -121,9 +124,11 @@ export default async function HelpPage() {
         <Section title="Tasks">
           {role === "caregiver" ? (
             <ul className="text-sm text-ink-700 space-y-1.5 list-disc pl-5">
-              <li>The <strong>Tasks</strong> tab shows tasks for the current or upcoming shift.</li>
+              <li><strong>Required Tasks:</strong> Must be completed by shift end. Incomplete required tasks will trigger warnings at checkout.</li>
+              <li><strong>Optional Tasks:</strong> Good to complete if possible, but leaving them unfinished will never trigger missed-task warnings or block checkout.</li>
+              <li><strong>PRN / If-Needed Tasks:</strong> Tasks that are only done if required. Leaving a PRN task unchecked is normal and does not mean it was missed. You can mark it <strong>"Not needed this shift"</strong>, <strong>"Client declined"</strong>, or <strong>"Needs follow-up"</strong>.</li>
+              <li><strong>Checkout Reminder:</strong> A gentle reminder is displayed at checkout if any PRN tasks remain unmarked. If require_prn_acknowledgment is enabled, you must choose a status for each PRN task before checking out.</li>
               <li>Tap a task's checkbox to mark it complete. Notes can be added per task.</li>
-              <li>You can add custom tasks for your own reference during a shift.</li>
             </ul>
           ) : (
             <ul className="text-sm text-ink-700 space-y-1.5 list-disc pl-5">
@@ -144,8 +149,9 @@ export default async function HelpPage() {
 
         {role !== "caregiver" && (
           <Section title="Home info & emergency">
-            <ul className="text-sm text-ink-700 space-y-1.5 list-disc pl-5">
+            <ul className="text-sm text-ink-750 space-y-1.5 list-disc pl-5">
               <li>Visit <strong>Me → Clients → Edit home info</strong> to manage everything caregivers see on the shift detail page.</li>
+              <li>Stable profile, contact, Wi-Fi, and preferred hospital details reside in <strong>General & Home Info</strong>, whereas emergency evacuation action plans are managed separately under the <strong>Emergency Guide</strong> to prevent duplicate entries and keep care circles aligned.</li>
               <li>Add <strong>allergies</strong> with severity (critical, mild, minor) so caregivers can see them at a glance.</li>
               <li>Set the <strong>preferred hospital</strong> and <strong>primary physician</strong> for emergencies.</li>
               <li>Document the location of the <strong>first aid kit, hypoglycemia kit, fire extinguisher, AED</strong>.</li>
@@ -161,6 +167,8 @@ export default async function HelpPage() {
             <li>Caregivers can see the home info needed to do their work, but never edit Wi-Fi or sensitive admin settings.</li>
             <li>Admins can do everything in their org.</li>
             <li>Clients and family users can only see information allowed by their assignment and privacy settings.</li>
+            <li><strong>Sensitive Documents:</strong> Shared documents may contain highly sensitive medical or personal information. Users should only upload, view, or share documents they are explicitly authorized to share.</li>
+            <li><strong>Print Approvals & Acknowledgments:</strong> Printing sensitive documents may require administrator approval. When a document requires acknowledgment, your read/acknowledgment records will be stored and made visible to administrators.</li>
           </ul>
         </Section>
 
@@ -175,6 +183,101 @@ export default async function HelpPage() {
               <LegalCard href="/account/deletion-requests" title="Deletion Requests" description="Review deletion requests from your care circle." />
             ) : null}
           </div>
+        </Section>
+
+        <Section title="Feedback & Commendations">
+          <ul className="text-sm text-ink-700 space-y-1.5 list-disc pl-5">
+            <li>Clients and families can submit positive commendations, thank you notes, concerns, or complaints about caregivers via <strong>Me &rarr; Submit caregiver feedback</strong>.</li>
+            <li><strong>Admin Review:</strong> All feedback is securely sent to administrators. Complaints and concerns are never shared with caregivers automatically.</li>
+            <li><strong>Commendations & Appreciation:</strong> Administrators can choose to share positive commendations or appreciations directly with the caregiver to recognize their good work.</li>
+            <li><strong>Emergency Warning:</strong> Caregiver feedback is NOT monitored 24/7 and should never be used for emergencies or active safety issues. Please report emergencies via 911 immediately.</li>
+          </ul>
+        </Section>
+
+        <Section title="Emergency Prep & Pet Records">
+          <ul className="text-sm text-ink-700 space-y-1.5 list-disc pl-5">
+            <li>Open <strong>Clients → View profile → Pets</strong> to see a client's pet list, photos, feeding notes, medication instructions, behavior cautions, and emergency notes.</li>
+            <li>Caregivers can view pets for assigned clients from the client profile, shift detail shortcut, or home access page.</li>
+            <li>Before accepting an assigned shift, caregivers should review the <strong>Pets in home</strong> summary and tap <strong>View pets</strong> if they have allergy or safety concerns.</li>
+            <li>Admins and permitted client admins can add or update caregiver, client, and pet photos from the team profile, client profile, and pet editor. Photos are stored in Supabase Storage and shown with permission-controlled access.</li>
+            <li>Pet emergency details also appear in emergency info so evacuation and first-response instructions stay visible during urgent situations. The editable pet record is stored once.</li>
+            <li><strong>Accuracy:</strong> Pet information and emergency preparedness instructions are user-entered and must be kept up-to-date and accurate.</li>
+            <li><strong>Not a Substitute:</strong> This app is NOT a substitute for professional emergency services (such as calling 911).</li>
+            <li><strong>Caregiver Instructions:</strong> Caregivers must follow the organization and client's instructions during an event and immediately call emergency services (911) when appropriate.</li>
+          </ul>
+        </Section>
+
+        <Section title="Invoices, Payments, & Year-End Summaries">
+          <ul className="text-sm text-ink-700 space-y-1.5 list-disc pl-5">
+            <li><strong>How to Print Invoices:</strong> Go to <strong>Me &rarr; Invoices</strong>, select any locked invoice statement, and click the <strong>🖨️ Print Invoice</strong> button.</li>
+            <li><strong>Optional Break & Lunch Tracking:</strong> If break tracking is enabled by the organization, caregivers can clock in and out of lunches and rest breaks directly from active shifts. Shift durations, caregiver estimated pay, and client invoices are calculated after deducting unpaid break minutes automatically. Administrators can manually adjust break and lunch times with a mandatory note detailing the reason.</li>
+            <li><strong>Holiday Pay & Client Surcharges:</strong> Organizations can configure active holidays with custom caregiver pay multipliers and flat bonuses, and client invoice surcharges (hourly multipliers, hourly surcharges, or flat surcharges). Shift details and invoice estimates compute these values automatically. Caregivers see their holiday rate and any flat bonuses in active shift previews.</li>
+            <li><strong>Pay Deductions & Tax Estimates:</strong> Organizations can set optional caregiver pay deductions or tax estimates. <em>Important: This is not official payroll processing, is not enabled by default, and does not appear in the private app.</em> Before enabling, administrators must acknowledge that the app does not provide tax, payroll, legal, accounting, or employment classification advice.</li>
+            <li><strong>Manual Payment Records:</strong> All logged invoices, payments, and balances are for administrative recordkeeping only. The app does not process real payments or bank transfers unless a specific payment processor integration is added.</li>
+            <li><strong>Custom Invoice Schedules:</strong> Organizations can set custom frequencies (weekly, every other week, twice monthly, monthly, or custom start/end dates), along with custom timezone-aware release days and times.</li>
+            <li><strong>Caregiver Appreciation Bonuses:</strong> Optional caregiver appreciation, holiday, performance, or manual adjustments can be funded by clients. In Agency/Company mode, bonuses submitted by clients must be approved by an administrator before they are visible to caregivers or added to the client invoice.</li>
+            <li><strong>Role-Based Financial Visibility:</strong> Caregivers see their own pay, bonuses, holiday multipliers, and total earned only. Clients and families see invoices, payments, and balances due (when allowed) but never see caregivers' pay rates or organization margins. Admins have full visibility of all charges, payouts, and margins.</li>
+            <li><strong>Year-End Earning Reports:</strong> Optional and enabled/scheduled by organization administrators. Go to <strong>Me &rarr; Year-End Summaries</strong> to view them once released. Works on mobile, PWA, and desktop browsers.</li>
+            <li><strong>Compliance Notice & No Advice:</strong> Employing organizations and clients are fully responsible for setting correct rates, invoices, taxes, payments, worker classification (W-2 vs. 1099), business records, tax prep (preparing and sending W-2, 1099, or other forms), and legal compliance under federal, state, and local wage/hour/payroll laws. The app does not provide payroll, tax, legal, accounting, or employment advice.</li>
+            <li><strong>Organization Modes:</strong> The app supports Personal/Family Care, Agency/Company, Solo Caregiver, and Client-Directed Care. Permissions automatically scale based on the mode.</li>
+          </ul>
+        </Section>
+
+        <Section title="Schedule Multi-Select & Bulk Actions">
+          <p className="text-sm text-ink-700 mb-2">
+            Administrators and clients can perform bulk actions on multiple shifts at once:
+          </p>
+          <ul className="text-sm text-ink-700 space-y-1.5 list-disc pl-5">
+            <li><strong>Bulk Delete / Cancel:</strong> Select multiple shifts on the schedule page (via 'Bulk actions') and delete them together. This will show a strong warning if any shift contains check-ins, completed tasks, or notes.</li>
+            <li><strong>Bulk Add Tasks:</strong> Assign library task templates to all selected shifts in one go, with duplication-skipping controls to avoid duplicate tasks.</li>
+          </ul>
+        </Section>
+
+        <Section title="Default Tasks by Day of Week">
+          <p className="text-sm text-ink-700 mb-2">
+            Default task library settings permit granular automatic task scheduling:
+          </p>
+          <ul className="text-sm text-ink-700 space-y-1.5 list-disc pl-5">
+            <li><strong>Weekly Schedule:</strong> Default tasks can be set to only auto-add to shifts on specific days of the week (e.g. Monday, Wednesday, Friday).</li>
+            <li><strong>Date Ranges:</strong> You can define optional start and end dates for task auto-scheduling.</li>
+            <li><strong>Backfilling:</strong> Use the "Apply default tasks to future shifts" action in the library to backfill matching default tasks on existing future shifts.</li>
+          </ul>
+        </Section>
+
+        <Section title="Account Settings, Spanish Language, & PWA Installation">
+          <p className="text-sm text-ink-700 mb-2">
+            Manage your credentials, offline standalone experience, and notifications in <strong>Account & Settings</strong> and the <strong>Me</strong> tab:
+          </p>
+          <ul className="text-sm text-ink-750 space-y-1.5 list-disc pl-5">
+            <li><strong>Theme & Color Schemes:</strong> Customize the look of the app shell, buttons, navigation, and active states. Choose from <em>System default</em>, <em>Carer Vista Pro default</em>, <em>Teal</em>, <em>Blue</em>, <em>Green</em>, <em>Purple</em>, <em>Rose</em>, or the highly readable <em>High contrast</em> scheme. Organization custom branding takes precedence but personal accents are preserved.</li>
+            <li><strong>Spanish Language:</strong> Toggle between English and Spanish seamlessly under <strong>Me &rarr; Language</strong>. This translates the dashboard, client detail sheets, task categories, PRN options, invoices, and summaries.</li>
+              <li><strong>PWA Installation Controls:</strong> Control progressive web app banner prompts. You can choose <em>Install app</em>, <em>Not now</em>, <em>Don't show for 24 hours</em> (remind tomorrow), or <em>Don't show again</em>. A manual <em>Install app</em> button is also available in Settings.</li>
+            <li><strong>Notification Sounds & Volume:</strong> Toggle audio alerts and adjust playback volume using the slider (suggested default is 80%). Use the <em>Play test sound</em> button to test browser autoplay compatibility.</li>
+            <li><strong>Push Notification Health Check:</strong> Verify notification health via the status indicator (Active, Not active, or Unsupported) and view the last successful subscription check time. Tap <em>Refresh subscription</em> to update server metadata.</li>
+          </ul>
+        </Section>
+
+        <Section title="Custom Branding & Paid Features">
+          <p className="text-sm text-ink-700 mb-2">
+            Organizations can customize their platform experience and access advanced operational tools depending on their active subscription tier:
+          </p>
+          <ul className="text-sm text-ink-750 space-y-1.5 list-disc pl-5">
+            <li><strong>Organization Custom Branding:</strong> Upload your company logo, set your custom brand name, and personalize accent colors under <strong>Me → Organization Settings</strong>. Main headers, button styles, active nav, and accent panels will render in your organization's curated colors. Note: personal accessibility choices (like High Contrast mode) safely override custom styles for individual comfort.</li>
+            <li><strong>Standard vs. Premium Features:</strong> Basic accounts access standard shift scheduling, locations geofencing, and shift checklist logging. Paid plans unlock premium features, including advanced invoicing, custom year-end summaries, secure multi-client document workflows, complex holiday pay calculations, and advanced agency mode cancellation management.</li>
+            <li><strong>White-Label Limits:</strong> Custom branding alters theme color schemes and logos but does not transfer ownership of the underlying software. All footers, legal notifications, and help screens remain clearly powered by <em>Carer Vista Pro</em>.</li>
+          </ul>
+        </Section>
+
+        <Section title="Push Notification Troubleshooting">
+          <p className="text-sm text-ink-700 mb-2">
+            If you are not receiving native push notifications for messages, check-ins, or alerts, please check the following requirements:
+          </p>
+          <ul className="text-sm text-ink-750 space-y-1.5 list-disc pl-5">
+            <li><strong>iPhone / iPad Users (iOS 16.4+):</strong> You must install the PWA to your Home Screen first! Standard browser tabs cannot receive background pushes. Tap Safari's <strong>Share</strong> button, select <strong>Add to Home Screen</strong>, launch the app from your home screen, navigate to <strong>Me → Notifications</strong>, and choose <strong>Enable on this device</strong>.</li>
+            <li><strong>Android / Chrome Users:</strong> Launch the app, accept Chrome's system prompts, and enable notifications. Ensure Chrome is not restricted in your phone's general app notifications or battery optimization settings.</li>
+            <li><strong>System Block Check:</strong> Verify that your device is not in Focus Mode, quiet mode, or Do Not Disturb. Ensure you have not explicitly blocked notification permissions for Carer Vista Pro in your browser or device operating system.</li>
+            <li><strong>Test Dispatcher:</strong> Navigate to your notifications page and tap the <strong>Send test notification</strong> button. This immediately dispatches a secure system test push to verify your active VAPID credentials connection.</li>
+          </ul>
         </Section>
 
         <Section title="Trouble?">

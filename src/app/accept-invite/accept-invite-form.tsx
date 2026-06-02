@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { buildBrowserAppUrl } from "@/lib/app-url";
 import { createClient } from "@/lib/supabase/client";
 import { getFirstName } from "@/lib/name";
+import { mapAuthErrorMessage } from "@/lib/auth-errors";
 
 type Invitation = {
   id: string;
@@ -23,6 +25,7 @@ export default function AcceptInviteForm({
   token: string;
 }) {
   const router = useRouter();
+  const [mode, setMode] = useState<"signup" | "signin">("signup");
   const [email, setEmail] = useState(invitation.email ?? "");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -34,11 +37,11 @@ export default function AcceptInviteForm({
     e.preventDefault();
     setError(null);
 
-    if (password.length < 8) {
+    if (mode === "signup" && password.length < 8) {
       setError("Password must be at least 8 characters.");
       return;
     }
-    if (password !== confirmPassword) {
+    if (mode === "signup" && password !== confirmPassword) {
       setError("Passwords don't match.");
       return;
     }
@@ -50,23 +53,42 @@ export default function AcceptInviteForm({
     setSubmitting(true);
     const supabase = createClient();
 
-    // Sign up the user
-    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-      email: email.trim().toLowerCase(),
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
+    if (mode === "signin") {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password,
+      });
 
-    if (signUpError) {
-      setError(signUpError.message);
-      setSubmitting(false);
-      return;
+      if (signInError) {
+        setError("Invalid login credentials.");
+        setSubmitting(false);
+        return;
+      }
+    } else {
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: email.trim().toLowerCase(),
+        password,
+        options: {
+          emailRedirectTo: buildBrowserAppUrl(`/auth/callback?next=/accept-invite?token=${encodeURIComponent(token)}`),
+        },
+      });
+
+      if (signUpError) {
+        setError(mapAuthErrorMessage(signUpError.message));
+        setSubmitting(false);
+        return;
+      }
+
+      if (!signUpData.user) {
+        setError("Could not create account. Try again.");
+        setSubmitting(false);
+        return;
+      }
     }
 
-    if (!signUpData.user) {
-      setError("Could not create account. Try again.");
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      setError("Check your email to confirm your account, then sign in to finish accepting this invitation.");
       setSubmitting(false);
       return;
     }
@@ -84,7 +106,7 @@ export default function AcceptInviteForm({
     if (acceptError || accepted === false) {
       setError(
         acceptError?.message ??
-          "Could not finalize this invitation. Contact your admin."
+          "Could not finalize this invitation. Sign in and try the invite link again."
       );
       setSubmitting(false);
       return;
@@ -134,6 +156,32 @@ export default function AcceptInviteForm({
           className="bg-white/95 backdrop-blur rounded-3xl shadow-soft p-6 grain-overlay"
         >
           <div className="space-y-4 relative">
+            <div className="grid grid-cols-2 gap-2 rounded-2xl bg-cream-100 p-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("signup");
+                  setError(null);
+                }}
+                className={`rounded-xl px-3 py-2 text-sm font-medium transition ${
+                  mode === "signup" ? "bg-white text-ink-900 shadow-sm" : "text-ink-500"
+                }`}
+              >
+                Create account
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("signin");
+                  setError(null);
+                }}
+                className={`rounded-xl px-3 py-2 text-sm font-medium transition ${
+                  mode === "signin" ? "bg-white text-ink-900 shadow-sm" : "text-ink-500"
+                }`}
+              >
+                Sign in
+              </button>
+            </div>
             <div>
               <p className="text-xs font-medium text-ink-700 mb-1.5 tracking-wide uppercase">
                 Email
@@ -172,14 +220,16 @@ export default function AcceptInviteForm({
               autoComplete="new-password"
               required
             />
-            <Field
-              label="Confirm password"
-              type="password"
-              value={confirmPassword}
-              onChange={setConfirmPassword}
-              autoComplete="new-password"
-              required
-            />
+            {mode === "signup" && (
+              <Field
+                label="Confirm password"
+                type="password"
+                value={confirmPassword}
+                onChange={setConfirmPassword}
+                autoComplete="new-password"
+                required
+              />
+            )}
 
             {error && (
               <div className="text-sm text-terracotta-600 bg-terracotta-400/10 border border-terracotta-400/20 px-3 py-2.5 rounded-xl">
@@ -192,7 +242,11 @@ export default function AcceptInviteForm({
               disabled={submitting}
               className="w-full bg-forest-600 hover:bg-forest-700 text-cream-50 py-3 rounded-2xl font-medium tracking-wide transition disabled:opacity-60 shadow-soft active:scale-[0.99]"
             >
-              {submitting ? "Setting up..." : "Create my account"}
+              {submitting
+                ? "Setting up..."
+                : mode === "signin"
+                  ? "Sign in and accept"
+                  : "Create my account"}
             </button>
           </div>
         </form>

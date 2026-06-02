@@ -5,11 +5,15 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import UserAvatar from "@/components/user-avatar";
+import { formatCurrency } from "@/lib/pay";
+import TeamAvatarUploader from "./team-avatar-uploader";
 
 type Person = {
   id: string;
   full_name: string;
   email: string;
+  username: string | null;
+  has_real_email: boolean | null;
   phone: string | null;
   role: "admin" | "client" | "caregiver" | "family";
   is_active: boolean;
@@ -60,7 +64,9 @@ export default function TeamMemberDetail({
   const [newPassword, setNewPassword] = useState("");
   const [resettingPassword, setResettingPassword] = useState(false);
   const [passwordUpdated, setPasswordUpdated] = useState(false);
-  const isNoEmailAccount = person.email.endsWith("@noemail.local");
+  const isNoEmailAccount =
+    person.has_real_email === false || person.email.endsWith("@noemail.local");
+  const loginName = isNoEmailAccount && person.username ? person.username : person.email;
 
   async function saveRate() {
     setError(null);
@@ -224,11 +230,14 @@ export default function TeamMemberDetail({
               {roleCopy[person.role]}
               {!person.is_active && " · Inactive"}
             </p>
+            {person.role === "caregiver" && (
+              <TeamAvatarUploader personId={person.id} personName={person.full_name} />
+            )}
           </div>
         </div>
 
         <dl className="divide-y divide-cream-200 text-sm">
-          <Row label="Email" value={person.email} />
+          <Row label={isNoEmailAccount ? "Username" : "Email"} value={loginName} />
           <Row label="Phone" value={person.phone || "Not set"} />
           {person.role === "caregiver" && (
             <Row
@@ -260,7 +269,7 @@ export default function TeamMemberDetail({
                 {currentRate ? (
                   <div>
                     <p className="font-display text-3xl text-ink-900">
-                      ${currentRate.base_hourly_rate.toFixed(2)}
+                      {formatCurrency(currentRate.base_hourly_rate)}
                       <span className="text-base text-ink-500 font-sans ml-1">
                         /hr
                       </span>
@@ -402,7 +411,7 @@ export default function TeamMemberDetail({
               <p className="text-xs uppercase tracking-wide font-medium text-ink-500 mb-1">
                 Username
               </p>
-              <p className="font-mono text-sm break-all">{person.email}</p>
+              <p className="font-mono text-sm break-all">{loginName}</p>
             </div>
 
             {!showResetCreds ? (
@@ -467,7 +476,7 @@ export default function TeamMemberDetail({
                   </button>
                   <a
                     href={`sms:?&body=${encodeURIComponent(
-                      `Carer Vista Pro new password\nUsername: ${person.email}\nPassword: ${newPassword}`
+                      `Carer Vista Pro new password\nUsername: ${loginName}\nPassword: ${newPassword}`
                     )}`}
                     className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition text-center ${
                       passwordUpdated

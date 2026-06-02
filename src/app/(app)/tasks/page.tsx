@@ -1,9 +1,11 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import TasksView from "./tasks-view";
 import { CheckSquareIcon } from "@/components/icons";
+import { getUserLanguage } from "@/lib/get-user-language";
 import { normalizeTaskCategories, type TaskCategoryOption } from "@/lib/task-categories";
+import { sortTasks } from "@/lib/task-scheduling";
 
 export default async function TasksPage({
   searchParams,
@@ -19,17 +21,12 @@ export default async function TasksPage({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, role")
+    .select("id, role, organization_id")
     .eq("id", user.id)
-    .single<{ id: string; role: "admin" | "client" | "caregiver" | "family" }>();
+    .single<{ id: string; role: "admin" | "client" | "caregiver" | "family"; organization_id: string }>();
 
   if (!profile) redirect("/login");
 
-  // Find the shift to focus on:
-  // 1. Explicit ?shift=ID
-  // 2. Currently checked in (caregiver)
-  // 3. Next assigned upcoming shift (caregiver)
-  // 4. Next any shift (admin/client)
   let shiftId: string | null = shiftParam ?? null;
 
   if (!shiftId) {
@@ -68,17 +65,29 @@ export default async function TasksPage({
     }
   }
 
-  // Top of page also shows the master templates link for admin/client
-  const canManageTemplates = profile.role !== "caregiver";
+  let canClientManage = false;
+  if (profile?.organization_id) {
+    const { data: org } = await supabase
+      .from("organizations")
+      .select("organization_mode, allow_client_admin_for_personal_use")
+      .eq("id", profile.organization_id)
+      .single();
+    if (org) {
+      const isPersonalFamily = org.organization_mode === "personal_family";
+      const isClientDirected = org.organization_mode === "client_directed_care";
+      canClientManage = (isPersonalFamily && org.allow_client_admin_for_personal_use) || isClientDirected;
+    }
+  }
+
+  const isAdmin = profile.role === "admin" || (profile.role === "client" && canClientManage);
+  const canManageTemplates = profile.role !== "caregiver" && (profile.role !== "client" || canClientManage);
 
   if (!shiftId) {
     return (
       <main className="px-5 py-6 max-w-2xl mx-auto">
         <header className="mb-6">
           <h1 className="font-display text-3xl text-ink-900">Tasks</h1>
-          <p className="text-ink-500 text-sm">
-            Per-shift to-do lists
-          </p>
+          <p className="text-ink-500 text-sm">Per-shift to-do lists</p>
         </header>
         <div className="bg-white rounded-3xl p-10 shadow-soft text-center grain-overlay mb-4">
           <div className="relative">
@@ -121,8 +130,15 @@ export default async function TasksPage({
       description: string | null;
       is_completed: boolean;
       completed_at: string | null;
+      is_optional: boolean;
+      is_prn: boolean;
+      importance: "low" | "medium" | "high" | "critical";
+      time_mode: "unscheduled" | "time_of_day" | "exact_time";
+      time_of_day: "morning" | "early_afternoon" | "late_afternoon" | "evening" | "bedtime" | null;
+      scheduled_time: string | null;
       sort_order: number;
       notes: string | null;
+      allow_repeat: boolean;
       category: import("@/lib/task-categories").TaskCategory | null;
     }> | null;
   };
@@ -144,8 +160,15 @@ export default async function TasksPage({
         description,
         is_completed,
         completed_at,
+        is_optional,
+        is_prn,
+        importance,
+        time_mode,
+        time_of_day,
+        scheduled_time,
         sort_order,
         notes,
+        allow_repeat,
         category
       )
     `
@@ -156,6 +179,7 @@ export default async function TasksPage({
   if (!shiftRaw) redirect("/schedule");
 
   const shift = shiftRaw as unknown as TasksShift;
+  const lang = await getUserLanguage();
   const { data: categoryRows } = await supabase
     .from("task_categories")
     .select("id, key, label, sort_order")
@@ -164,11 +188,7 @@ export default async function TasksPage({
     .order("sort_order", { ascending: true })
     .order("label", { ascending: true });
 
-  const todos = [...(shift.shift_todos ?? [])].sort((a, b) => {
-    if (a.is_completed !== b.is_completed) return a.is_completed ? 1 : -1;
-    return (a.sort_order ?? 0) - (b.sort_order ?? 0);
-  });
-
+  const todos = sortTasks(shift.shift_todos ?? []);
   const isAssignedCaregiver =
     profile.role === "caregiver" && profile.id === shift.caregiver_id;
   const checkIn =
@@ -194,10 +214,11 @@ export default async function TasksPage({
       <TasksView
         shiftId={shift.id}
         todos={todos}
-        canManageTasks={profile.role === "admin" || profile.role === "client"}
+        canManageTasks={isAdmin}
         canCompleteTasks={isAssignedCaregiver && isOnShift}
         currentUserId={profile.id}
         categories={normalizeTaskCategories(categoryRows as TaskCategoryOption[] | null)}
+        lang={lang}
       />
 
       {canManageTemplates && (

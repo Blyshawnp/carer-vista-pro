@@ -3,6 +3,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import TemplatesList from "./templates-list";
 import { normalizeTaskCategories, type TaskCategoryOption } from "@/lib/task-categories";
+import { getUserLanguage } from "@/lib/get-user-language";
 
 export default async function TemplatesPage() {
   const supabase = await createClient();
@@ -17,13 +18,31 @@ export default async function TemplatesPage() {
     .eq("id", user.id)
     .single<{ role: "admin" | "client" | "caregiver" | "family"; organization_id: string }>();
 
-  if (!profile || (profile.role === "caregiver" || profile.role === "family")) redirect("/tasks");
+  if (!profile) redirect("/tasks");
 
-  const [templatesRes, caregiversRes, categoriesRes] = await Promise.all([
+  let canClientManage = false;
+  if (profile.organization_id) {
+    const { data: org } = await supabase
+      .from("organizations")
+      .select("organization_mode, allow_client_admin_for_personal_use")
+      .eq("id", profile.organization_id)
+      .single();
+    if (org) {
+      const isPersonalFamily = org.organization_mode === "personal_family";
+      const isClientDirected = org.organization_mode === "client_directed_care";
+      canClientManage = (isPersonalFamily && org.allow_client_admin_for_personal_use) || isClientDirected;
+    }
+  }
+
+  const isAllowed = profile.role === "admin" || (profile.role === "client" && canClientManage);
+  if (!isAllowed) redirect("/tasks");
+  const lang = await getUserLanguage();
+
+  const [templatesRes, caregiversRes, categoriesRes, clientsRes] = await Promise.all([
     supabase
       .from("todo_templates")
       .select(
-        "id, task_name, description, default_for_new_shifts, sort_order, is_active, caregiver_id, category"
+        "id, task_name, description, default_for_new_shifts, sort_order, is_active, caregiver_id, category, is_optional, is_prn, importance, time_mode, time_of_day, scheduled_time, allow_repeat, default_days_of_week, auto_add_to_matching_shifts, auto_add_start_date, auto_add_end_date, applies_to_all_clients, client_id"
       )
       .eq("is_active", true)
       .order("sort_order", { ascending: true })
@@ -42,6 +61,11 @@ export default async function TemplatesPage() {
       .eq("is_active", true)
       .order("sort_order", { ascending: true })
       .order("label", { ascending: true }),
+    supabase
+      .from("clients")
+      .select("id, full_name")
+      .eq("organization_id", profile.organization_id)
+      .order("full_name"),
   ]);
 
   return (
@@ -63,10 +87,12 @@ export default async function TemplatesPage() {
       <TemplatesList
         templates={templatesRes.data ?? []}
         caregivers={caregiversRes.data ?? []}
+        clients={clientsRes.data ?? []}
         organizationId={profile.organization_id}
         categories={normalizeTaskCategories(
           (categoriesRes.data ?? []) as TaskCategoryOption[]
         )}
+        lang={lang}
       />
     </main>
   );

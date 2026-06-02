@@ -37,11 +37,33 @@ export default async function SchedulePage({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role, id")
+    .select("role, id, organization_id")
     .eq("id", user.id)
-    .single<{ role: "admin" | "client" | "caregiver" | "family"; id: string }>();
+    .single<{ role: "admin" | "client" | "caregiver" | "family"; id: string; organization_id: string | null }>();
 
-  if (profile?.role === "admin" || profile?.role === "client") {
+  let organizationMode = "personal_family";
+  let clientCanRequestShifts = true;
+  let canClientManage = true;
+
+  if (profile?.organization_id) {
+    const { data: org } = await supabase
+      .from("organizations")
+      .select("organization_mode, client_can_request_shifts, allow_client_admin_for_personal_use")
+      .eq("id", profile.organization_id)
+      .single();
+    if (org) {
+      organizationMode = org.organization_mode;
+      clientCanRequestShifts = org.client_can_request_shifts;
+      const isPersonalFamily = org.organization_mode === "personal_family";
+      const isClientDirected = org.organization_mode === "client_directed_care";
+      canClientManage = (isPersonalFamily && org.allow_client_admin_for_personal_use) || isClientDirected;
+    }
+  }
+
+  const canCreateShifts = profile?.role === "admin" || (profile?.role === "client" && canClientManage);
+  const canRequestShifts = (profile?.role === "client" || profile?.role === "family") && clientCanRequestShifts;
+
+  if (canCreateShifts) {
     try {
       await supabase.rpc("generate_recurring_shifts");
     } catch {
@@ -153,6 +175,9 @@ export default async function SchedulePage({
       role={viewerRole}
       archiveMode={archiveMode}
       assignedClientCount={assignedClientCount}
+      canCreateShifts={canCreateShifts}
+      canRequestShifts={canRequestShifts}
+      organizationMode={organizationMode}
     />
   );
 }

@@ -49,12 +49,23 @@ type SafetyItem = {
   notes: string | null;
 };
 
+type EmergencyPet = {
+  name: string;
+  pet_type: string;
+  emergency_notes: string | null;
+  vet_name: string | null;
+  vet_phone: string | null;
+  emergency_vet_phone: string | null;
+};
+
 type EmergencyPanelProps = {
   info: EmergencyInfo;
   contacts: EmergencyContact[];
   medications: Medication[];
   allergies: Allergy[];
   safetyItems: SafetyItem[];
+  pets?: EmergencyPet[];
+  medicationDetailsHidden?: boolean;
 };
 
 export default function EmergencyPanel({
@@ -63,6 +74,8 @@ export default function EmergencyPanel({
   medications,
   allergies,
   safetyItems,
+  pets = [],
+  medicationDetailsHidden = false,
 }: EmergencyPanelProps) {
   const [emergencyIconFailed, setEmergencyIconFailed] = useState(false);
 
@@ -179,7 +192,9 @@ export default function EmergencyPanel({
           </InfoSection>
 
           <InfoSection title="Medications">
-            {medications.length > 0 ? (
+            {medicationDetailsHidden ? (
+              <EmptyText>Medication details are hidden by the client/admin.</EmptyText>
+            ) : medications.length > 0 ? (
               <ul className="space-y-2">
                 {medications.map((medication) => (
                   <li
@@ -205,7 +220,7 @@ export default function EmergencyPanel({
                 ))}
               </ul>
             ) : (
-              <EmptyText>No medications recorded.</EmptyText>
+              <EmptyText>No medications listed.</EmptyText>
             )}
           </InfoSection>
         </div>
@@ -229,6 +244,55 @@ export default function EmergencyPanel({
             <EmptyText>No safety items recorded.</EmptyText>
           )}
         </InfoSection>
+
+        {pets.length > 0 && (
+          <InfoSection title="Pets in the home">
+            <ul className="space-y-2">
+              {pets.map((pet, i) => (
+                <li key={i} className="rounded-2xl bg-cream-50 p-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-medium text-ink-900">
+                      {pet.name}
+                      <span className="ml-1.5 text-xs text-ink-500 font-normal">
+                        {pet.pet_type}
+                      </span>
+                    </p>
+                  </div>
+                  {pet.emergency_notes && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {pet.emergency_notes}
+                    </p>
+                  )}
+                  {pet.vet_name && (
+                    <p className="mt-1 text-xs text-ink-500">
+                      Vet: {pet.vet_name}
+                    </p>
+                  )}
+                  {(pet.vet_phone || pet.emergency_vet_phone) && (
+                    <div className="flex gap-3 mt-1 text-xs">
+                      {pet.vet_phone && (
+                        <a
+                          href={`tel:${pet.vet_phone}`}
+                          className="text-forest-600 hover:underline"
+                        >
+                          Vet: {pet.vet_phone}
+                        </a>
+                      )}
+                      {pet.emergency_vet_phone && (
+                        <a
+                          href={`tel:${pet.emergency_vet_phone}`}
+                          className="text-red-600 hover:underline"
+                        >
+                          Emergency vet: {pet.emergency_vet_phone}
+                        </a>
+                      )}
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </InfoSection>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <InfoCard title="Primary physician">

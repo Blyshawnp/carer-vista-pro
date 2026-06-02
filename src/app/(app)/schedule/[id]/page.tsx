@@ -1,15 +1,20 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import {
   ClockIcon,
   MapPinIcon,
   ArrowRightIcon,
-  StarOfLifeIcon,
 } from "@/components/icons";
 import DeleteShiftButton from "./delete-shift-button";
+import RequestRemovalButton from "./request-removal-button";
+import AdminRemovalReview from "./admin-removal-review";
+import RequestCorrectionButton from "./request-correction-button";
+import AdminCorrectionReview from "./admin-correction-review";
 import AcceptDeclineButtons from "./accept-decline-buttons";
 import LiveOnShiftCard from "./live-on-shift-card";
+import TopShiftActionArea from "./top-shift-action-area";
 import ForceCheckOutButton from "./force-check-out-button";
 import AdminTimeAdjuster from "./admin-time-adjuster";
 import ReleaseShiftButton from "./release-shift-button";
@@ -18,16 +23,19 @@ import CancelReleaseButton from "./cancel-release-button";
 import PayOverrideButton from "./pay-override-button";
 import HandoffNote from "./handoff-note";
 import ShiftViewMarker from "./shift-view-marker";
+import BreakAdjuster from "./break-adjuster";
 import MedicationReminderPanel, {
   type ShiftMedication,
   type ShiftMedicationReminder,
 } from "./medication-reminder-panel";
 import TasksView from "@/app/(app)/tasks/tasks-view";
 import { getUserLanguage } from "@/lib/get-user-language";
+import { formatStructuredAddress, normalizeCountry } from "@/lib/address";
 import { t as tr } from "@/lib/i18n";
 import {
   computeShiftPay,
   roundUpToQuarter,
+  formatCurrency,
 } from "@/lib/pay";
 import {
   formatTimeInTz,
@@ -74,6 +82,14 @@ type ShiftDetail = {
   clients: {
     full_name: string;
     address: string | null;
+    formatted_address: string | null;
+    street_address_1: string | null;
+    street_address_2: string | null;
+    city: string | null;
+    state: string | null;
+    state_or_region: string | null;
+    postal_code: string | null;
+    country: string | null;
     home_notes: string | null;
   } | null;
   shift_types: { name: string; color: string } | null;
@@ -87,8 +103,16 @@ type ShiftDetail = {
     description: string | null;
     is_completed: boolean;
     completed_at: string | null;
+    is_optional: boolean;
+    is_prn: boolean;
+    importance: "low" | "medium" | "high" | "critical";
+    time_mode: "unscheduled" | "time_of_day" | "exact_time";
+    time_of_day: "morning" | "early_afternoon" | "late_afternoon" | "evening" | "bedtime" | null;
+    scheduled_time: string | null;
     sort_order: number;
     notes: string | null;
+    allow_repeat: boolean;
+    status: string | null;
     category: import("@/lib/task-categories").TaskCategory | null;
   }> | null;
 };
@@ -114,6 +138,16 @@ type ShiftEventRow = {
   metadata: Record<string, unknown> | null;
 };
 
+type ShiftPetSummary = {
+  id: string;
+  name: string;
+  pet_type: string;
+  medication_instructions: string | null;
+  behavior_notes: string | null;
+  emergency_notes: string | null;
+  show_to_caregivers: boolean;
+};
+
 export default async function ShiftDetailPage({
   params,
 }: {
@@ -128,9 +162,9 @@ export default async function ShiftDetailPage({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role, id")
+    .select("role, id, organization_id")
     .eq("id", user.id)
-    .single<{ role: Role; id: string }>();
+    .single<{ role: Role; id: string; organization_id: string | null }>();
 
   const { data: shiftRaw, error: shiftError } = await supabase
     .from("shifts")
@@ -158,10 +192,10 @@ export default async function ShiftDetailPage({
       client_id,
       shift_type_id,
       profiles:caregiver_id ( id, full_name, avatar_url, avatar_color ),
-      clients ( full_name, address, home_notes ),
+      clients ( full_name, address, formatted_address, street_address_1, street_address_2, city, state, state_or_region, postal_code, country, home_notes ),
       shift_types ( name, color ),
       check_ins ( id, check_in_time, check_out_time, check_out_method, check_out_by, check_out_reason, total_minutes, flagged_outside_geofence, flag_reason ),
-      shift_todos ( id, task_name, description, is_completed, completed_at, sort_order, notes, category )
+      shift_todos ( id, task_name, description, is_completed, completed_at, is_optional, is_prn, importance, time_mode, time_of_day, scheduled_time, sort_order, notes, allow_repeat, status, category )
     `
     )
     .eq("id", id)
@@ -214,18 +248,74 @@ export default async function ShiftDetailPage({
     hourlyRate = rate?.base_hourly_rate ?? null;
   }
 
+  // Load organization settings
+  let enableBreakTracking = true;
+  let requireLunchCheckInOut = true;
+  let requireBreakCheckInOut = false;
+  let enablePayDeductions = false;
+  let deductionLabel = null;
+  let deductionType = null;
+  let deductionAmount = null;
+  let deductionAppliesTo = null;
+  let deductionActive = false;
+
+  if (shift.organization_id) {
+    const { data: org } = await supabase
+      .from("organizations")
+      .select("enable_break_tracking, require_lunch_check_in_out, require_break_check_in_out, enable_pay_deductions, deduction_label, deduction_type, deduction_amount, deduction_applies_to, deduction_active")
+      .eq("id", shift.organization_id)
+      .single();
+    if (org) {
+      enableBreakTracking = org.enable_break_tracking !== false;
+      requireLunchCheckInOut = org.require_lunch_check_in_out;
+      requireBreakCheckInOut = org.require_break_check_in_out;
+      enablePayDeductions = org.enable_pay_deductions;
+      deductionLabel = org.deduction_label;
+      deductionType = org.deduction_type;
+      deductionAmount = org.deduction_amount;
+      deductionAppliesTo = org.deduction_applies_to;
+      deductionActive = org.deduction_active;
+    }
+  }
+
+  // Fetch breaks for this shift
+  const { data: breaks } = await supabase
+    .from("shift_breaks")
+    .select("*")
+    .eq("shift_id", id);
+
+  const unpaidBreakMinutes = (breaks ?? [])
+    .filter((b) => !b.is_paid)
+    .reduce((sum, b) => {
+      if (b.duration_minutes != null) {
+        return sum + b.duration_minutes;
+      }
+      if (b.start_time && b.end_time) {
+        const diffMs = new Date(b.end_time).getTime() - new Date(b.start_time).getTime();
+        return sum + Math.max(0, Math.round(diffMs / 60000));
+      }
+      return sum;
+    }, 0);
+
   // Check holiday multiplier
-  const shiftDate = shift.scheduled_start.split("T")[0];
-  const { data: holiday } = await supabase
+  const { data: activeHolidays } = await supabase
     .from("holidays")
-    .select("pay_multiplier")
-    .eq("holiday_date", shiftDate)
-    .or(
-      `organization_id.eq.${shift.organization_id},organization_id.is.null`
-    )
-    .order("organization_id", { nullsFirst: false })
-    .limit(1)
-    .maybeSingle<{ pay_multiplier: number }>();
+    .select("holiday_name, holiday_date, applies_every_year, is_active, pay_multiplier, flat_caregiver_bonus, bonus_applied_mode")
+    .eq("is_active", true)
+    .or(`organization_id.eq.${shift.organization_id},organization_id.is.null`)
+    .order("organization_id", { nullsFirst: false });
+
+  const shiftDateStr = shift.scheduled_start.split("T")[0];
+  const sDateObj = new Date(shift.scheduled_start);
+  const shiftMonthDay = `${String(sDateObj.getMonth() + 1).padStart(2, '0')}-${String(sDateObj.getDate()).padStart(2, '0')}`;
+
+  const matchingHoliday = activeHolidays?.find((h) => {
+    if (h.applies_every_year) {
+      const holidayMD = h.holiday_date.split("-").slice(1).join("-");
+      return holidayMD === shiftMonthDay;
+    }
+    return h.holiday_date === shiftDateStr;
+  }) ?? null;
 
   // Compute current pay for this shift
   const normalizedCheckIns = normalizeRows(shift.check_ins);
@@ -233,7 +323,8 @@ export default async function ShiftDetailPage({
     normalizedCheckIns.find((row) => row.check_in_time && !row.check_out_time) ??
     normalizedCheckIns[0] ??
     null;
-  const totalMinutes =
+
+  const rawTotalMinutes =
     checkIn0?.check_in_time && checkIn0?.check_out_time
       ? Math.round(
           (new Date(checkIn0.check_out_time).getTime() -
@@ -241,14 +332,21 @@ export default async function ShiftDetailPage({
             60000
         )
       : null;
+
+  const totalMinutes = rawTotalMinutes != null
+    ? Math.max(0, rawTotalMinutes - (enableBreakTracking ? unpaidBreakMinutes : 0))
+    : null;
+
   const computedPay = computeShiftPay({
     totalMinutes,
     hourlyRate,
     bonusAmount: shift.bonus_amount,
-    holidayMultiplier: holiday?.pay_multiplier ?? null,
+    holidayMultiplier: matchingHoliday?.pay_multiplier ? Number(matchingHoliday.pay_multiplier) : null,
     overrideAmount: shift.pay_override_amount,
     overrideHours: shift.pay_override_hours,
     overrideRate: shift.pay_override_rate,
+    flatCaregiverBonus: matchingHoliday?.flat_caregiver_bonus ? Number(matchingHoliday.flat_caregiver_bonus) : null,
+    bonusAppliedMode: matchingHoliday?.bonus_applied_mode ?? null,
   });
 
   // Is this shift in a locked period?
@@ -311,7 +409,45 @@ export default async function ShiftDetailPage({
     }
   }
 
-  const canEdit = profile?.role === "admin" || profile?.role === "client";
+  let canClientManage = false;
+  let organizationMode = "personal_family";
+  if (profile?.organization_id) {
+    const { data: org } = await supabase
+      .from("organizations")
+      .select("organization_mode, allow_client_admin_for_personal_use")
+      .eq("id", profile.organization_id)
+      .single();
+    if (org) {
+      organizationMode = org.organization_mode;
+      const isPersonalFamily = org.organization_mode === "personal_family";
+      const isClientDirected = org.organization_mode === "client_directed_care";
+      canClientManage = (isPersonalFamily && org.allow_client_admin_for_personal_use) || isClientDirected;
+    }
+  }
+
+  // Check if a request already exists
+  let existingRemovalRequest = null;
+  if (profile?.role === "client" || profile?.role === "admin") {
+    const { data: req } = await supabase
+      .from("shift_removal_requests")
+      .select("*")
+      .eq("shift_id", id)
+      .maybeSingle();
+    existingRemovalRequest = req;
+  }
+
+  // Check if a time correction request already exists
+  let existingCorrectionRequest = null;
+  if (profile?.role === "caregiver" || profile?.role === "admin") {
+    const { data: corrReq } = await supabase
+      .from("shift_time_change_requests")
+      .select("*")
+      .eq("shift_id", id)
+      .maybeSingle();
+    existingCorrectionRequest = corrReq;
+  }
+
+  const canEdit = profile?.role === "admin" || (profile?.role === "client" && canClientManage);
   const isAssignedCaregiver =
     profile?.role === "caregiver" && profile.id === shift.caregiver_id;
   const isCaregiver = profile?.role === "caregiver";
@@ -365,7 +501,8 @@ export default async function ShiftDetailPage({
     }));
   }
 
-  const todosDone = todos.filter((t) => t.is_completed).length;
+  const requiredTodos = todos.filter((t) => !t.is_optional && !t.is_prn);
+  const todosDone = requiredTodos.filter((t) => t.is_completed).length;
   const shiftStatus = getShiftStatus(
     {
       scheduled_start: shift.scheduled_start,
@@ -401,6 +538,28 @@ export default async function ShiftDetailPage({
     !checkIn?.check_in_time &&
     !isReleased &&
     !shiftStatus.isExpired;
+  let visiblePets: ShiftPetSummary[] = [];
+  if (shift.client_id && canShowClientDetails) {
+    let petsQuery = supabase
+      .from("client_pets")
+      .select("id, name, pet_type, medication_instructions, behavior_notes, emergency_notes, show_to_caregivers")
+      .eq("client_id", shift.client_id)
+      .order("created_at", { ascending: true });
+    if (isCaregiver) {
+      petsQuery = petsQuery.eq("show_to_caregivers", true);
+    }
+    const { data } = await petsQuery;
+    visiblePets = (data ?? []) as ShiftPetSummary[];
+  }
+  const visiblePetCount = visiblePets.length;
+  const petTypeSummary = formatPetTypeSummary(visiblePets);
+  const petCautions = visiblePets
+    .filter((pet) => pet.medication_instructions || pet.behavior_notes || pet.emergency_notes)
+    .slice(0, 3);
+  const shouldShowPetOfferSummary =
+    !!shift.client_id &&
+    canShowClientDetails &&
+    (isAssignedCaregiver || visiblePetCount > 0);
 
   return (
     <main className="px-5 py-6 max-w-2xl mx-auto">
@@ -412,6 +571,54 @@ export default async function ShiftDetailPage({
         ← Back to schedule
       </Link>
 
+      <TopShiftActionArea
+        shiftId={id}
+        clientName={canShowClientDetails ? shift.clients?.full_name ?? "General availability" : "Client scheduled"}
+        shiftDateTime={`${formatDateInTz(start)} · ${formatTimeInTz(start)} – ${formatTimeInTz(end)}`}
+        shiftStatusLabel={
+          shiftStatus.kind === "active_checked_in"
+            ? "Active"
+            : shiftStatus.kind === "completed"
+              ? "Completed"
+              : shiftStatus.kind === "past_unchecked"
+                ? "Missed"
+                : shiftStatus.kind === "open_expired"
+                  ? "Expired"
+                  : shiftStatus.kind === "ready_to_check_in"
+                    ? "Ready"
+                    : shiftStatus.kind === "upcoming"
+                      ? "Upcoming"
+                      : "Scheduled"
+        }
+        shiftStatusTone={
+          shiftStatus.kind === "active_checked_in" || shiftStatus.kind === "completed" || shiftStatus.kind === "ready_to_check_in"
+            ? "forest"
+            : shift.assignment_status === "pending"
+              ? "terracotta"
+              : "muted"
+        }
+        role={profile?.role ?? "caregiver"}
+        isAssignedCaregiver={isAssignedCaregiver}
+        canCheckIn={!!shiftStatus.canCheckIn}
+        canCheckOut={shiftStatus.kind === "active_checked_in"}
+        canClaim={!!canClaim}
+        iReleasedThis={!!iReleasedThis}
+        assignmentStatus={shift.assignment_status}
+        isReleased={isReleased}
+        computedPayAmount={computedPay.amount}
+        isPayOverridden={computedPay.isOverridden}
+        hourlyRate={hourlyRate}
+        caregiverId={profile?.id ?? ""}
+        showPay={isAssignedCaregiver || profile?.role === "admin"}
+        enableBreakTracking={enableBreakTracking}
+        holidayName={matchingHoliday?.holiday_name ?? null}
+        holidayMultiplier={matchingHoliday?.pay_multiplier ? Number(matchingHoliday.pay_multiplier) : null}
+        holidayBonus={matchingHoliday?.flat_caregiver_bonus ? Number(matchingHoliday.flat_caregiver_bonus) : null}
+        deductionLabel={enablePayDeductions && deductionActive && deductionAppliesTo === "caregiver_pay_summary" ? deductionLabel : null}
+        deductionAmount={enablePayDeductions && deductionActive && deductionAppliesTo === "caregiver_pay_summary" && deductionAmount != null ? Number(deductionAmount) : null}
+        deductionType={enablePayDeductions && deductionActive && deductionAppliesTo === "caregiver_pay_summary" ? deductionType : null}
+      />
+
       {/* Header */}
       <header className="mb-5">
         <div className="flex items-center gap-2 mb-2">
@@ -421,13 +628,13 @@ export default async function ShiftDetailPage({
               backgroundColor: shift.shift_types?.color ?? "#0D6587",
             }}
           />
-          <p className="text-xs uppercase tracking-[0.18em] text-ink-500">
-            {shift.shift_types?.name ?? "Shift"}
+          <p className="text-xs uppercase tracking-normal text-ink-500">
+            {formatShiftTypeName(shift.shift_types?.name)} · #{id.slice(0, 8).toUpperCase()}
           </p>
         </div>
-        <h1 className="font-display text-3xl text-ink-900 leading-tight">
+        <p className="font-sans text-3xl font-semibold tracking-normal leading-tight text-ink-900">
           {formatDateInTz(start)}
-        </h1>
+        </p>
         <p className="text-ink-500 text-sm">
           {formatTimeInTz(start)} – {formatTimeInTz(end)}
         </p>
@@ -441,7 +648,7 @@ export default async function ShiftDetailPage({
             className="absolute -top-12 -right-10 w-32 h-32 rounded-full bg-cream-50/10 blur-2xl"
           />
           <div className="relative">
-            <p className="text-[10px] uppercase tracking-[0.18em] text-cream-50/70 mb-0.5">
+            <p className="text-[10px] uppercase tracking-wider text-cream-50/70 mb-0.5">
               Available
             </p>
             <p className="font-display text-xl leading-tight mb-0.5">
@@ -496,7 +703,7 @@ export default async function ShiftDetailPage({
 
       {isOpenShift && (
         <div className="bg-forest-100 border border-forest-200 rounded-2xl px-4 py-3 mt-3">
-          <p className="text-[10px] uppercase tracking-[0.18em] text-forest-700 font-medium mb-0.5">
+          <p className="text-[10px] uppercase tracking-wider text-forest-700 font-medium mb-0.5">
             Open shift
           </p>
           <p className="text-sm text-ink-900">
@@ -510,7 +717,7 @@ export default async function ShiftDetailPage({
       {/* Flagged-check-in/out reason banner */}
       {checkIn?.flagged_outside_geofence && checkIn?.flag_reason && (
         <div className="bg-terracotta-400/10 border border-terracotta-400/30 rounded-2xl px-4 py-3 mt-3">
-          <p className="text-[10px] uppercase tracking-[0.18em] text-terracotta-600 font-medium mb-0.5">
+          <p className="text-[10px] uppercase tracking-wider text-terracotta-600 font-medium mb-0.5">
             Flagged
           </p>
           <p className="text-sm text-ink-900">{checkIn.flag_reason}</p>
@@ -519,7 +726,7 @@ export default async function ShiftDetailPage({
 
       {checkIn?.check_out_method === "auto_geofence_after_checkout_reminder" && (
         <div className="bg-forest-100 border border-forest-200 rounded-2xl px-4 py-3 mt-3">
-          <p className="text-[10px] uppercase tracking-[0.18em] text-forest-700 font-medium mb-0.5">
+          <p className="text-[10px] uppercase tracking-wider text-forest-700 font-medium mb-0.5">
             Auto checkout
           </p>
           <p className="text-sm text-ink-900">
@@ -529,6 +736,53 @@ export default async function ShiftDetailPage({
             <p className="text-xs text-ink-500 mt-1">{checkIn.check_out_reason}</p>
           )}
         </div>
+      )}
+
+      {shouldShowPetOfferSummary && (
+        <section className="bg-white border border-cream-200 rounded-2xl shadow-soft p-4 mt-3">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-ink-500 font-medium">
+                Pets in home
+              </p>
+              <p className="text-sm font-semibold text-ink-900">
+                {visiblePetCount > 0 ? `Yes · ${visiblePetCount}` : "No"}
+              </p>
+              {visiblePetCount > 0 && (
+                <p className="text-xs text-ink-500 mt-0.5">{petTypeSummary}</p>
+              )}
+            </div>
+            {visiblePetCount > 0 && shift.client_id && (
+              <Link
+                href={`/clients/${shift.client_id}/home-info?tab=pets`}
+                className="shrink-0 text-sm text-forest-600 font-medium hover:underline"
+              >
+                View pets
+              </Link>
+            )}
+          </div>
+          {visiblePetCount > 0 && (
+            <>
+              <p className="text-xs text-terracotta-600 mt-3">
+                This client has pets listed. Review pet details before accepting if you have allergies or safety concerns.
+              </p>
+              {petCautions.length > 0 && (
+                <div className="mt-3 space-y-1">
+                  {petCautions.map((pet) => (
+                    <p key={pet.id} className="text-xs text-ink-600">
+                      <span className="font-medium">{pet.name}:</span>{" "}
+                      {[
+                        pet.medication_instructions ? "needs medication" : null,
+                        pet.emergency_notes ? "emergency notes" : null,
+                        pet.behavior_notes ? "behavior caution" : null,
+                      ].filter(Boolean).join(", ")}
+                    </p>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </section>
       )}
 
       {/* Details */}
@@ -557,15 +811,15 @@ export default async function ShiftDetailPage({
               <span className="text-sm text-ink-900 text-right">Unassigned</span>
             )}
           </div>
-          {canShowClientDetails && shift.clients?.address && (
+          {canShowClientDetails && shift.clients && displayAddress(shift.clients) && (
             <DetailIcon Icon={MapPinIcon} label="Location">
-              {shift.clients.address}
+              {displayAddress(shift.clients)}
             </DetailIcon>
           )}
           {shift.bonus_amount != null && shift.bonus_amount > 0 && (
             <Detail
               label="Bonus"
-              value={`$${Number(shift.bonus_amount).toFixed(2)}${
+              value={`${formatCurrency(shift.bonus_amount)}${
                 shift.bonus_reason ? ` · ${shift.bonus_reason}` : ""
               }`}
             />
@@ -573,7 +827,7 @@ export default async function ShiftDetailPage({
           {canEdit && shift.caregiver_id && checkIn?.check_out_time && (
             <Detail
               label="Pay"
-              value={`$${roundUpToQuarter(computedPay.amount).toFixed(2)}${
+              value={`${formatCurrency(roundUpToQuarter(computedPay.amount))}${
                 computedPay.isOverridden ? " (adjusted)" : ""
               }`}
             />
@@ -597,8 +851,14 @@ export default async function ShiftDetailPage({
           className="flex items-center justify-between bg-white hover:bg-red-50 px-5 py-4 rounded-2xl shadow-soft transition"
         >
           <span className="flex items-center gap-3">
-            <span className="w-10 h-10 rounded-xl bg-red-600 text-cream-50 grid place-items-center shrink-0">
-              <StarOfLifeIcon size={20} />
+            <span className="w-10 h-10 grid place-items-center shrink-0">
+              <Image
+                src="/icons/emergency.png"
+                alt=""
+                width={36}
+                height={36}
+                className="object-contain"
+              />
             </span>
             <span>
               <span className="block font-medium text-ink-900">
@@ -623,6 +883,23 @@ export default async function ShiftDetailPage({
               </span>
               <span className="block text-xs text-ink-500">
                 Wi-Fi and house notes
+              </span>
+            </span>
+            <ArrowRightIcon size={16} className="text-ink-300" />
+          </Link>
+        )}
+
+        {shift.client_id && visiblePetCount > 0 && canShowClientDetails && (
+          <Link
+            href={`/clients/${shift.client_id}/home-info?tab=pets`}
+            className="flex items-center justify-between bg-white hover:bg-cream-50 px-5 py-4 rounded-2xl shadow-soft transition"
+          >
+            <span>
+              <span className="block font-medium text-ink-900">
+                Pets ({visiblePetCount})
+              </span>
+              <span className="block text-xs text-ink-500">
+                Photos, feeding, medication, behavior, and emergency notes
               </span>
             </span>
             <ArrowRightIcon size={16} className="text-ink-300" />
@@ -655,6 +932,46 @@ export default async function ShiftDetailPage({
           medications={medications}
           canMark={canEdit || isAssignedCaregiver}
         />
+      )}
+
+      {/* Break & Lunch log list for shifts */}
+      {enableBreakTracking && (breaks ?? []).length > 0 && (
+        <section className="bg-white rounded-3xl shadow-soft p-5 mt-4">
+          <h2 className="font-display text-xl text-ink-900 mb-3">Break & lunch log</h2>
+          <div className="space-y-3">
+            {(breaks ?? []).map((b) => (
+              <div key={b.id} className="border-l-2 border-amber-300 pl-3 py-1">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <span className="text-sm font-semibold capitalize text-ink-900">
+                      {b.break_type === "lunch" ? "Lunch" : "Rest Break"}
+                    </span>
+                    <span className={`ml-2 text-[10px] uppercase px-1.5 py-0.5 rounded font-bold ${
+                      b.is_paid ? "bg-forest-100 text-forest-700" : "bg-cream-200 text-ink-600"
+                    }`}>
+                      {b.is_paid ? "Paid" : "Unpaid"}
+                    </span>
+                  </div>
+                  {b.duration_minutes != null && (
+                    <span className="text-xs font-mono text-ink-600 bg-cream-100 px-2 py-0.5 rounded-lg">
+                      {b.duration_minutes} mins
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs text-ink-500 mt-1">
+                  {new Date(b.start_time).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}
+                  {b.end_time ? ` – ${new Date(b.end_time).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}` : " (In progress)"}
+                </p>
+                {b.note && <p className="text-xs text-ink-600 mt-1 italic">Note: {b.note}</p>}
+                
+                {/* Admin adjustment options */}
+                {profile?.role === "admin" && (
+                  <BreakAdjuster breakItem={b} shiftId={id} />
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
       )}
 
       {/* Read receipt indicator for admin/client/family */}
@@ -717,10 +1034,11 @@ export default async function ShiftDetailPage({
           shiftId={id}
           todos={todos}
           canManageTasks={canEdit}
-          canCompleteTasks={canCompleteTasks}
-          currentUserId={profile?.id ?? user.id}
-          categories={normalizeTaskCategories(categoryRows as TaskCategoryOption[] | null)}
-        />
+        canCompleteTasks={canCompleteTasks}
+        currentUserId={profile?.id ?? user.id}
+        categories={normalizeTaskCategories(categoryRows as TaskCategoryOption[] | null)}
+        lang={lang}
+      />
       </section>
 
       {/* Actions */}
@@ -821,6 +1139,7 @@ export default async function ShiftDetailPage({
         {canEdit && shift.caregiver_id && (
           <PayOverrideButton
             shiftId={id}
+            currentUserId={profile.id}
             currentOverrideAmount={shift.pay_override_amount}
             currentOverrideHours={shift.pay_override_hours}
             currentOverrideRate={shift.pay_override_rate}
@@ -842,6 +1161,39 @@ export default async function ShiftDetailPage({
             </Link>
             <DeleteShiftButton shiftId={id} />
           </>
+        )}
+        {organizationMode === "agency_company" && profile?.role === "client" && shift.client_id && (
+          <RequestRemovalButton
+            shiftId={id}
+            clientId={shift.client_id}
+            organizationId={shift.organization_id}
+            requestedBy={profile.id}
+            existingRequest={existingRemovalRequest}
+          />
+        )}
+        {profile?.role === "admin" && existingRemovalRequest && (
+          <AdminRemovalReview
+            request={existingRemovalRequest}
+            shiftId={id}
+            actorId={profile.id}
+          />
+        )}
+        {isAssignedCaregiver && (
+          <RequestCorrectionButton
+            shiftId={id}
+            scheduledStart={shift.scheduled_start}
+            scheduledEnd={shift.scheduled_end}
+            existingCheckIn={checkIn?.check_in_time}
+            existingCheckOut={checkIn?.check_out_time}
+            existingRequest={existingCorrectionRequest}
+          />
+        )}
+        {profile?.role === "admin" && existingCorrectionRequest && (
+          <AdminCorrectionReview
+            request={existingCorrectionRequest}
+            shiftId={id}
+            actorId={profile.id}
+          />
         )}
       </div>
     </main>
@@ -870,7 +1222,7 @@ function StatusBanner({
       />
       <div>
         <p
-          className={`text-[10px] uppercase tracking-[0.18em] ${
+          className={`text-[10px] uppercase tracking-wider ${
             tone === "muted" ? "text-ink-500" : "text-cream-50/70"
           }`}
         >
@@ -982,4 +1334,48 @@ function formatEventMetadata(metadata: Record<string, unknown> | null) {
 function normalizeRows<T>(value: T[] | T | null | undefined): T[] {
   if (Array.isArray(value)) return value;
   return value ? [value] : [];
+}
+
+function formatPetTypeSummary(pets: ShiftPetSummary[]) {
+  if (pets.length === 0) return "No pets listed";
+  const counts = new Map<string, number>();
+  for (const pet of pets) {
+    const label = (pet.pet_type || "pet").trim().toLowerCase();
+    counts.set(label, (counts.get(label) ?? 0) + 1);
+  }
+  return Array.from(counts.entries())
+    .map(([type, count]) => `${count} ${count === 1 ? type : pluralizePetType(type)}`)
+    .join(", ");
+}
+
+function pluralizePetType(type: string) {
+  if (type.endsWith("s")) return type;
+  if (type.endsWith("y")) return `${type.slice(0, -1)}ies`;
+  return `${type}s`;
+}
+
+function displayAddress(client: ShiftDetail["clients"]) {
+  if (!client) return null;
+  const fallback = client.formatted_address ?? client.address;
+  const country = normalizeCountry(client.country);
+  if (fallback?.trim() && fallback.trim() !== country) return fallback;
+
+  return formatStructuredAddress({
+    street_address_1: client.street_address_1,
+    street_address_2: client.street_address_2,
+    city: client.city,
+    state_or_region: client.state_or_region ?? client.state,
+    postal_code: client.postal_code,
+    country: client.country,
+  });
+}
+
+function formatShiftTypeName(name: string | null | undefined): string {
+  if (!name) return "Shift";
+  const normalized = name.replace(/_/g, " ").trim();
+  const isFullDaySpaced = /^f\s*u\s*l\s*l\s*d\s*a\s*y$/i.test(normalized.replace(/\s+/g, ''));
+  if (isFullDaySpaced || normalized.toLowerCase() === "full day") {
+    return "Full day";
+  }
+  return normalized;
 }

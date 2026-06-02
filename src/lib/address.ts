@@ -137,16 +137,17 @@ export function getRegionOptions(country?: string | null) {
 }
 
 export function formatStructuredAddress(input: StructuredAddress) {
-  const parts = [
+  const meaningfulParts = [
     clean(input.street_address_1),
     clean(input.street_address_2),
     clean(input.city),
     clean(input.state_or_region),
     clean(input.postal_code),
-    normalizeCountry(input.country),
   ].filter(Boolean);
 
-  return parts.length > 0 ? parts.join(", ") : null;
+  if (meaningfulParts.length === 0) return null;
+
+  return [...meaningfulParts, normalizeCountry(input.country)].filter(Boolean).join(", ");
 }
 
 export function buildAddressQuery(input: StructuredAddress) {

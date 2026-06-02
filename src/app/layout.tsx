@@ -1,14 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { Manrope } from "next/font/google";
 import Script from "next/script";
 import OfflineIndicator from "@/components/offline-indicator";
 import "./globals.css";
-
-const manrope = Manrope({
-  subsets: ["latin"],
-  variable: "--font-manrope",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: {
@@ -29,6 +22,7 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
+      { url: "/favicon-cvp.ico", sizes: "any" },
       { url: "/favicon.ico", sizes: "any" },
       { url: "/favicon-32.png", type: "image/png", sizes: "32x32" },
       { url: "/icon-192.png", type: "image/png", sizes: "192x192" },
@@ -62,7 +56,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={manrope.variable}>
+    <html lang="en">
       <body>
         <OfflineIndicator />
         {children}

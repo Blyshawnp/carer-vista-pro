@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { formatStructuredAddress, normalizeCountry } from "@/lib/address";
 import HomeContent from "./home-content";
 
 export type ShiftRow = {
@@ -25,6 +26,14 @@ export type AssignedClient = {
   id: string;
   full_name: string;
   address: string | null;
+  formatted_address: string | null;
+  street_address_1: string | null;
+  street_address_2: string | null;
+  city: string | null;
+  state: string | null;
+  state_or_region: string | null;
+  postal_code: string | null;
+  country: string | null;
 };
 
 export type CareActivityItem = {
@@ -66,7 +75,7 @@ export default async function HomePage() {
     caregiver_id,
     assignment_status,
     profiles:caregiver_id ( full_name ),
-    clients ( full_name, address, latitude, longitude, geofence_radius_meters ),
+    clients ( full_name, address, formatted_address, street_address_1, street_address_2, city, state, state_or_region, postal_code, country, latitude, longitude, geofence_radius_meters ),
     shift_types ( name, color ),
     check_ins ( check_in_time, check_out_time ),
     shift_todos ( id, is_completed )
@@ -98,6 +107,14 @@ export default async function HomePage() {
     clients: {
       full_name: string;
       address: string | null;
+      formatted_address: string | null;
+      street_address_1: string | null;
+      street_address_2: string | null;
+      city: string | null;
+      state: string | null;
+      state_or_region: string | null;
+      postal_code: string | null;
+      country: string | null;
       latitude: number | null;
       longitude: number | null;
       geofence_radius_meters: number;
@@ -145,7 +162,7 @@ export default async function HomePage() {
   if (profile.role === "caregiver" || profile.role === "family" || profile.role === "client") {
     const { data: clientRows } = await supabase
       .from("clients")
-      .select("id, full_name, address")
+      .select("id, full_name, address, formatted_address, street_address_1, street_address_2, city, state, state_or_region, postal_code, country")
       .order("full_name");
 
     assignedClients = (clientRows ?? []) as AssignedClient[];
@@ -285,6 +302,14 @@ function mapShiftRow(r: {
   clients: {
     full_name: string;
     address: string | null;
+    formatted_address: string | null;
+    street_address_1: string | null;
+    street_address_2: string | null;
+    city: string | null;
+    state: string | null;
+    state_or_region: string | null;
+    postal_code: string | null;
+    country: string | null;
     latitude: number | null;
     longitude: number | null;
     geofence_radius_meters: number;
@@ -309,7 +334,7 @@ function mapShiftRow(r: {
     caregiver_id: r.caregiver_id,
     caregiver_name: r.profiles?.full_name ?? null,
     client_name: r.clients?.full_name ?? null,
-    client_address: r.clients?.address ?? null,
+    client_address: r.clients ? displayAddress(r.clients) : null,
     client_lat: r.clients?.latitude ?? null,
     client_lng: r.clients?.longitude ?? null,
     geofence_radius_meters: r.clients?.geofence_radius_meters ?? 150,
@@ -326,6 +351,31 @@ function mapShiftRow(r: {
 function normalizeRows<T>(value: T[] | T | null | undefined): T[] {
   if (Array.isArray(value)) return value;
   return value ? [value] : [];
+}
+
+function displayAddress(client: {
+  address: string | null;
+  formatted_address: string | null;
+  street_address_1: string | null;
+  street_address_2: string | null;
+  city: string | null;
+  state: string | null;
+  state_or_region: string | null;
+  postal_code: string | null;
+  country: string | null;
+}) {
+  const fallback = client.formatted_address ?? client.address;
+  const country = normalizeCountry(client.country);
+  if (fallback?.trim() && fallback.trim() !== country) return fallback;
+
+  return formatStructuredAddress({
+    street_address_1: client.street_address_1,
+    street_address_2: client.street_address_2,
+    city: client.city,
+    state_or_region: client.state_or_region ?? client.state,
+    postal_code: client.postal_code,
+    country: client.country,
+  });
 }
 
 function formatCareActivityTitle(

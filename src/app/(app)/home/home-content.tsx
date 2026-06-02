@@ -15,6 +15,7 @@ import type { AssignedClient } from "./page";
 import type { ActiveShift } from "./page";
 import type { CareActivityItem } from "./page";
 import { getShiftStatus } from "@/lib/shift-status";
+import { formatStructuredAddress, normalizeCountry } from "@/lib/address";
 
 type State =
   | { kind: "checked_in"; shift: ShiftRow }
@@ -122,7 +123,7 @@ export default function HomeContent({
           href="/schedule"
           className="block bg-terracotta-500 hover:bg-terracotta-600 text-cream-50 rounded-2xl px-5 py-4 mb-4 transition active:scale-[0.99]"
         >
-          <p className="text-xs uppercase tracking-[0.18em] text-cream-50/70 mb-0.5">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-cream-50/70 mb-0.5">
             Action needed
           </p>
           <p className="font-medium">
@@ -216,13 +217,13 @@ function CheckedInCard({ shift, now }: { shift: ShiftRow; now: Date }) {
       />
       <div className="relative">
         <div className="flex items-center gap-2 mb-4">
-          <span className="w-2 h-2 rounded-full bg-cream-50 animate-pulse" />
-          <p className="text-xs uppercase tracking-[0.2em] text-cream-50/70">
+          <span className="w-2.5 h-2.5 rounded-full bg-cream-50 animate-pulse shrink-0" />
+          <p className="text-[10px] font-bold uppercase tracking-wider text-cream-50/70">
             On shift right now
           </p>
         </div>
 
-        <p className="font-display text-5xl leading-none mb-1">
+        <p className="font-sans font-bold text-5xl leading-none mb-1">
           {hours > 0 ? `${hours}h ${mins}m` : `${mins} min`}
         </p>
         <p className="text-cream-50/80 text-sm mb-6">
@@ -279,18 +280,18 @@ function StartingSoonCard({
   return (
     <article className="bg-white rounded-3xl p-6 shadow-soft grain-overlay">
       <div className="relative">
-        <p className="text-xs uppercase tracking-[0.2em] text-terracotta-600 mb-2 font-medium">
+        <p className="text-xs font-medium uppercase tracking-normal text-terracotta-600 mb-2">
           {startedAlready ? "Shift started" : "Starting soon"}
         </p>
-        <h2 className="font-display text-3xl text-ink-900 leading-tight mb-1">
+        <p className="font-sans text-3xl font-semibold tracking-normal leading-tight text-ink-900 mb-1">
           {startedAlready
             ? "It's time"
             : minsUntil < 60
               ? `In ${minsUntil} min`
               : `In ${Math.floor(minsUntil / 60)}h ${minsUntil % 60}m`}
-        </h2>
+        </p>
         <p className="text-ink-500 text-sm mb-5">
-          {formatTime(startsAt)} · {shift.shift_type_name ?? "Shift"}
+          {formatTime(startsAt)} · {formatShiftTypeName(shift.shift_type_name)}
           for {shift.client_name ?? "General availability"}
         </p>
 
@@ -335,15 +336,15 @@ function UpcomingCard({
   return (
     <article className="bg-white rounded-3xl p-6 shadow-soft grain-overlay">
       <div className="relative">
-        <p className="text-xs uppercase tracking-[0.2em] text-ink-500 mb-2">
+        <p className="text-xs font-medium uppercase tracking-normal text-ink-500 mb-2">
           Next shift
         </p>
-        <h2 className="font-display text-3xl text-ink-900 leading-tight mb-1">
+        <p className="font-sans text-3xl font-semibold tracking-normal leading-tight text-ink-900 mb-1">
           {formatRelativeDay(startsAt, now)}
-        </h2>
+        </p>
         <p className="text-ink-500 text-sm mb-5">
           {formatTime(startsAt)} – {formatTime(new Date(shift.scheduled_end))} ·{" "}
-          {shift.shift_type_name ?? "Shift"}
+          {formatShiftTypeName(shift.shift_type_name)}
         </p>
 
         {shift.caregiver_name && (
@@ -444,9 +445,9 @@ function AssignedClientsPanel({
                   <span className="block font-medium text-ink-900 truncate">
                     {client.full_name}
                   </span>
-                  {client.address && (
+                  {displayAddress(client) && (
                     <span className="block text-xs text-ink-500 truncate">
-                      {client.address}
+                      {displayAddress(client)}
                     </span>
                   )}
                 </span>
@@ -458,6 +459,21 @@ function AssignedClientsPanel({
       </div>
     </section>
   );
+}
+
+function displayAddress(client: AssignedClient) {
+  const fallback = client.formatted_address ?? client.address;
+  const country = normalizeCountry(client.country);
+  if (fallback?.trim() && fallback.trim() !== country) return fallback;
+
+  return formatStructuredAddress({
+    street_address_1: client.street_address_1,
+    street_address_2: client.street_address_2,
+    city: client.city,
+    state_or_region: client.state_or_region ?? client.state,
+    postal_code: client.postal_code,
+    country: client.country,
+  });
 }
 
 function CareActivityPanel({ items }: { items: CareActivityItem[] }) {
@@ -546,10 +562,10 @@ function UpcomingRow({ shift, now }: { shift: ShiftRow; now: Date }) {
       className="flex items-center gap-4 bg-white rounded-2xl p-4 shadow-soft hover:bg-cream-50 transition"
     >
       <div className="text-center w-12 shrink-0">
-        <p className="text-[10px] uppercase tracking-wide text-ink-500">
+        <p className="text-[10px] uppercase tracking-normal text-ink-500">
           {start.toLocaleDateString(undefined, { month: "short" })}
         </p>
-        <p className="font-display text-2xl leading-none">
+        <p className="font-sans text-2xl font-semibold tracking-normal leading-none text-ink-900">
           {start.getDate()}
         </p>
       </div>
@@ -559,7 +575,7 @@ function UpcomingRow({ shift, now }: { shift: ShiftRow; now: Date }) {
       />
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-ink-900 truncate">
-          {shift.shift_type_name ?? "Shift"}{" "}
+          {formatShiftTypeName(shift.shift_type_name)}{" "}
           <span className="text-ink-500 font-normal">
             · {formatRelativeDay(start, now)}
           </span>
@@ -600,6 +616,16 @@ function formatRelativeDay(d: Date, now: Date) {
   return d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
 }
 
+export function formatShiftTypeName(name: string | null | undefined): string {
+  if (!name) return "Shift";
+  const normalized = name.replace(/_/g, " ").trim();
+  const isFullDaySpaced = /^f\s*u\s*l\s*l\s*d\s*a\s*y$/i.test(normalized.replace(/\s+/g, ''));
+  if (isFullDaySpaced || normalized.toLowerCase() === "full day") {
+    return "Full day";
+  }
+  return normalized;
+}
+
 function ActivePanel({
   activeShifts,
   now,
@@ -614,7 +640,7 @@ function ActivePanel({
         className="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-cream-50/10 blur-2xl"
       />
       <div className="relative">
-        <p className="text-[10px] uppercase tracking-[0.2em] text-cream-50/70 mb-2 flex items-center gap-1.5">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-cream-50/70 mb-2 flex items-center gap-1.5">
           <span className="w-1.5 h-1.5 rounded-full bg-cream-50 animate-pulse" />
           On shift right now
         </p>

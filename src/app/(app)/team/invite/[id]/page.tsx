@@ -1,6 +1,7 @@
 import { redirect, notFound } from "next/navigation";
 import { headers } from "next/headers";
 import Link from "next/link";
+import { buildAppUrlFromOrigin } from "@/lib/app-url";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isEmailConfigured } from "@/lib/email";
@@ -59,9 +60,10 @@ export default async function InviteDetailPage({
     notFound();
   }
 
-  const acceptLink = `${await getOrigin()}/accept-invite?token=${encodeURIComponent(
-    invitation.token
-  )}`;
+  const acceptLink = buildAppUrlFromOrigin(
+    `/accept-invite?token=${encodeURIComponent(invitation.token)}`,
+    await getFallbackOrigin()
+  );
 
   return (
     <main className="px-5 py-6 max-w-2xl mx-auto">
@@ -110,7 +112,7 @@ export default async function InviteDetailPage({
   );
 }
 
-async function getOrigin() {
+async function getFallbackOrigin() {
   const headerStore = await headers();
   const origin = headerStore.get("origin");
   if (origin) return origin;

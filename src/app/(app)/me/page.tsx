@@ -12,6 +12,7 @@ import {
   getPreviousPayPeriod,
   formatPayPeriod,
   roundUpToQuarter,
+  formatPay,
 } from "@/lib/pay";
 import { t, type Lang } from "@/lib/i18n";
 
@@ -25,7 +26,7 @@ export default async function MePage() {
   const { data: profile } = await supabase
     .from("profiles")
     .select(
-      "id, full_name, role, email, phone, language, avatar_url, avatar_color, owner_role_label, bio, vehicle_1_make_model, vehicle_1_color, vehicle_2_make_model, vehicle_2_color, organizations(name)"
+      "id, full_name, role, email, username, has_real_email, phone, language, avatar_url, avatar_color, owner_role_label, bio, vehicle_1_make_model, vehicle_1_color, vehicle_2_make_model, vehicle_2_color, organizations(name, allow_client_caregiver_bonuses)"
     )
     .eq("id", user.id)
     .single<{
@@ -33,6 +34,8 @@ export default async function MePage() {
       full_name: string;
       role: "admin" | "client" | "caregiver" | "family" | "family";
       email: string;
+      username: string | null;
+      has_real_email: boolean | null;
       phone: string | null;
       language: Lang | null;
       avatar_url: string | null;
@@ -43,7 +46,7 @@ export default async function MePage() {
       vehicle_1_color: string | null;
       vehicle_2_make_model: string | null;
       vehicle_2_color: string | null;
-      organizations: { name: string } | null;
+      organizations: { name: string; allow_client_caregiver_bonuses: boolean | null } | null;
     }>();
 
   const lang: Lang = profile?.language === "es" ? "es" : "en";
@@ -167,7 +170,14 @@ export default async function MePage() {
         </div>
 
         <dl className="text-sm">
-          <Row label={t("me.email", lang)} value={profile?.email} />
+          <Row
+            label={profile?.has_real_email === false ? "Username" : t("me.email", lang)}
+            value={
+              profile?.has_real_email === false && profile.username
+                ? profile.username
+                : profile?.email
+            }
+          />
           {profile && (
             <EditablePhone
               initialPhone={profile.phone}
@@ -219,7 +229,7 @@ export default async function MePage() {
                   {t("pay.thisPeriod", lang)}
                 </p>
                 <p className="font-display text-3xl">
-                  ${currentTotalRounded.toFixed(2)}
+                  {formatPay(currentTotalRounded)}
                 </p>
                 <p className="text-xs text-cream-50/70">
                   {currentHours.toFixed(1)} {t("pay.hours", lang)}
@@ -233,7 +243,7 @@ export default async function MePage() {
                   {t("pay.lastPeriod", lang)}
                 </p>
                 <p className="font-display text-3xl">
-                  ${previousTotalRounded.toFixed(2)}
+                  {formatPay(previousTotalRounded)}
                 </p>
                 <p className="text-xs text-cream-50/70">
                   {previousHours.toFixed(1)} {t("pay.hours", lang)}
@@ -276,6 +286,21 @@ export default async function MePage() {
             label={t("me.payroll", lang)}
             Icon={UserIcon}
           />
+          <NavLink
+            href="/feedback"
+            label="Manage caregiver feedback"
+            Icon={UserIcon}
+          />
+          <NavLink
+            href="/me/year-end-summaries"
+            label="Year-End Summaries Dashboard"
+            Icon={UserIcon}
+          />
+          <NavLink
+            href="/me/organization-settings"
+            label="Organization Settings"
+            Icon={UserIcon}
+          />
         </section>
       )}
 
@@ -292,9 +317,22 @@ export default async function MePage() {
             label={t("me.payroll", lang)}
             Icon={UserIcon}
           />
+          <NavLink
+            href="/feedback/new"
+            label="Submit caregiver feedback"
+            Icon={UserIcon}
+          />
+          {profile?.organizations?.allow_client_caregiver_bonuses !== false && (
+            <NavLink
+              href="/feedback/bonus/new"
+              label="Appreciate Caregiver (Send Bonus)"
+              Icon={UserIcon}
+            />
+          )}
         </section>
       )}
 
+      {/* Family actions */}
       {profile?.role === "family" && (
         <section className="space-y-2 mb-4">
           <NavLink
@@ -302,6 +340,18 @@ export default async function MePage() {
             label={t("me.familyAccess", lang)}
             Icon={MapPinIcon}
           />
+          <NavLink
+            href="/feedback/new"
+            label="Submit caregiver feedback"
+            Icon={UserIcon}
+          />
+          {profile?.organizations?.allow_client_caregiver_bonuses !== false && (
+            <NavLink
+              href="/feedback/bonus/new"
+              label="Appreciate Caregiver (Send Bonus)"
+              Icon={UserIcon}
+            />
+          )}
         </section>
       )}
 
@@ -318,10 +368,25 @@ export default async function MePage() {
             label={t("me.myInvoices", lang)}
             Icon={UserIcon}
           />
+          <NavLink
+            href="/feedback"
+            label="Received feedback & commendations"
+            Icon={UserIcon}
+          />
+          <NavLink
+            href="/me/year-end-summaries"
+            label="Year-End Summaries"
+            Icon={UserIcon}
+          />
         </section>
       )}
 
       <section className="space-y-2 mb-4">
+        <NavLink
+          href="/documents"
+          label="Documents & agreements"
+          Icon={UserIcon}
+        />
         <NavLink
           href="/me/notifications"
           label="Notification settings"

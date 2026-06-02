@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import {
   COUNTRY_OPTIONS,
   buildAddressQuery,
+  formatStructuredAddress,
   getRegionOptions,
   normalizeCountry,
   postalLabel,
@@ -141,6 +142,15 @@ const DOC_CATEGORIES: { value: Document["category"]; label: string }[] = [
   { value: "general", label: "General" },
 ];
 
+type SaveSection =
+  | "contacts"
+  | "location"
+  | "medications"
+  | "allergies"
+  | "safety"
+  | "notes"
+  | "all";
+
 const EMPTY_CONTACT: EditableContact = {
   id: "new-default-contact",
   name: "",
@@ -247,6 +257,12 @@ export default function HomeInfoEditor({
   const [physPhone, setPhysPhone] = useState(client.primary_physician_phone ?? "");
   const [notes, setNotes] = useState(client.home_notes ?? "");
   const [saving, setSaving] = useState(false);
+  const [savingSection, setSavingSection] = useState<SaveSection | null>(null);
+  const [sectionMessage, setSectionMessage] = useState<{
+    section: SaveSection;
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [savedAt, setSavedAt] = useState<Date | null>(null);
 
@@ -277,9 +293,22 @@ export default function HomeInfoEditor({
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
+    const submitter = (e.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
+    const section = (submitter?.dataset.section as SaveSection | undefined) ?? "all";
     setSaving(true);
+    setSavingSection(section);
     setError(null);
+    setSectionMessage(null);
     const supabase = createClient();
+
+    function fail(message: string) {
+      setError(message);
+      if (section !== "all") {
+        setSectionMessage({ section, type: "error", text: message });
+      }
+      setSaving(false);
+      setSavingSection(null);
+    }
 
     const validContacts = contacts
       .map((contact, index) => ({ ...contact, priority_order: index + 1 }))
@@ -288,21 +317,18 @@ export default function HomeInfoEditor({
       (contact) => !contact.name.trim() || !contact.phone.trim() || !contact.relationship.trim()
     );
     if (invalidContact) {
-      setError("Emergency contacts need a name, relationship, and phone.");
-      setSaving(false);
+      fail("Emergency contacts need a name, relationship, and phone.");
       return;
     }
     if (validContacts.length > 5) {
-      setError("Each client can have at most 5 emergency contacts.");
-      setSaving(false);
+      fail("Each client can have at most 5 emergency contacts.");
       return;
     }
     const invalidSafetyItem = safetyItems.find(
       (item) => (item.label.trim() && !item.value_location.trim()) || (!item.label.trim() && item.value_location.trim())
     );
     if (invalidSafetyItem) {
-      setError("Emergency & Safety Items need both a label and a value/location.");
-      setSaving(false);
+      fail("Emergency & Safety Items need both a label and a value/location.");
       return;
     }
 
@@ -310,18 +336,15 @@ export default function HomeInfoEditor({
     const lng = longitude.trim() === "" ? null : Number(longitude);
     const radius = Number(geofenceRadiusMeters);
     if (lat != null && (Number.isNaN(lat) || lat < -90 || lat > 90)) {
-      setError("Latitude must be between -90 and 90.");
-      setSaving(false);
+      fail("Latitude must be between -90 and 90.");
       return;
     }
     if (lng != null && (Number.isNaN(lng) || lng < -180 || lng > 180)) {
-      setError("Longitude must be between -180 and 180.");
-      setSaving(false);
+      fail("Longitude must be between -180 and 180.");
       return;
     }
     if (Number.isNaN(radius) || radius < 10 || radius > 5000) {
-      setError("Geofence radius must be between 10 and 5000 meters.");
-      setSaving(false);
+      fail("Geofence radius must be between 10 and 5000 meters.");
       return;
     }
 
@@ -369,9 +392,20 @@ export default function HomeInfoEditor({
       resolvedLocationSource = "manual";
     }
 
+    const formattedAddress = formatStructuredAddress({
+      street_address_1: streetAddress1,
+      street_address_2: streetAddress2,
+      city,
+      state_or_region: stateOrRegion,
+      postal_code: postalCode,
+      country,
+    });
+
     const { error: updateError } = await supabase
       .from("clients")
       .update({
+        address: formattedAddress,
+        formatted_address: formattedAddress,
         street_address_1: streetAddress1.trim() || null,
         street_address_2: streetAddress2.trim() || null,
         city: city.trim() || null,
@@ -403,8 +437,7 @@ export default function HomeInfoEditor({
       .eq("id", client.id);
 
     if (updateError) {
-      setError(updateError.message);
-      setSaving(false);
+      fail(updateError.message);
       return;
     }
 
@@ -418,25 +451,37 @@ export default function HomeInfoEditor({
     );
 
     if (syncError) {
-      setError(syncError);
-      setSaving(false);
+      fail(syncError);
       return;
     }
 
     setSaving(false);
+    setSavingSection(null);
     setSavedAt(new Date());
+    if (section !== "all") {
+      setSectionMessage({ section, type: "success", text: "Saved." });
+    }
     router.refresh();
   }
 
   return (
     <form onSubmit={save} className="space-y-4">
-      <Card title="Emergency contacts" subtitle="Add up to 5 contacts in call order.">
+      <Card
+        title="Emergency Contacts"
+        subtitle="Add up to 5 contacts in call order."
+        saveSection="contacts"
+        savingSection={savingSection}
+        sectionMessage={sectionMessage}
+      >
         <ContactEditor contacts={contacts} onChange={setContacts} />
       </Card>
 
       <Card
-        title="Client location"
+        title="Address & Location"
         subtitle="Structured address fields keep the displayed address and geofence location aligned."
+        saveSection="location"
+        savingSection={savingSection}
+        sectionMessage={sectionMessage}
       >
         <Field label="Street address 1" value={streetAddress1} onChange={setStreetAddress1} placeholder="123 Main St" />
         <Field label="Street address 2" value={streetAddress2} onChange={setStreetAddress2} placeholder="Apartment, suite, or floor" />
@@ -483,7 +528,7 @@ export default function HomeInfoEditor({
             </select>
           </label>
         </div>
-        <ReadOnly label="Formatted address" value={client.formatted_address ?? client.address ?? "Not set"} />
+        <ReadOnly label="Formatted address" value={displayAddress(client) ?? "Location not set"} />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Field label="Latitude" value={latitude} onChange={setLatitude} placeholder="Latitude" />
           <Field label="Longitude" value={longitude} onChange={setLongitude} placeholder="Longitude" />
@@ -563,6 +608,9 @@ export default function HomeInfoEditor({
       <Card
         title="Medications"
         subtitle="Use reminders or storage notes only. Do not add clinical administration instructions unless your care team requires them."
+        saveSection="medications"
+        savingSection={savingSection}
+        sectionMessage={sectionMessage}
       >
         <Toggle
           label="Show medications to caregivers"
@@ -577,7 +625,13 @@ export default function HomeInfoEditor({
         <MedicationEditor medications={medications} onChange={setMedications} />
       </Card>
 
-      <Card title="Allergies" subtitle="Add allergy details and choose whether caregivers can see them.">
+      <Card
+        title="Allergies"
+        subtitle="Add allergy details and choose whether caregivers can see them."
+        saveSection="allergies"
+        savingSection={savingSection}
+        sectionMessage={sectionMessage}
+      >
         <Toggle
           label="Show allergies to caregivers"
           checked={showAllergies}
@@ -591,7 +645,13 @@ export default function HomeInfoEditor({
         <AllergyEditor allergies={allergies} onChange={setAllergies} />
       </Card>
 
-      <Card title="Emergency & Safety Items" subtitle="Add custom equipment, supplies, shutoffs, or key locations.">
+      <Card
+        title="Emergency & Safety Items"
+        subtitle="Add custom equipment, supplies, shutoffs, or key locations."
+        saveSection="safety"
+        savingSection={savingSection}
+        sectionMessage={sectionMessage}
+      >
         <SafetyItemsEditor items={safetyItems} onChange={setSafetyItems} />
       </Card>
 
@@ -650,13 +710,18 @@ export default function HomeInfoEditor({
         />
       </Card>
 
-      <Card title="Notes for caregivers (optional)">
+      <Card
+        title="Notes / Care Instructions"
+        saveSection="notes"
+        savingSection={savingSection}
+        sectionMessage={sectionMessage}
+      >
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={4}
           placeholder="Parking, pet info, entry notes, or other caregiver reminders"
-          className="w-full px-3 py-2 bg-cream-50 border border-cream-200 rounded-xl text-ink-900 placeholder:text-ink-300 focus:outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-500/20 text-sm resize-none"
+          className={`${inputCls} resize-none`}
         />
       </Card>
 
@@ -669,6 +734,7 @@ export default function HomeInfoEditor({
       <div className="flex items-center gap-3 sticky bottom-3 bg-cream-100/95 backdrop-blur p-3 rounded-2xl shadow-soft border border-cream-200">
         <button
           type="submit"
+          data-section="all"
           disabled={saving}
           className="flex-1 bg-forest-600 hover:bg-forest-700 text-cream-50 py-3 rounded-2xl font-medium transition disabled:opacity-50"
         >
@@ -914,7 +980,7 @@ function MedicationEditor({
                   reminderTimes: defaultTimesForFrequency(frequency, medication.reminderTimes),
                 });
               }}
-              className="w-full px-3 py-2 bg-white border border-cream-200 rounded-xl text-ink-900 focus:outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-500/20 text-sm"
+              className={inputCls}
             >
               <option value="as_needed">As needed/PRN, no scheduled reminders</option>
               <option value="once_daily">Once daily</option>
@@ -1013,7 +1079,7 @@ function AllergyEditor({
             <select
               value={allergy.severity ?? ""}
               onChange={(e) => update(index, { severity: (e.target.value || null) as Allergy["severity"] })}
-              className="w-full px-3 py-2 bg-white border border-cream-200 rounded-xl text-ink-900 focus:outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-500/20 text-sm"
+              className={inputCls}
             >
               <option value="">Not specified</option>
               <option value="critical">Critical</option>
@@ -1117,17 +1183,46 @@ function Card({
   title,
   subtitle,
   children,
+  saveSection,
+  savingSection,
+  sectionMessage,
 }: {
   title: string;
   subtitle?: string;
   children: React.ReactNode;
+  saveSection?: SaveSection;
+  savingSection?: SaveSection | null;
+  sectionMessage?: { section: SaveSection; type: "success" | "error"; text: string } | null;
 }) {
+  const message = saveSection && sectionMessage?.section === saveSection ? sectionMessage : null;
+
   return (
     <section className="bg-white rounded-3xl shadow-soft p-5 grain-overlay">
       <div className="relative">
         <h2 className="font-display text-base mb-1">{title}</h2>
         {subtitle && <p className="text-xs text-ink-500 mb-3">{subtitle}</p>}
         <div className="space-y-3 mt-3">{children}</div>
+        {saveSection && (
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <button
+              type="submit"
+              data-section={saveSection}
+              disabled={savingSection !== null}
+              className="w-full sm:w-auto bg-forest-600 hover:bg-forest-700 text-cream-50 px-4 py-2.5 rounded-xl text-sm font-medium transition disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {savingSection === saveSection ? "Saving..." : "Save section"}
+            </button>
+            {message && (
+              <p
+                className={`text-xs ${
+                  message.type === "success" ? "text-forest-600" : "text-terracotta-600"
+                }`}
+              >
+                {message.text}
+              </p>
+            )}
+          </div>
+        )}
       </div>
     </section>
   );
@@ -1225,7 +1320,7 @@ function ReadOnlyHomeInfo({
   return (
     <div className="space-y-4">
       <Card title="Client location">
-        <ReadOnly label="Address" value={client.formatted_address ?? client.address ?? "Not set"} />
+        <ReadOnly label="Address" value={displayAddress(client) ?? "Location not set"} />
         <ReadOnly label="Latitude" value={client.latitude != null ? String(client.latitude) : "Not set"} />
         <ReadOnly label="Longitude" value={client.longitude != null ? String(client.longitude) : "Not set"} />
         <ReadOnly label="Geofence radius" value={`${client.geofence_radius_meters ?? 150}m`} />
@@ -1256,7 +1351,7 @@ function ReadOnlyHomeInfo({
         {!canViewMedicationDetails ? (
           <p className="text-sm text-ink-500">Medication details are hidden by the client/admin.</p>
         ) : medications.length === 0 ? (
-          <p className="text-sm text-ink-500">No medications visible.</p>
+          <p className="text-sm text-ink-500">No medications listed.</p>
         ) : (
           medications.map((medication) => (
             <div key={medication.id} className="rounded-2xl bg-cream-50 border border-cream-200 px-3 py-2">
@@ -1369,7 +1464,7 @@ function CorrectionRequestForm({
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="w-full px-3 py-2 bg-cream-50 border border-cream-200 rounded-xl text-sm mb-3"
+          className={`${inputCls} mb-3`}
         >
           <option value="emergency_contact">Emergency contact</option>
           <option value="medication">Medication</option>
@@ -1384,7 +1479,7 @@ function CorrectionRequestForm({
           onChange={(e) => setMessage(e.target.value)}
           rows={3}
           placeholder="Describe what should be reviewed"
-          className="w-full px-3 py-2 bg-cream-50 border border-cream-200 rounded-xl text-sm resize-none"
+          className={`${inputCls} resize-none`}
         />
         {status && <p className="text-xs text-forest-600 mt-2">{status}</p>}
         <button
@@ -1599,6 +1694,21 @@ function DocumentManager({
   );
 }
 
+function displayAddress(client: ClientHomeInfo) {
+  const fallback = client.formatted_address ?? client.address;
+  const country = normalizeCountry(client.country);
+  if (fallback?.trim() && fallback.trim() !== country) return fallback;
+
+  return formatStructuredAddress({
+    street_address_1: client.street_address_1,
+    street_address_2: client.street_address_2,
+    city: client.city,
+    state_or_region: client.state_or_region ?? client.state,
+    postal_code: client.postal_code,
+    country: client.country,
+  });
+}
+
 function formatBytes(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
@@ -1606,4 +1716,4 @@ function formatBytes(bytes: number) {
 }
 
 const inputCls =
-  "w-full px-3 py-2 bg-cream-50 border border-cream-200 rounded-xl text-ink-900 placeholder:text-ink-300 focus:outline-none focus:border-forest-500 focus:ring-2 focus:ring-forest-500/20 text-sm";
+  "w-full px-3 py-2 bg-white border border-forest-500/25 rounded-xl text-ink-900 placeholder:text-ink-400 shadow-sm focus:outline-none focus:border-forest-600 focus:ring-2 focus:ring-forest-500/20 disabled:bg-cream-100 disabled:text-ink-400 disabled:cursor-not-allowed text-sm";

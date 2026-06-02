@@ -7,6 +7,8 @@ type UserOption = {
   id: string;
   full_name: string;
   email: string;
+  username: string | null;
+  has_real_email: boolean | null;
   role: "admin" | "client" | "caregiver" | "family";
   is_active: boolean;
 };
@@ -115,7 +117,7 @@ export default function ClientUsersManager({
                   />
                   <span className="min-w-0 flex-1">
                     <span className="block font-medium text-ink-800 truncate">
-                      {person.full_name || person.email}
+                      {person.full_name || displayLogin(person)}
                     </span>
                     <span className="block text-xs text-ink-500">{roleLabel(person.role)}{!person.is_active && " · Inactive"}</span>
                   </span>
@@ -157,6 +159,12 @@ export default function ClientUsersManager({
 
 function roleRank(role: UserOption["role"]) {
   return { admin: 0, client: 1, family: 2, caregiver: 3 }[role];
+}
+
+function displayLogin(person: UserOption) {
+  return person.has_real_email === false && person.username
+    ? person.username
+    : person.email;
 }
 
 function roleLabel(role: UserOption["role"]) {

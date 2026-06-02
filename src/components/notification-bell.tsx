@@ -10,9 +10,11 @@ import { BellIcon } from "./icons";
 export default function NotificationBell({
   initialCount,
   userId,
+  label = "Notifications",
 }: {
   initialCount: number;
   userId: string;
+  label?: string;
 }) {
   const [count, setCount] = useState(initialCount);
 
@@ -90,7 +92,7 @@ export default function NotificationBell({
   return (
     <Link
       href="/notifications"
-      aria-label="Notifications"
+      aria-label={label}
       className="relative w-10 h-10 rounded-full grid place-items-center text-ink-700 hover:bg-cream-200 transition active:scale-95"
     >
       <BellIcon size={20} />

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { withClientPhotoDisplayUrls } from "@/lib/client-photos";
 import ClientsList from "./clients-list";
 
 export default async function ClientsPage() {
@@ -17,7 +18,23 @@ export default async function ClientsPage() {
     .single<{ role: "admin" | "client" | "caregiver" | "family"; organization_id: string }>();
 
   if (!profile) redirect("/me");
-  const canManage = profile.role === "admin" || profile.role === "client";
+
+  // Fetch organization settings to check mode
+  const { data: org } = await supabase
+    .from("organizations")
+    .select("organization_mode, allow_client_admin_for_personal_use")
+    .eq("id", profile.organization_id)
+    .single();
+
+  const isPersonalFamily = org?.organization_mode === "personal_family";
+  const isClientDirected = org?.organization_mode === "client_directed_care";
+  const allowClientAdmin = org?.allow_client_admin_for_personal_use;
+
+  const canManage = profile.role === "admin" || 
+    (profile.role === "client" && (
+      (isPersonalFamily && allowClientAdmin) || 
+      isClientDirected
+    ));
   const pageTitle = profile.role === "family" ? "Family" : "Clients";
   const pageSubtitle =
     profile.role === "family"
@@ -28,8 +45,9 @@ export default async function ClientsPage() {
 
   const { data: clients } = await supabase
     .from("clients")
-    .select("id, full_name, address, latitude, longitude, geofence_radius_meters")
+    .select("id, full_name, photo_url, address, formatted_address, street_address_1, street_address_2, city, state, state_or_region, postal_code, country, latitude, longitude, geofence_radius_meters")
     .order("full_name");
+  const clientsWithPhotos = await withClientPhotoDisplayUrls(supabase, clients ?? []);
 
   return (
     <main className="px-5 py-6 max-w-2xl mx-auto">
@@ -57,7 +75,7 @@ export default async function ClientsPage() {
       </header>
 
       <ClientsList
-        clients={clients ?? []}
+        clients={clientsWithPhotos}
         canManage={canManage}
         role={profile.role}
       />

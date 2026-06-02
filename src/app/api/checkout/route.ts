@@ -1,14 +1,12 @@
 import { NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { sendPushForNotifications } from "@/lib/web-push";
 import type { Role } from "@/lib/db-types";
 
 type CheckoutRequest = {
-  shiftId: string;
-  checkInId: string;
+  shiftId?: string;
+  checkInId?: string;
   allowIncomplete?: boolean;
-  location:
+  location?:
     | {
         kind: "located";
         latitude: number;
@@ -23,41 +21,25 @@ type CheckoutRequest = {
 type CallerProfile = {
   id: string;
   role: Role;
-  full_name: string;
-  organization_id: string;
 };
 
 type ShiftRecord = {
   id: string;
   caregiver_id: string | null;
-  organization_id: string;
-  scheduled_start: string;
-  scheduled_end: string;
-  clients: { full_name: string | null } | null;
-  profiles: { full_name: string | null } | null;
   shift_todos: Array<{
     id: string;
     task_name: string;
     is_completed: boolean;
+    is_optional: boolean;
+    is_prn: boolean;
+    status: string | null;
   }> | null;
 };
 
 type CheckInRecord = {
   id: string;
-  shift_id: string;
-  caregiver_id: string;
   check_in_time: string | null;
   check_out_time: string | null;
-};
-
-type NotificationInsert = {
-  organization_id: string;
-  recipient_id: string;
-  kind: string;
-  title: string;
-  body: string;
-  link: string;
-  related_shift_id: string;
 };
 
 export async function POST(request: Request) {
@@ -71,121 +53,112 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Rate limiting check
-    const { data: canAct } = await supabase.rpc("check_rate_limit", { 
-      p_user_id: user.id,
-      p_seconds: 5
-    });
-
-    if (canAct === false) {
-      return NextResponse.json({ error: "Too many requests. Please slow down." }, { status: 429 });
-    }
-
     const payload = (await request.json()) as CheckoutRequest;
     if (!payload.shiftId || !payload.checkInId || !payload.location) {
-      return NextResponse.json({ error: "Invalid checkout request" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid checkout request" },
+        { status: 400 }
+      );
     }
 
     const { data: caller } = await supabase
       .from("profiles")
-      .select("id, role, full_name, organization_id")
+      .select("id, role")
       .eq("id", user.id)
       .maybeSingle<CallerProfile>();
 
     if (!caller || caller.role !== "caregiver") {
-      return NextResponse.json({ error: "Only caregivers can check out here" }, { status: 403 });
+      return NextResponse.json(
+        { error: "Only caregivers can check out here" },
+        { status: 403 }
+      );
     }
 
     const { data: shiftRaw } = await supabase
       .from("shifts")
-      .select(
-        `
-        id,
-        caregiver_id,
-        organization_id,
-        scheduled_start,
-        scheduled_end,
-        clients ( full_name ),
-        profiles:caregiver_id ( full_name ),
-        shift_todos ( id, task_name, is_completed )
-      `
-      )
+      .select("id, caregiver_id, shift_todos ( id, task_name, is_completed, is_optional, is_prn, status )")
       .eq("id", payload.shiftId)
       .maybeSingle();
 
-    if (!shiftRaw) {
+    const shift = shiftRaw as unknown as ShiftRecord | null;
+    if (!shift) {
       return NextResponse.json({ error: "Shift not found" }, { status: 404 });
     }
 
-    const shift = shiftRaw as unknown as ShiftRecord;
     if (shift.caregiver_id !== caller.id) {
       return NextResponse.json({ error: "Not your shift" }, { status: 403 });
     }
 
     const { data: checkIn } = await supabase
       .from("check_ins")
-      .select("id, shift_id, caregiver_id, check_in_time, check_out_time")
+      .select("id, check_in_time, check_out_time")
       .eq("id", payload.checkInId)
       .eq("shift_id", payload.shiftId)
       .maybeSingle<CheckInRecord>();
 
     if (!checkIn?.check_in_time) {
-      return NextResponse.json({ error: "This shift is not checked in" }, { status: 409 });
+      return NextResponse.json(
+        { error: "This shift is not checked in" },
+        { status: 409 }
+      );
     }
+
     if (checkIn.check_out_time) {
-      return NextResponse.json({ error: "This shift is already checked out" }, { status: 409 });
+      return NextResponse.json(
+        { error: "This shift is already checked out" },
+        { status: 409 }
+      );
     }
 
     const incompleteTasks = (shift.shift_todos ?? []).filter(
-      (todo) => !todo.is_completed
+      (todo) =>
+        (!todo.is_completed && !todo.is_optional && !todo.is_prn) ||
+        (todo.is_prn && todo.status === "needs_follow_up")
     );
-    if (incompleteTasks.length > 0 && !payload.allowIncomplete) {
+    const incompleteCount = incompleteTasks.length;
+    if (incompleteCount > 0 && !payload.allowIncomplete) {
       return NextResponse.json(
         {
           error: "Incomplete tasks require confirmation",
-          incompleteCount: incompleteTasks.length,
+          incompleteCount,
         },
         { status: 409 }
       );
     }
 
     const checkoutTime = new Date().toISOString();
-    const flagged =
+    const flaggedOutsideGeofence =
       payload.location.kind === "denied" ||
       (payload.location.kind === "located" && !payload.location.withinFence);
-    
-    const update: any = {
+
+    const update: Record<string, string | number | boolean | null> = {
       check_out_time: checkoutTime,
-      check_out_within_geofence:
-        payload.location.kind === "located" ? payload.location.withinFence : false,
       check_out_method: "caregiver_self",
       check_out_by: caller.id,
+      check_out_within_geofence:
+        payload.location.kind === "located" ? payload.location.withinFence : false,
+      flagged_outside_geofence: flaggedOutsideGeofence,
+      flag_reason: flaggedOutsideGeofence
+        ? payload.location.kind === "denied"
+          ? "Location denied"
+          : "Outside geofence"
+        : null,
     };
 
     if (payload.location.kind === "located") {
       update.check_out_latitude = payload.location.latitude;
       update.check_out_longitude = payload.location.longitude;
-    }
-    if (flagged) {
-      update.flagged_outside_geofence = true;
-      update.flag_reason = payload.location.kind === "denied" ? "Location denied" : "Outside fence";
+      update.check_out_distance_meters = payload.location.distanceMeters;
     }
 
-    const { data: checkedOut, error: updateError } = await supabase
+    const { error: updateError } = await supabase
       .from("check_ins")
       .update(update)
       .eq("id", checkIn.id)
-      .is("check_out_time", null)
-      .select("id, check_out_time")
-      .maybeSingle<{ id: string; check_out_time: string | null }>();
+      .is("check_out_time", null);
 
     if (updateError) {
       return NextResponse.json({ error: updateError.message }, { status: 500 });
-    }
-
-    const admin = createAdminClient();
-    if (incompleteTasks.length > 0) {
-      // Background logic...
     }
 
     return NextResponse.json({ ok: true });
@@ -193,13 +166,4 @@ export async function POST(request: Request) {
     const message = error instanceof Error ? error.message : "Checkout failed";
     return NextResponse.json({ error: message }, { status: 400 });
   }
-}
-
-function formatShiftTime(value: string) {
-  const date = new Date(value);
-  return date.toLocaleString();
-}
-
-function formatDistance(meters: number) {
-  return `${meters}m`;
 }

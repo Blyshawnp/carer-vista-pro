@@ -3,11 +3,14 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { PlusIcon, ArrowRightIcon } from "@/components/icons";
 import UserAvatar from "@/components/user-avatar";
+import { formatCurrency } from "@/lib/pay";
 
 type TeamMember = {
   id: string;
   full_name: string;
   email: string;
+  username: string | null;
+  has_real_email: boolean | null;
   role: "admin" | "client" | "caregiver" | "family";
   is_active: boolean;
   avatar_url: string | null;
@@ -44,7 +47,23 @@ export default async function TeamPage() {
       is_owner: boolean;
     }>();
 
-  if (!profile || (profile.role !== "admin" && !profile.is_owner)) {
+  let canClientManage = false;
+  if (profile?.organization_id) {
+    const { data: org } = await supabase
+      .from("organizations")
+      .select("organization_mode, allow_client_admin_for_personal_use")
+      .eq("id", profile.organization_id)
+      .single();
+    if (org) {
+      const isPersonalFamily = org.organization_mode === "personal_family";
+      const isClientDirected = org.organization_mode === "client_directed_care";
+      canClientManage = (isPersonalFamily && org.allow_client_admin_for_personal_use) || isClientDirected;
+    }
+  }
+
+  const isAllowed = profile?.role === "admin" || profile?.is_owner || (profile?.role === "client" && canClientManage);
+
+  if (!profile || !isAllowed) {
     return (
       <main className="px-5 py-10 max-w-2xl mx-auto">
         <div className="bg-white rounded-3xl p-8 shadow-soft text-center">
@@ -66,7 +85,7 @@ export default async function TeamPage() {
   // Fetch all profiles in org
   const { data: peopleRaw } = await supabase
     .from("profiles")
-    .select("id, full_name, email, role, is_active, avatar_url, avatar_color")
+    .select("id, full_name, email, username, has_real_email, role, is_active, avatar_url, avatar_color")
     .eq("organization_id", profile.organization_id)
     .order("role")
     .order("full_name");
@@ -238,10 +257,12 @@ function PersonRow({ person }: { person: TeamMember }) {
           {person.role === "caregiver"
             ? `${person.shift_count} upcoming · ${
                 person.current_rate
-                  ? `$${person.current_rate.toFixed(2)}/hr`
+                  ? `${formatCurrency(person.current_rate)}/hr`
                   : "No rate set"
               }`
-            : person.email}
+            : person.has_real_email === false && person.username
+              ? person.username
+              : person.email}
         </p>
       </div>
       <Link

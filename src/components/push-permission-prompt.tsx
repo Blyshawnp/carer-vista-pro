@@ -52,8 +52,8 @@ export default function PushPermissionPrompt() {
   if (state === "hidden" || state === "unsupported") return null;
 
   return (
-    <div className="fixed left-3 right-3 bottom-24 z-40 max-w-md mx-auto pb-[env(safe-area-inset-bottom)]">
-      <div className="bg-white border border-cream-200 rounded-3xl shadow-lifted p-4">
+    <div className="fixed inset-x-0 bottom-0 z-40 px-3 pt-4 pb-[calc(env(safe-area-inset-bottom)+96px)] pointer-events-none">
+      <div className="bg-white border border-cream-200 rounded-2xl shadow-lifted p-4 max-w-md mx-auto max-h-[min(70dvh,420px)] overflow-y-auto pointer-events-auto">
         <p className="font-display text-xl text-ink-900 mb-1">
           Get important alerts
         </p>
@@ -78,7 +78,7 @@ export default function PushPermissionPrompt() {
             </Link>
           </div>
         ) : (
-          <div className="flex gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <button
               onClick={dismiss}
               className="flex-1 bg-cream-200 hover:bg-cream-200/70 text-ink-700 py-2.5 rounded-2xl text-sm font-medium transition"

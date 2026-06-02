@@ -7,6 +7,7 @@ import AppLogo from "./app-logo";
 import NotificationBell from "./notification-bell";
 import UserAvatar from "./user-avatar";
 import type { Role } from "@/lib/db-types";
+import { t, type Lang } from "@/lib/i18n";
 import { getFirstName } from "@/lib/name";
 
 export default function AppHeader({
@@ -17,6 +18,12 @@ export default function AppHeader({
   userId,
   notificationCount = 0,
   role,
+  lang = "en",
+  enableCustomBranding = false,
+  customLogoUrl = null,
+  customBrandName = null,
+  brandPrimaryColor = null,
+  brandAccentColor = null,
 }: {
   fullName: string;
   orgName: string;
@@ -25,18 +32,39 @@ export default function AppHeader({
   userId?: string;
   notificationCount?: number;
   role: Role;
+  lang?: Lang;
+  enableCustomBranding?: boolean;
+  customLogoUrl?: string | null;
+  customBrandName?: string | null;
+  brandPrimaryColor?: string | null;
+  brandAccentColor?: string | null;
 }) {
   const firstName = getFirstName(fullName);
   const [emergencyIconFailed, setEmergencyIconFailed] = useState(false);
+  const emergencyLabel = t("header.emergencyInfo", lang);
+  const profileLabel = t("header.profile", lang);
 
   return (
     <header className="px-5 pt-5 pb-3 flex items-center justify-between gap-3 sticky top-0 bg-cream-100/85 backdrop-blur-md z-20">
       <div className="flex items-center gap-3 min-w-0">
         <div className="min-w-0">
-          <AppLogo href="/home" variant="header" showText={false} />
+          <AppLogo
+            href="/home"
+            variant="header"
+            showText={false}
+            enableCustomBranding={enableCustomBranding}
+            customLogoUrl={customLogoUrl}
+            customBrandName={customBrandName}
+          />
           <div className="mt-1 flex items-center gap-2 min-w-0">
-            <h1 className="font-display text-2xl text-ink-900 leading-none truncate">
-              Welcome, <span className="text-forest-600">{firstName}</span>
+            <h1 className="font-display text-4xl text-ink-900 mb-1.5">
+              {t("header.welcome", lang)},{" "}
+              <span
+                className="text-navy-600 font-bold"
+                style={{ color: enableCustomBranding && brandPrimaryColor ? brandPrimaryColor : undefined }}
+              >
+                {firstName}
+              </span>
             </h1>
             {orgName && (
               <>
@@ -53,8 +81,8 @@ export default function AppHeader({
       <div className="flex items-center gap-2 shrink-0">
         <Link
           href="/emergency"
-          aria-label="Emergency info"
-          title="Emergency info"
+          aria-label={emergencyLabel}
+          title={emergencyLabel}
           data-role={role}
           className="relative w-[52px] h-[52px] min-w-[52px] min-h-[52px] rounded-full grid place-items-center overflow-visible shadow-[0_0_18px_rgba(220,38,38,0.38)] transition duration-150 hover:scale-[1.05] hover:shadow-[0_0_24px_rgba(220,38,38,0.5)] active:scale-95 active:brightness-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600 focus-visible:ring-offset-2 focus-visible:ring-offset-cream-100 motion-safe:animate-pulse"
         >
@@ -76,12 +104,16 @@ export default function AppHeader({
           )}
         </Link>
         {userId && (
-          <NotificationBell initialCount={notificationCount} userId={userId} />
+          <NotificationBell
+            initialCount={notificationCount}
+            userId={userId}
+            label={t("header.notifications", lang)}
+          />
         )}
         {userId && (
           <Link
             href="/me"
-            aria-label="Profile"
+            aria-label={profileLabel}
             className="rounded-full hover:opacity-90 transition active:scale-95"
           >
             <UserAvatar
