@@ -203,7 +203,7 @@ function ClientCard({
             href={`/clients/${client.id}/home-info`}
             className="block mt-4 bg-cream-50 hover:bg-cream-100 text-forest-600 border border-forest-500/20 px-4 py-2.5 rounded-xl text-sm font-medium text-center transition"
           >
-            {canManage ? "Edit home info" : "View home info"} →
+            View profile →
           </a>
         </div>
       </div>

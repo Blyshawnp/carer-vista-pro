@@ -12,6 +12,8 @@ import ClientUsersManager from "./client-users-manager";
 import EmergencyGuideEditor from "./emergency-guide-editor";
 import PetsEditor from "./pets-editor";
 import ClientChecklist from "./checklist";
+import PetsList from "@/components/pets-list";
+import { withPetPhotoDisplayUrls } from "@/lib/pet-photos";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -75,6 +77,27 @@ type AssignmentOption = {
   is_active: boolean;
 };
 
+type Pet = {
+  id?: string;
+  name: string;
+  pet_type: string;
+  sex: "Male" | "Female" | "Unknown" | null;
+  spayed_neutered: "Yes" | "No" | "Unknown" | null;
+  photo_url: string | null;
+  photo_display_url?: string | null;
+  feeding_instructions: string | null;
+  medication_instructions: string | null;
+  behavior_notes: string | null;
+  emergency_notes: string | null;
+  supplies_location: string | null;
+  vet_name: string | null;
+  vet_phone: string | null;
+  emergency_vet_phone: string | null;
+  microchip_number: string | null;
+  vaccine_info: string | null;
+  show_to_caregivers: boolean;
+};
+
 export default async function HomeInfoPage({
   params,
   searchParams,
@@ -84,7 +107,8 @@ export default async function HomeInfoPage({
 }) {
   const { id } = await params;
   const { tab } = (await searchParams) ?? {};
-  const currentTab = tab === "guide" ? "guide" : tab === "pets" ? "pets" : "info";
+  const currentTab =
+    tab === "edit" ? "edit" : tab === "guide" ? "guide" : tab === "pets" ? "pets" : "view";
 
   const supabase = await createClient();
   const {
@@ -295,7 +319,7 @@ export default async function HomeInfoPage({
     .eq("client_id", client.id)
     .order("created_at", { ascending: true });
 
-  const pets = petsData ?? [];
+  const pets = await withPetPhotoDisplayUrls(supabase, (petsData ?? []) as Pet[]);
 
   // Compute checklist metrics
   const isGeofenceSet = !!(client.address && client.latitude && client.longitude);
@@ -341,14 +365,24 @@ export default async function HomeInfoPage({
           {/* Navigation tabs */}
           <div className="flex gap-1.5 p-1 bg-cream-50 rounded-2xl border border-cream-200/80 mb-5 text-center no-print">
             <Link
-              href={`/clients/${client.id}/home-info?tab=info`}
+              href={`/clients/${client.id}/home-info`}
               className={`flex-1 text-xs py-2.5 rounded-xl font-medium transition ${
-                currentTab === "info"
+                currentTab === "view"
                   ? "bg-white text-forest-700 shadow-sm"
                   : "text-ink-500 hover:text-ink-900"
               }`}
             >
-              General & Home Info
+              View
+            </Link>
+            <Link
+              href={`/clients/${client.id}/home-info?tab=edit`}
+              className={`flex-1 text-xs py-2.5 rounded-xl font-medium transition ${
+                currentTab === "edit"
+                  ? "bg-white text-forest-700 shadow-sm"
+                  : "text-ink-500 hover:text-ink-900"
+              }`}
+            >
+              Edit Info
             </Link>
             <Link
               href={`/clients/${client.id}/home-info?tab=guide`}
@@ -375,7 +409,30 @@ export default async function HomeInfoPage({
       )}
 
       {/* Tab content */}
-      {(!canManage || currentTab === "info") && (
+      {currentTab === "view" && (
+        <ClientViewSummary client={client} pets={pets} documents={documents} canManage={canManage} />
+      )}
+
+      {(currentTab === "view" || (!canManage && currentTab === "edit")) && (
+        <section className="mt-4">
+          <HomeInfoEditor
+            client={client}
+            contacts={contacts}
+            medications={medications}
+            allergies={allergies}
+            safetyItems={safetyItems}
+            documents={documents}
+            canManage={false}
+            canEditWifi={false}
+            canViewMedicationDetails={canViewMedicationDetails}
+            canViewAllergyDetails={canViewAllergyDetails}
+            canViewSafetyDetails={canViewSafetyDetails}
+            assignmentRole={assignment?.role ?? null}
+          />
+        </section>
+      )}
+
+      {canManage && currentTab === "edit" && (
         <>
           <HomeInfoEditor
             client={client}
@@ -406,9 +463,141 @@ export default async function HomeInfoPage({
         <EmergencyGuideEditor clientId={client.id} initialGuide={guide} client={client} />
       )}
 
-      {canManage && currentTab === "pets" && (
-        <PetsEditor clientId={client.id} initialPets={pets} orgId={profile.organization_id} />
+      {!canManage && currentTab === "guide" && (
+        <ReadOnlyEmergencyGuide guide={guide} client={client} />
+      )}
+
+      {currentTab === "pets" && (
+        canManage ? (
+          <PetsEditor clientId={client.id} initialPets={pets} orgId={profile.organization_id} />
+        ) : (
+          <section className="bg-white rounded-3xl shadow-soft p-5 grain-overlay">
+            <PetsList pets={pets} readOnly={true} />
+          </section>
+        )
       )}
     </main>
+  );
+}
+
+function ClientViewSummary({
+  client,
+  pets,
+  documents,
+  canManage,
+}: {
+  client: ClientHomeInfo;
+  pets: Pet[];
+  documents: Document[];
+  canManage: boolean;
+}) {
+  return (
+    <div className="space-y-4">
+      <section className="bg-white rounded-3xl shadow-soft p-5 grain-overlay">
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <h2 className="font-display text-base text-ink-900">Pets ({pets.length})</h2>
+          <Link href={`/clients/${client.id}/home-info?tab=pets`} className="text-sm text-forest-600 font-medium hover:underline">
+            View pets
+          </Link>
+        </div>
+        {pets.length === 0 ? (
+          <p className="text-sm text-ink-500">No pets listed</p>
+        ) : (
+          <div className="flex -space-x-2">
+            {pets.slice(0, 5).map((pet) => (
+              <div key={pet.id ?? pet.name} className="w-11 h-11 rounded-full border-2 border-white bg-cream-100 overflow-hidden grid place-items-center text-xs font-semibold text-forest-700">
+                {pet.photo_display_url ?? pet.photo_url ? (
+                  <img src={pet.photo_display_url ?? pet.photo_url!} alt={pet.name} className="w-full h-full object-cover" />
+                ) : (
+                  pet.name.slice(0, 1).toUpperCase()
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="grid gap-2">
+        <Link href={`/clients/${client.id}/home-info?tab=guide`} className="flex items-center justify-between bg-white hover:bg-cream-50 px-5 py-4 rounded-2xl shadow-soft transition">
+          <span>
+            <span className="block font-medium text-ink-900">Emergency guide</span>
+            <span className="block text-xs text-ink-500">Preparedness and evacuation info</span>
+          </span>
+          <span className="text-ink-300">→</span>
+        </Link>
+        <Link href="/documents" className="flex items-center justify-between bg-white hover:bg-cream-50 px-5 py-4 rounded-2xl shadow-soft transition">
+          <span>
+            <span className="block font-medium text-ink-900">Documents ({documents.length})</span>
+            <span className="block text-xs text-ink-500">Care documents and instructions</span>
+          </span>
+          <span className="text-ink-300">→</span>
+        </Link>
+        {canManage && (
+          <Link href={`/clients/${client.id}/home-info?tab=edit`} className="flex items-center justify-between bg-forest-600 hover:bg-forest-700 text-cream-50 px-5 py-4 rounded-2xl shadow-soft transition">
+            <span className="font-medium">Edit client info</span>
+            <span>→</span>
+          </Link>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function ReadOnlyEmergencyGuide({
+  guide,
+  client,
+}: {
+  guide: any;
+  client: ClientHomeInfo;
+}) {
+  if (!guide?.enabled) {
+    return (
+      <section className="bg-white rounded-3xl shadow-soft p-5 grain-overlay">
+        <p className="text-sm text-ink-500">No emergency guide is enabled for this client.</p>
+      </section>
+    );
+  }
+
+  const items = [
+    ["Medical emergency", guide.medical_emergency_plan],
+    ["Fall plan", guide.fall_plan],
+    ["Fire evacuation", guide.fire_evacuation_plan],
+    ["Severe weather", guide.severe_weather_plan],
+    ["Power outage", guide.power_outage_plan],
+    ["Pet evacuation", guide.pet_evacuation_plan],
+    ["Supplies", guide.supplies_location],
+    ["Backup contact", guide.backup_contact_instructions],
+    ["Mobility equipment", guide.mobility_equipment],
+    ["Oxygen / fire risk", guide.oxygen_fire_risk],
+    ["Emergency access", guide.access_notes],
+    ["Other", guide.other_instructions],
+  ].filter(([, value]) => typeof value === "string" && value.trim());
+
+  return (
+    <section className="bg-white rounded-3xl shadow-soft p-5 grain-overlay">
+      <h2 className="font-display text-base text-ink-900 mb-3">Emergency guide</h2>
+      <ReadOnly label="Preferred hospital" value={client.preferred_hospital_name || guide.hospital_preference || "Not set"} />
+      <div className="space-y-3 mt-3">
+        {items.length === 0 ? (
+          <p className="text-sm text-ink-500">No guide details listed.</p>
+        ) : (
+          items.map(([label, value]) => (
+            <div key={label} className="rounded-2xl bg-cream-50 border border-cream-200 px-3 py-2">
+              <p className="text-xs uppercase tracking-wide text-ink-500">{label}</p>
+              <p className="text-sm text-ink-900 whitespace-pre-wrap">{value}</p>
+            </div>
+          ))
+        )}
+      </div>
+    </section>
+  );
+}
+
+function ReadOnly({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between items-center py-2 border-b border-cream-200 last:border-b-0">
+      <span className="text-xs uppercase tracking-wide text-ink-500">{label}</span>
+      <span className="text-sm text-ink-900 text-right">{value}</span>
+    </div>
   );
 }

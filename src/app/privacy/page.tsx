@@ -20,7 +20,7 @@ export default function PrivacyPage() {
           <li><strong>Role &amp; Organization:</strong> User role (admin, caregiver, client, family) and linked organization.</li>
           <li><strong>Client &amp; Recipient Profiles:</strong> Names, addresses, home access instructions, Wi-Fi networks, and home notes.</li>
           <li><strong>Health &amp; Emergency Logs:</strong> Emergency contacts, allergy severity lists, medication instructions, physician contacts, and hospital preferences.</li>
-          <li><strong>Pets &amp; Guides:</strong> Pet information, pet photos, and emergency preparedness guides.</li>
+          <li><strong>Pets &amp; Guides:</strong> Pet information, pet photos uploaded by authorized users, and emergency preparedness guides.</li>
           <li><strong>Schedules &amp; Rates:</strong> Shift timings, caregiver estimated pay rates, and billing structures.</li>
           <li><strong>Shifts &amp; Check-ins:</strong> Clock-in/out timestamps, check-in location coordinates, and task completion checklists (including required, optional, and PRN task statuses).</li>
           <li><strong>Location Information:</strong> GPS location coordinates captured exclusively at check-in and check-out to verify geofences. We do not perform continuous background tracking.</li>
@@ -53,6 +53,7 @@ export default function PrivacyPage() {
         </p>
         <ul className="list-disc pl-5 space-y-1.5 text-sm text-ink-700">
           <li>Assigned caregivers see necessary home, client, contact, and medical reference guides.</li>
+          <li>Pet information and pet photos may be visible to assigned caregivers, administrators, clients, and family users based on organization and client permissions.</li>
           <li>Clients and families see schedules and invoices (where permitted), but never caregiver pay rates or organization margins.</li>
           <li>Administrators have full visibility over all checklists, audits, invoice billing, and payroll rates.</li>
         </ul>
