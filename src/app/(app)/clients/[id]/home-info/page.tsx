@@ -12,7 +12,10 @@ import ClientUsersManager from "./client-users-manager";
 import EmergencyGuideEditor from "./emergency-guide-editor";
 import PetsEditor from "./pets-editor";
 import ClientChecklist from "./checklist";
+import ClientPhotoUploader from "./client-photo-uploader";
+import ClientPhoto from "@/components/client-photo";
 import PetsList from "@/components/pets-list";
+import { withClientPhotoDisplayUrl } from "@/lib/client-photos";
 import { withPetPhotoDisplayUrls } from "@/lib/pet-photos";
 
 export const dynamic = "force-dynamic";
@@ -22,6 +25,8 @@ type ClientHomeInfo = {
   id: string;
   full_name: string;
   organization_id: string;
+  photo_url: string | null;
+  photo_display_url?: string | null;
   address: string | null;
   formatted_address: string | null;
   street_address_1: string | null;
@@ -153,7 +158,7 @@ export default async function HomeInfoPage({
   const { data: client, error: clientError } = await supabase
     .from("clients")
     .select(
-      "id, full_name, organization_id, address, formatted_address, street_address_1, street_address_2, city, state, state_or_region, postal_code, country, latitude, longitude, geofence_radius_meters, location_set_at, location_source, wifi_ssid, wifi_password, home_notes, preferred_hospital_name, preferred_hospital_address, preferred_hospital_phone, primary_physician_name, primary_physician_address, primary_physician_phone, show_medications_to_caregivers, show_allergies_to_caregivers"
+      "id, full_name, organization_id, photo_url, address, formatted_address, street_address_1, street_address_2, city, state, state_or_region, postal_code, country, latitude, longitude, geofence_radius_meters, location_set_at, location_source, wifi_ssid, wifi_password, home_notes, preferred_hospital_name, preferred_hospital_address, preferred_hospital_phone, primary_physician_name, primary_physician_address, primary_physician_phone, show_medications_to_caregivers, show_allergies_to_caregivers"
     )
     .eq("id", id)
     .single<ClientHomeInfo>();
@@ -180,6 +185,7 @@ export default async function HomeInfoPage({
   }
 
   if (!client) notFound();
+  const clientWithPhoto = await withClientPhotoDisplayUrl(supabase, client);
 
   const canViewMedicationDetails =
     canManage ||
@@ -410,13 +416,13 @@ export default async function HomeInfoPage({
 
       {/* Tab content */}
       {currentTab === "view" && (
-        <ClientViewSummary client={client} pets={pets} documents={documents} canManage={canManage} />
+        <ClientViewSummary client={clientWithPhoto} pets={pets} documents={documents} canManage={canManage} />
       )}
 
       {(currentTab === "view" || (!canManage && currentTab === "edit")) && (
         <section className="mt-4">
           <HomeInfoEditor
-            client={client}
+            client={clientWithPhoto}
             contacts={contacts}
             medications={medications}
             allergies={allergies}
@@ -435,7 +441,7 @@ export default async function HomeInfoPage({
       {canManage && currentTab === "edit" && (
         <>
           <HomeInfoEditor
-            client={client}
+            client={clientWithPhoto}
             contacts={contacts}
             medications={medications}
             allergies={allergies}
@@ -460,7 +466,7 @@ export default async function HomeInfoPage({
       )}
 
       {canManage && currentTab === "guide" && (
-        <EmergencyGuideEditor clientId={client.id} initialGuide={guide} client={client} />
+        <EmergencyGuideEditor clientId={client.id} initialGuide={guide} client={clientWithPhoto} />
       )}
 
       {!canManage && currentTab === "guide" && (
@@ -493,6 +499,32 @@ function ClientViewSummary({
 }) {
   return (
     <div className="space-y-4">
+      <section className="bg-white rounded-3xl shadow-soft p-5 grain-overlay">
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <div>
+            <h2 className="font-display text-base text-ink-900">Client profile</h2>
+            <p className="text-xs text-ink-500">Photo and care recipient summary</p>
+          </div>
+          {!canManage && (
+            <ClientPhoto
+              name={client.full_name}
+              photoUrl={client.photo_display_url ?? client.photo_url}
+              size="md"
+            />
+          )}
+        </div>
+        {canManage ? (
+          <ClientPhotoUploader
+            clientId={client.id}
+            orgId={client.organization_id}
+            clientName={client.full_name}
+            currentPhotoUrl={client.photo_display_url ?? client.photo_url}
+          />
+        ) : (
+          <ReadOnly label="Location" value={client.address || "Location not set"} />
+        )}
+      </section>
+
       <section className="bg-white rounded-3xl shadow-soft p-5 grain-overlay">
         <div className="flex items-center justify-between gap-3 mb-3">
           <h2 className="font-display text-base text-ink-900">Pets ({pets.length})</h2>

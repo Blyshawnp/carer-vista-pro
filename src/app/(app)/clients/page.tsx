@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { withClientPhotoDisplayUrls } from "@/lib/client-photos";
 import ClientsList from "./clients-list";
 
 export default async function ClientsPage() {
@@ -44,8 +45,9 @@ export default async function ClientsPage() {
 
   const { data: clients } = await supabase
     .from("clients")
-    .select("id, full_name, address, formatted_address, street_address_1, street_address_2, city, state, state_or_region, postal_code, country, latitude, longitude, geofence_radius_meters")
+    .select("id, full_name, photo_url, address, formatted_address, street_address_1, street_address_2, city, state, state_or_region, postal_code, country, latitude, longitude, geofence_radius_meters")
     .order("full_name");
+  const clientsWithPhotos = await withClientPhotoDisplayUrls(supabase, clients ?? []);
 
   return (
     <main className="px-5 py-6 max-w-2xl mx-auto">
@@ -73,7 +75,7 @@ export default async function ClientsPage() {
       </header>
 
       <ClientsList
-        clients={clients ?? []}
+        clients={clientsWithPhotos}
         canManage={canManage}
         role={profile.role}
       />

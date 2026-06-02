@@ -6,11 +6,14 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { getCurrentPosition } from "@/lib/geo";
 import { formatStructuredAddress, normalizeCountry } from "@/lib/address";
+import ClientPhoto from "@/components/client-photo";
 import { MapPinIcon } from "@/components/icons";
 
 type Client = {
   id: string;
   full_name: string;
+  photo_url: string | null;
+  photo_display_url?: string | null;
   address: string | null;
   formatted_address: string | null;
   street_address_1: string | null;
@@ -22,7 +25,7 @@ type Client = {
   country: string | null;
   latitude: number | null;
   longitude: number | null;
-  geofence_radius_meters: number;
+  geofence_radius_meters: number | null;
 };
 
 export default function ClientsList({
@@ -94,7 +97,7 @@ function ClientCard({
   const [longitude, setLongitude] = useState(
     client.longitude != null ? String(client.longitude) : ""
   );
-  const [radius, setRadius] = useState(String(client.geofence_radius_meters));
+  const [radius, setRadius] = useState(String(client.geofence_radius_meters ?? 150));
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [locating, setLocating] = useState(false);
@@ -163,16 +166,23 @@ function ClientCard({
       <div className="bg-white rounded-2xl shadow-soft p-5 grain-overlay">
         <div className="relative">
           <div className="flex items-start justify-between gap-3 mb-3">
-            <div>
-              <h2 className="font-display text-lg text-ink-900">
+            <Link href={`/clients/${client.id}/home-info`} className="flex items-start gap-3 min-w-0">
+              <ClientPhoto
+                name={client.full_name}
+                photoUrl={client.photo_display_url ?? client.photo_url}
+                size="sm"
+              />
+              <div className="min-w-0">
+                <h2 className="font-display text-lg text-ink-900 truncate">
                 {client.full_name}
-              </h2>
-              {meaningfulAddress ? (
-                <p className="text-sm text-ink-500 mt-0.5">{meaningfulAddress}</p>
-              ) : (
-                <p className="text-sm text-ink-400 mt-0.5">Location not set</p>
-              )}
-            </div>
+                </h2>
+                {meaningfulAddress ? (
+                  <p className="text-sm text-ink-500 mt-0.5">{meaningfulAddress}</p>
+                ) : (
+                  <p className="text-sm text-ink-400 mt-0.5">Location not set</p>
+                )}
+              </div>
+            </Link>
             {canManage && (
               <button
                 onClick={() => setEditing(true)}
@@ -191,7 +201,7 @@ function ClientCard({
             <span className={hasCoords ? "text-ink-700" : "text-terracotta-600"}>
               {hasCoords ? (
                 <>
-                  Geofence set · {client.geofence_radius_meters}m radius
+                  Geofence set · {client.geofence_radius_meters ?? 150}m radius
                 </>
               ) : (
                 "No geofence set yet"

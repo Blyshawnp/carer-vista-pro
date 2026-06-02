@@ -1,4 +1,4 @@
-const LAST_UPDATED = "June 1, 2026";
+const LAST_UPDATED = "June 2, 2026";
 
 export default function PrivacyPage() {
   return (
@@ -16,9 +16,9 @@ export default function PrivacyPage() {
           Carer Vista Pro collects and processes the following information to facilitate care coordination:
         </p>
         <ul className="list-disc pl-5 space-y-1.5 text-sm text-ink-700">
-          <li><strong>Account Details:</strong> Name, email address, password hashes, profile settings, and theme color scheme preferences.</li>
+          <li><strong>Account Details:</strong> Name, email address, password hashes, profile photos, profile settings, and theme color scheme preferences.</li>
           <li><strong>Role &amp; Organization:</strong> User role (admin, caregiver, client, family) and linked organization.</li>
-          <li><strong>Client &amp; Recipient Profiles:</strong> Names, addresses, home access instructions, Wi-Fi networks, and home notes.</li>
+          <li><strong>Client &amp; Recipient Profiles:</strong> Names, addresses, care recipient photos, home access instructions, Wi-Fi networks, and home notes.</li>
           <li><strong>Health &amp; Emergency Logs:</strong> Emergency contacts, allergy severity lists, medication instructions, physician contacts, and hospital preferences.</li>
           <li><strong>Pets &amp; Guides:</strong> Pet information, pet photos uploaded by authorized users, and emergency preparedness guides.</li>
           <li><strong>Schedules &amp; Rates:</strong> Shift timings, caregiver estimated pay rates, and billing structures.</li>
@@ -53,7 +53,7 @@ export default function PrivacyPage() {
         </p>
         <ul className="list-disc pl-5 space-y-1.5 text-sm text-ink-700">
           <li>Assigned caregivers see necessary home, client, contact, and medical reference guides.</li>
-          <li>Pet information and pet photos may be visible to assigned caregivers, administrators, clients, and family users based on organization and client permissions.</li>
+          <li>Pet information, pet photos, caregiver profile photos, and care recipient photos may be visible to assigned caregivers, administrators, clients, and family users based on organization and client permissions.</li>
           <li>Clients and families see schedules and invoices (where permitted), but never caregiver pay rates or organization margins.</li>
           <li>Administrators have full visibility over all checklists, audits, invoice billing, and payroll rates.</li>
         </ul>
