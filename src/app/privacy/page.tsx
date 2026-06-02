@@ -16,7 +16,7 @@ export default function PrivacyPage() {
           Carer Vista Pro collects and processes the following information to facilitate care coordination:
         </p>
         <ul className="list-disc pl-5 space-y-1.5 text-sm text-ink-700">
-          <li><strong>Account Details:</strong> Name, email address, password hashes, profile photos, profile settings, and theme color scheme preferences.</li>
+          <li><strong>Account Details:</strong> Name, email address, password hashes, profile photos, profile settings, language preferences, and theme color scheme preferences.</li>
           <li><strong>Role &amp; Organization:</strong> User role (admin, caregiver, client, family) and linked organization.</li>
           <li><strong>Client &amp; Recipient Profiles:</strong> Names, addresses, care recipient photos, home access instructions, Wi-Fi networks, and home notes.</li>
           <li><strong>Health &amp; Emergency Logs:</strong> Emergency contacts, allergy severity lists, medication instructions, physician contacts, and hospital preferences.</li>
@@ -28,7 +28,7 @@ export default function PrivacyPage() {
           <li><strong>Internal Communication:</strong> In-app messages, notifications, system alerts, and commendations or complaints.</li>
           <li><strong>Documents &amp; Audits:</strong> PDF or image uploads, read acknowledgments, print history logs, and financial audit logs.</li>
           <li><strong>Invoices &amp; Balances:</strong> Invoice history, recorded manual payments, balances due, client-funded appreciation bonuses, and holiday surcharges.</li>
-          <li><strong>Technical Metadata:</strong> Device identifiers, browser type, operating system, and system security logs.</li>
+          <li><strong>Technical Metadata:</strong> Device identifiers, browser type, operating system, push notification subscriptions, device metadata, and system security logs.</li>
         </ul>
       </Section>
 

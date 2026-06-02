@@ -115,12 +115,15 @@ export default function TermsPage() {
         </p>
       </Section>
 
-      <Section title="Service availability">
+      <Section title="Service and Notification availability">
         <p>
           We do not guarantee uninterrupted or error-free service. Data,
-          notifications, and reminders may be delayed or unavailable because of
-          network issues, device issues, platform issues, browser settings, or
+          push notifications, PWA alerts, and reminders may be delayed, blocked, disabled, or unavailable because of
+          network issues, cellular signals, device settings, platform issues, browser settings, power outages, or
           third-party service interruptions.
+        </p>
+        <p className="mt-2 text-xs">
+          ⚠️ PWA notifications and push notifications are not guaranteed for urgent, critical, or emergency use. Always use primary emergency dispatch lines (such as calling 911) for any urgent care or life safety situation.
         </p>
       </Section>
 

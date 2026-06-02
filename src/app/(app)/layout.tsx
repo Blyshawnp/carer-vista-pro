@@ -7,6 +7,7 @@ import ShiftWatcher, {
 } from "@/components/shift-watcher";
 import InstallPrompt from "@/components/install-prompt";
 import PushPermissionPrompt from "@/components/push-permission-prompt";
+import PwaHealthCheck from "@/components/pwa-health-check";
 import type { Role } from "@/lib/db-types";
 import type { Lang } from "@/lib/i18n";
 
@@ -160,12 +161,32 @@ export default async function AppLayout({
     plan_allows_custom_branding: profile.organizations.plan_allows_custom_branding !== false,
   } : null;
 
-  const showCustomBranding = !!(orgBranding?.enable_custom_branding && orgBranding?.plan_allows_custom_branding);
+  const showCustomBranding = orgBranding
+    ? !!(orgBranding.enable_custom_branding && orgBranding.plan_allows_custom_branding)
+    : false;
 
-  const themeClass = showCustomBranding ? "default" : (profile?.theme_preference ?? "default");
+  const themeClass = profile?.theme_preference ?? "default";
 
   return (
     <div className={`min-h-dvh flex flex-col bg-cream-100 theme-${themeClass}`}>
+      {showCustomBranding && (orgBranding?.brand_primary_color || orgBranding?.brand_accent_color) && themeClass !== "high-contrast" && (
+        <style dangerouslySetInnerHTML={{ __html: `
+          :root, .theme-default, .theme-teal, .theme-blue, .theme-green, .theme-purple, .theme-rose {
+            ${orgBranding?.brand_primary_color ? `
+              --forest-400: ${orgBranding.brand_primary_color}dd;
+              --forest-500: ${orgBranding.brand_primary_color};
+              --forest-600: ${orgBranding.brand_primary_color}ee;
+              --forest-700: ${orgBranding.brand_primary_color}cc;
+            ` : ""}
+            ${orgBranding?.brand_accent_color ? `
+              --terracotta-400: ${orgBranding.brand_accent_color}dd;
+              --terracotta-500: ${orgBranding.brand_accent_color};
+              --terracotta-600: ${orgBranding.brand_accent_color}ee;
+            ` : ""}
+          }
+        ` }} />
+      )}
+
       <AppHeader
         fullName={profile?.full_name ?? "There"}
         orgName={profile?.organizations?.name ?? ""}
@@ -205,6 +226,7 @@ export default async function AppLayout({
       />
       <InstallPrompt />
       <PushPermissionPrompt />
+      <PwaHealthCheck />
     </div>
   );
 }
