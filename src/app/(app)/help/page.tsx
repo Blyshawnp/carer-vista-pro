@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 type Role = "admin" | "client" | "caregiver" | "family";
 
-const LAST_UPDATED = "May 11, 2026";
+const LAST_UPDATED = "June 2, 2026";
 
 export default async function HelpPage() {
   const supabase = await createClient();
@@ -251,9 +251,32 @@ export default async function HelpPage() {
           <ul className="text-sm text-ink-750 space-y-1.5 list-disc pl-5">
             <li><strong>Theme & Color Schemes:</strong> Customize the look of the app shell, buttons, navigation, and active states. Choose from <em>System default</em>, <em>Carer Vista Pro default</em>, <em>Teal</em>, <em>Blue</em>, <em>Green</em>, <em>Purple</em>, <em>Rose</em>, or the highly readable <em>High contrast</em> scheme. Organization custom branding takes precedence but personal accents are preserved.</li>
             <li><strong>Spanish Language:</strong> Toggle between English and Spanish seamlessly under <strong>Me &rarr; Language</strong>. This translates the dashboard, client detail sheets, task categories, PRN options, invoices, and summaries.</li>
-            <li><strong>PWA Installation Controls:</strong> Control progressive web app banner prompts. You can choose <em>Install app</em>, <em>Not now</em>, <em>Don't show for 24 hours</em> (remind tomorrow), or <em>Don't show again</em>. A manual <em>Install app</em> button is also available in Settings.</li>
+              <li><strong>PWA Installation Controls:</strong> Control progressive web app banner prompts. You can choose <em>Install app</em>, <em>Not now</em>, <em>Don't show for 24 hours</em> (remind tomorrow), or <em>Don't show again</em>. A manual <em>Install app</em> button is also available in Settings.</li>
             <li><strong>Notification Sounds & Volume:</strong> Toggle audio alerts and adjust playback volume using the slider (suggested default is 80%). Use the <em>Play test sound</em> button to test browser autoplay compatibility.</li>
             <li><strong>Push Notification Health Check:</strong> Verify notification health via the status indicator (Active, Not active, or Unsupported) and view the last successful subscription check time. Tap <em>Refresh subscription</em> to update server metadata.</li>
+          </ul>
+        </Section>
+
+        <Section title="Custom Branding & Paid Features">
+          <p className="text-sm text-ink-700 mb-2">
+            Organizations can customize their platform experience and access advanced operational tools depending on their active subscription tier:
+          </p>
+          <ul className="text-sm text-ink-750 space-y-1.5 list-disc pl-5">
+            <li><strong>Organization Custom Branding:</strong> Upload your company logo, set your custom brand name, and personalize accent colors under <strong>Me → Organization Settings</strong>. Main headers, button styles, active nav, and accent panels will render in your organization's curated colors. Note: personal accessibility choices (like High Contrast mode) safely override custom styles for individual comfort.</li>
+            <li><strong>Standard vs. Premium Features:</strong> Basic accounts access standard shift scheduling, locations geofencing, and shift checklist logging. Paid plans unlock premium features, including advanced invoicing, custom year-end summaries, secure multi-client document workflows, complex holiday pay calculations, and advanced agency mode cancellation management.</li>
+            <li><strong>White-Label Limits:</strong> Custom branding alters theme color schemes and logos but does not transfer ownership of the underlying software. All footers, legal notifications, and help screens remain clearly powered by <em>Carer Vista Pro</em>.</li>
+          </ul>
+        </Section>
+
+        <Section title="Push Notification Troubleshooting">
+          <p className="text-sm text-ink-700 mb-2">
+            If you are not receiving native push notifications for messages, check-ins, or alerts, please check the following requirements:
+          </p>
+          <ul className="text-sm text-ink-750 space-y-1.5 list-disc pl-5">
+            <li><strong>iPhone / iPad Users (iOS 16.4+):</strong> You must install the PWA to your Home Screen first! Standard browser tabs cannot receive background pushes. Tap Safari's <strong>Share</strong> button, select <strong>Add to Home Screen</strong>, launch the app from your home screen, navigate to <strong>Me → Notifications</strong>, and choose <strong>Enable on this device</strong>.</li>
+            <li><strong>Android / Chrome Users:</strong> Launch the app, accept Chrome's system prompts, and enable notifications. Ensure Chrome is not restricted in your phone's general app notifications or battery optimization settings.</li>
+            <li><strong>System Block Check:</strong> Verify that your device is not in Focus Mode, quiet mode, or Do Not Disturb. Ensure you have not explicitly blocked notification permissions for Carer Vista Pro in your browser or device operating system.</li>
+            <li><strong>Test Dispatcher:</strong> Navigate to your notifications page and tap the <strong>Send test notification</strong> button. This immediately dispatches a secure system test push to verify your active VAPID credentials connection.</li>
           </ul>
         </Section>
 

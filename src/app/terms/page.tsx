@@ -1,4 +1,4 @@
-const LAST_UPDATED = "June 1, 2026";
+const LAST_UPDATED = "June 2, 2026";
 
 export default function TermsPage() {
   return (

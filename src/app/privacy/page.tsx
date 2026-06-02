@@ -17,7 +17,7 @@ export default function PrivacyPage() {
         </p>
         <ul className="list-disc pl-5 space-y-1.5 text-sm text-ink-700">
           <li><strong>Account Details:</strong> Name, email address, password hashes, profile photos, profile settings, language preferences, and theme color scheme preferences.</li>
-          <li><strong>Role &amp; Organization:</strong> User role (admin, caregiver, client, family) and linked organization.</li>
+          <li><strong>Role &amp; Organization:</strong> User role (admin, caregiver, client, family), linked organization, and uploaded organization assets (such as custom company logos, white-label branding names, and brand color hexadecimal values).</li>
           <li><strong>Client &amp; Recipient Profiles:</strong> Names, addresses, care recipient photos, home access instructions, Wi-Fi networks, and home notes.</li>
           <li><strong>Health &amp; Emergency Logs:</strong> Emergency contacts, allergy severity lists, medication instructions, physician contacts, and hospital preferences.</li>
           <li><strong>Pets &amp; Guides:</strong> Pet information, pet photos uploaded by authorized users, and emergency preparedness guides.</li>
