@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import SetupWizard from "./setup-wizard";
 
 export const dynamic = "force-dynamic";
@@ -12,17 +13,25 @@ export default async function SetupPage() {
 
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase
+  const admin = createAdminClient();
+  const { data: profile } = await admin
     .from("profiles")
-    .select("organization_id, organizations(onboarding_complete)")
+    .select("organization_id")
     .eq("id", user.id)
     .maybeSingle<{
       organization_id: string | null;
-      organizations: { onboarding_complete: boolean | null } | null;
     }>();
 
-  if (profile?.organization_id && profile.organizations?.onboarding_complete !== false) {
-    redirect("/home");
+  if (profile?.organization_id) {
+    const { data: organization } = await admin
+      .from("organizations")
+      .select("onboarding_complete")
+      .eq("id", profile.organization_id)
+      .maybeSingle<{ onboarding_complete: boolean | null }>();
+
+    if (organization?.onboarding_complete !== false) {
+      redirect("/home");
+    }
   }
 
   const defaultName =
