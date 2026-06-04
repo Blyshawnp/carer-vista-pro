@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { sendPushForNotifications } from "@/lib/web-push";
+import { formatEnumLabel } from "@/lib/pay";
 import type { Role } from "@/lib/db-types";
 
 const CATEGORIES = new Set([
@@ -131,7 +132,7 @@ export async function POST(request: Request) {
     recipient_id: recipientId,
     kind: "client_info_correction",
     title: "Client info correction suggested",
-    body: `${caller.full_name} suggested a ${category.replaceAll("_", " ")} update for ${client.full_name}.`,
+    body: `${caller.full_name} suggested a ${formatEnumLabel(category)} update for ${client.full_name}.`,
     link: `/clients/${clientId}/home-info`,
   }));
 

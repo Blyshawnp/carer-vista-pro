@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { formatStructuredAddress, normalizeCountry } from "@/lib/address";
+import { formatEnumLabel } from "@/lib/pay";
 import HomeContent from "./home-content";
 import OnboardingChecklist from "@/components/onboarding-checklist";
 
@@ -407,7 +408,7 @@ function formatCareActivityTitle(
     case "shift_removed":
       return "Shift removed";
     default:
-      return eventType.replaceAll("_", " ");
+      return formatEnumLabel(eventType);
   }
 }
 
@@ -440,10 +441,10 @@ function formatMedicationStatus(status: string) {
     case "refused":
       return "client declined";
     case "needs_follow_up":
-      return "needs follow-up";
+      return "Needs follow-up";
     case "reminded":
       return "reminded";
     default:
-      return status.replaceAll("_", " ");
+      return formatEnumLabel(status);
   }
 }
