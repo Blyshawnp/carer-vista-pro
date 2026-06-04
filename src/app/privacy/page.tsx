@@ -1,4 +1,4 @@
-const LAST_UPDATED = "June 2, 2026";
+const LAST_UPDATED = "June 4, 2026";
 
 export default function PrivacyPage() {
   return (
@@ -29,6 +29,7 @@ export default function PrivacyPage() {
           <li><strong>Documents &amp; Audits:</strong> PDF or image uploads, read acknowledgments, print history logs, and financial audit logs.</li>
           <li><strong>Invoices &amp; Balances:</strong> Invoice history, recorded manual payments, balances due, client-funded appreciation bonuses, and holiday surcharges.</li>
           <li><strong>Technical Metadata:</strong> Device identifiers, browser type, operating system, push notification subscriptions, device metadata, and system security logs.</li>
+          <li><strong>Notification, Tutorial, and Onboarding Settings:</strong> Notification category preferences, in-app tone and quiet-hour settings, privacy-safe notification body settings, tutorial completion or skip status, onboarding checklist dismissal, and organization intro video settings may be stored.</li>
         </ul>
       </Section>
 
@@ -44,6 +45,7 @@ export default function PrivacyPage() {
           <li>Logging geofenced check-ins to verify shifts.</li>
           <li>Maintaining invoices, pay estimates, payment records, and year-end summaries.</li>
           <li>Recording detailed financial audits and system diagnostic troubleshooting logs.</li>
+          <li>Remembering notification, tutorial, intro video, and onboarding checklist preferences so they do not repeat unnecessarily.</li>
         </ul>
       </Section>
 

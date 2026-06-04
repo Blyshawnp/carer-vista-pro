@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { formatStructuredAddress, normalizeCountry } from "@/lib/address";
 import HomeContent from "./home-content";
+import OnboardingChecklist from "@/components/onboarding-checklist";
 
 export type ShiftRow = {
   id: string;
@@ -54,9 +55,9 @@ export default async function HomePage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, role, full_name, organization_id")
+    .select("id, role, full_name, organization_id, onboarding_checklist_dismissed")
     .eq("id", user.id)
-    .single<{ id: string; role: "admin" | "client" | "caregiver" | "family"; full_name: string; organization_id: string }>();
+    .single<{ id: string; role: "admin" | "client" | "caregiver" | "family"; full_name: string; organization_id: string; onboarding_checklist_dismissed: boolean | null }>();
 
   if (!profile) return null;
 
@@ -271,13 +272,19 @@ export default async function HomePage() {
   }
 
   return (
-    <HomeContent
-      role={profile.role}
-      shifts={shifts}
-      activeShifts={activeShifts}
-      assignedClients={assignedClients}
-      careActivity={careActivity}
-    />
+    <>
+      <OnboardingChecklist
+        role={profile.role}
+        dismissed={!!profile.onboarding_checklist_dismissed}
+      />
+      <HomeContent
+        role={profile.role}
+        shifts={shifts}
+        activeShifts={activeShifts}
+        assignedClients={assignedClients}
+        careActivity={careActivity}
+      />
+    </>
   );
 }
 

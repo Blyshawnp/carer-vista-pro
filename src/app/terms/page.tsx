@@ -1,4 +1,4 @@
-const LAST_UPDATED = "June 2, 2026";
+const LAST_UPDATED = "June 4, 2026";
 
 export default function TermsPage() {
   return (
@@ -124,6 +124,9 @@ export default function TermsPage() {
         </p>
         <p className="mt-2 text-xs">
           ⚠️ PWA notifications and push notifications are not guaranteed for urgent, critical, or emergency use. Always use primary emergency dispatch lines (such as calling 911) for any urgent care or life safety situation.
+        </p>
+        <p className="mt-2">
+          In-app tones and category sound choices are browser-based convenience features. They are not guaranteed, may require prior user interaction, and do not replace phone calls, emergency services, or other primary alert paths.
         </p>
       </Section>
 

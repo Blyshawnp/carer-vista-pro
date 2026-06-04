@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { playNotificationSound } from "@/lib/notification-sounds";
+import IntroVideoSettings from "@/components/intro-video-settings";
 import {
   PWA_INSTALL_DISMISSED_SESSION_KEY,
   PWA_INSTALL_DISMISS_UNTIL_KEY,
@@ -487,6 +488,8 @@ export default function AccountSettingsPage() {
             </div>
           </div>
         </section>
+
+        <IntroVideoSettings canManage={profile?.role === "admin" || profile?.role === "client"} />
 
         {/* Platform identity reference */}
         <div className="text-center pt-2">

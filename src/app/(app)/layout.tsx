@@ -8,6 +8,7 @@ import ShiftWatcher, {
 import InstallPrompt from "@/components/install-prompt";
 import PushPermissionPrompt from "@/components/push-permission-prompt";
 import PwaHealthCheck from "@/components/pwa-health-check";
+import OnboardingTutorial from "@/components/onboarding-tutorial";
 import type { Role } from "@/lib/db-types";
 import type { Lang } from "@/lib/i18n";
 
@@ -19,9 +20,13 @@ type ProfileWithOrg = {
   language: Lang | null;
   avatar_url: string | null;
   avatar_color: string | null;
+  tutorial_completed: boolean | null;
   organizations: {
     name: string;
     onboarding_complete: boolean | null;
+    intro_video_url: string | null;
+    intro_video_enabled: boolean | null;
+    show_intro_video_on_first_login: boolean | null;
     enable_custom_branding?: boolean;
     custom_logo_url?: string | null;
     brand_primary_color?: string | null;
@@ -69,7 +74,7 @@ export default async function AppLayout({
   const { data: profile } = await supabase
     .from("profiles")
     .select(
-      "id, full_name, role, organization_id, language, avatar_url, avatar_color, theme_preference, organizations(name, onboarding_complete, enable_custom_branding, custom_logo_url, brand_primary_color, brand_accent_color, custom_brand_name, plan_allows_custom_branding)"
+      "id, full_name, role, organization_id, language, avatar_url, avatar_color, theme_preference, tutorial_completed, organizations(name, onboarding_complete, intro_video_url, intro_video_enabled, show_intro_video_on_first_login, enable_custom_branding, custom_logo_url, brand_primary_color, brand_accent_color, custom_brand_name, plan_allows_custom_branding)"
     )
     .eq("id", user.id)
     .single<ProfileWithOrg & { theme_preference: string }>();
@@ -227,6 +232,13 @@ export default async function AppLayout({
       <InstallPrompt />
       <PushPermissionPrompt />
       <PwaHealthCheck />
+      <OnboardingTutorial
+        role={profile?.role ?? "caregiver"}
+        completed={!!profile?.tutorial_completed}
+        introVideoUrl={profile?.organizations?.intro_video_url ?? null}
+        introVideoEnabled={!!profile?.organizations?.intro_video_enabled}
+        showIntroVideoOnFirstLogin={!!profile?.organizations?.show_intro_video_on_first_login}
+      />
     </div>
   );
 }
