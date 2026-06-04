@@ -61,6 +61,15 @@ export default function ScheduleView({
     return shifts.filter((s) => selectedShiftIds.has(s.id));
   }, [shifts, selectedShiftIds]);
 
+  function exportSelectedShifts() {
+    if (selectedShiftIds.size === 0) return;
+    window.location.href = `/api/calendar/shifts?ids=${encodeURIComponent(Array.from(selectedShiftIds).join(","))}`;
+  }
+
+  function exportAllMyShifts() {
+    window.location.href = "/api/calendar/shifts?all=mine";
+  }
+
   return (
     <main className="px-5 py-6 max-w-2xl mx-auto">
       <header className="flex items-end justify-between mb-5">
@@ -97,6 +106,13 @@ export default function ScheduleView({
                 {isMultiSelectMode ? "Exit multi-select" : "Bulk actions"}
               </button>
             )}
+            <button
+              type="button"
+              onClick={exportAllMyShifts}
+              className="text-xs text-forest-600 font-medium hover:underline"
+            >
+              Export all my shifts
+            </button>
           </div>
           <div className="flex gap-3 mt-2.5 flex-wrap items-center">
             {canCreateShifts && (
@@ -239,6 +255,12 @@ export default function ScheduleView({
             {selectedShiftIds.size} selected
           </span>
           <div className="flex gap-2 shrink-0">
+            <button
+              onClick={exportSelectedShifts}
+              className="bg-white border border-forest-200 text-forest-700 px-3 py-1.5 rounded-xl text-xs font-semibold transition"
+            >
+              Export
+            </button>
             <button
               onClick={() => setShowAddTaskModal(true)}
               className="bg-forest-600 hover:bg-forest-700 text-cream-50 px-3 py-1.5 rounded-xl text-xs font-semibold transition"
@@ -492,7 +514,7 @@ function ShiftCard({
                     : "text-ink-900"
               }`}
             >
-              {formatShiftTypeName(shift.shift_type_name)} #{shift.id.slice(0, 8).toUpperCase()}
+              {formatShiftTypeName(shift.shift_type_name)}
             </p>
             {status.kind === "completed" && (
               <span className="text-[10px] uppercase tracking-wider text-forest-600 font-medium bg-forest-100 px-1.5 py-0.5 rounded">
