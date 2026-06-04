@@ -43,6 +43,15 @@ Capacitor is stronger if native APIs are expected.
 - A custom Android wrapper can be built if native needs exceed TWA/Capacitor.
 - Avoid native wrappers that fork business logic from the web app.
 
+## App Icon Export Notes
+
+- PWA install icons are generated from `public/CarerVistaIcon.png` using the icon-only mark, not the wordmark.
+- Regular icons should fill roughly 80-90% of the square with no inner white logo box.
+- Maskable icons should use a full-bleed background while keeping the key artwork inside the adaptive icon safe zone.
+- Future native Android packaging should export matching `mipmap`/adaptive icon foreground and background assets from the same icon-only mark.
+- Existing installed PWAs may keep the old icon until the app is removed and reinstalled.
+- Android launchers and iPhone/iPad home screens may cache old icons even after deployment.
+
 ## Android Package Name Strategy
 
 - Choose a permanent reverse-DNS package name before first upload.
