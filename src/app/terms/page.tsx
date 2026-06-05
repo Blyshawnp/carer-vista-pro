@@ -54,6 +54,7 @@ export default function TermsPage() {
         <ul className="list-disc pl-5 space-y-1.5">
           <li>Organization owners and admins are responsible for verifying caregivers, schedules, care instructions, emergency contacts, medications, allergies, documents, and permissions.</li>
           <li>Admins are responsible for reviewing and updating permissions for linked family and client users.</li>
+          <li>Admins are responsible for maintaining accurate managed user profile/contact details, sending password reset emails only when appropriate, and disabling access when users should no longer have access.</li>
           <li>Admins are responsible for deciding which information may be visible to caregivers and family users.</li>
         </ul>
       </Section>

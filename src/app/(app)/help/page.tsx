@@ -207,6 +207,8 @@ export default async function HelpPage() {
             <li>Each role only sees data within its own organization.</li>
             <li>Caregivers can see the home info needed to do their work, but never edit Wi-Fi or sensitive admin settings.</li>
             <li>Admins can do everything in their org.</li>
+            <li><strong>Managed Users:</strong> Organization admins can edit caregiver, client, and family profile/contact details from Team member profiles. Contact email is separate from the login email unless a secure login-email change flow is explicitly used.</li>
+            <li><strong>Password Resets:</strong> Organization admins can send password reset emails for users with real login email accounts. Username-only accounts use the separate admin password reset card.</li>
             <li>Clients and family users can only see information allowed by their assignment and privacy settings.</li>
             <li><strong>Sensitive Documents:</strong> Shared documents may contain highly sensitive medical or personal information. Users should only upload, view, or share documents they are explicitly authorized to share.</li>
             <li><strong>Client Documents:</strong> Documents uploaded from client home info are visible from the client Documents page and allowed shift Documents sections. They do not require edit mode to view.</li>
