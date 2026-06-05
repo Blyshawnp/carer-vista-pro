@@ -298,8 +298,8 @@ export default async function MePage() {
           />
           <NavLink
             href="/me/organization-settings"
-            label="Organization Branding"
-            description="Upload organization branding if your plan includes it."
+            label={t("appearance.organizationBranding", lang)}
+            description={t("appearance.organizationBrandingDescription", lang)}
             Icon={UserIcon}
           />
         </section>
@@ -385,8 +385,8 @@ export default async function MePage() {
       <section className="space-y-2 mb-4">
         <NavLink
           href="/account/settings#appearance"
-          label="Appearance"
-          description="Change colors, font size, and accessibility preferences."
+          label={t("appearance.title", lang)}
+          description={t("appearance.description", lang)}
           Icon={UserIcon}
         />
         <NavLink
