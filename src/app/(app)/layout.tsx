@@ -20,6 +20,11 @@ type ProfileWithOrg = {
   language: Lang | null;
   avatar_url: string | null;
   avatar_color: string | null;
+  theme_preference: string | null;
+  font_size_preference: "standard" | "large" | "extra_large" | null;
+  reduce_motion: boolean | null;
+  increase_contrast: boolean | null;
+  larger_buttons: boolean | null;
   tutorial_completed: boolean | null;
   organizations: {
     name: string;
@@ -74,10 +79,10 @@ export default async function AppLayout({
   const { data: profile } = await supabase
     .from("profiles")
     .select(
-      "id, full_name, role, organization_id, language, avatar_url, avatar_color, theme_preference, tutorial_completed, organizations(name, onboarding_complete, intro_video_url, intro_video_enabled, show_intro_video_on_first_login, enable_custom_branding, custom_logo_url, brand_primary_color, brand_accent_color, custom_brand_name, plan_allows_custom_branding)"
+      "id, full_name, role, organization_id, language, avatar_url, avatar_color, theme_preference, font_size_preference, reduce_motion, increase_contrast, larger_buttons, tutorial_completed, organizations(name, onboarding_complete, intro_video_url, intro_video_enabled, show_intro_video_on_first_login, enable_custom_branding, custom_logo_url, brand_primary_color, brand_accent_color, custom_brand_name, plan_allows_custom_branding)"
     )
     .eq("id", user.id)
-    .single<ProfileWithOrg & { theme_preference: string }>();
+    .single<ProfileWithOrg>();
 
   if (!profile?.organization_id || profile.organizations?.onboarding_complete === false) {
     redirect("/setup");
@@ -173,7 +178,16 @@ export default async function AppLayout({
   const themeClass = profile?.theme_preference ?? "default";
 
   return (
-    <div className={`min-h-dvh flex flex-col bg-cream-100 theme-${themeClass}`}>
+    <div
+      className={[
+        "min-h-dvh flex flex-col bg-cream-100",
+        `theme-${themeClass}`,
+        `font-${profile?.font_size_preference ?? "standard"}`,
+        profile?.reduce_motion ? "reduce-motion" : "",
+        profile?.increase_contrast ? "increase-contrast" : "",
+        profile?.larger_buttons ? "larger-buttons" : "",
+      ].filter(Boolean).join(" ")}
+    >
       {showCustomBranding && (orgBranding?.brand_primary_color || orgBranding?.brand_accent_color) && themeClass !== "high-contrast" && (
         <style dangerouslySetInnerHTML={{ __html: `
           :root, .theme-default, .theme-teal, .theme-blue, .theme-green, .theme-purple, .theme-rose {

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 export default function OrganizationSettingsForm({
   initialOrg,
@@ -66,6 +67,7 @@ export default function OrganizationSettingsForm({
   const [planAllowsCustomBranding, setPlanAllowsCustomBranding] = useState(initialOrg.plan_allows_custom_branding !== false);
 
   const [submitting, setSubmitting] = useState(false);
+  const [logoUploading, setLogoUploading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -80,6 +82,32 @@ export default function OrganizationSettingsForm({
       setEnablePayDeductions(false);
     }
   };
+
+  async function handleLogoUpload(file: File | undefined) {
+    if (!file) return;
+    setLogoUploading(true);
+    setError(null);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "png";
+      const path = `organization-branding/${initialOrg.id}/logo-${Date.now()}.${ext}`;
+      const supabase = createClient();
+      const { error: uploadError } = await supabase.storage
+        .from("app-assets")
+        .upload(path, file, {
+          cacheControl: "3600",
+          contentType: file.type || "image/png",
+          upsert: true,
+        });
+      if (uploadError) throw uploadError;
+      const { data } = supabase.storage.from("app-assets").getPublicUrl(path);
+      if (!data.publicUrl) throw new Error("Logo uploaded, but no public URL was returned.");
+      setCustomLogoUrl(data.publicUrl);
+    } catch (err: any) {
+      setError(err.message || "Could not upload logo.");
+    } finally {
+      setLogoUploading(false);
+    }
+  }
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -815,9 +843,9 @@ export default function OrganizationSettingsForm({
       <section className="bg-white rounded-3xl p-6 border border-cream-200 shadow-soft grain-overlay space-y-4">
         <div className="flex justify-between items-start">
           <div>
-            <h2 className="font-display text-lg text-ink-900 mb-1">Organization Custom Branding</h2>
+            <h2 className="font-display text-lg text-ink-900 mb-1">Organization Branding</h2>
             <p className="text-xs text-ink-400">
-              Configure white-label branding, upload custom company logos, and customize application brand colors.
+              Upload organization branding if your plan includes it. Personal appearance settings remain free for every user under Account & Settings.
             </p>
           </div>
           <span className="text-[9px] font-bold uppercase tracking-wider bg-forest-600/10 text-forest-700 px-2 py-0.5 rounded">
@@ -833,15 +861,8 @@ export default function OrganizationSettingsForm({
               <p className="font-bold">Custom Branding is locked on your current plan</p>
             </div>
             <p className="leading-relaxed">
-              Your subscription plan does not allow custom branding. Please upgrade your organization's subscription plan to access custom logos, white-label brand names, and personalized application colors.
+              Custom organization branding is available on upgraded plans. Personal color theme, font size, high contrast, reduce motion, and larger buttons are free for all users.
             </p>
-            <button
-              type="button"
-              onClick={() => setPlanAllowsCustomBranding(true)}
-              className="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded-lg font-semibold transition"
-            >
-              Unlock Branding Feature (Simulate Upgrade)
-            </button>
           </div>
         ) : (
           <div className="space-y-4 divide-y divide-cream-100 text-xs">
@@ -874,7 +895,7 @@ export default function OrganizationSettingsForm({
                   </div>
 
                   <div>
-                    <label className="block font-semibold text-ink-700 mb-1">Company Logo URL</label>
+                    <label className="block font-semibold text-ink-700 mb-1">Organization logo</label>
                     <div className="flex gap-2">
                       <input
                         type="text"
@@ -892,6 +913,24 @@ export default function OrganizationSettingsForm({
                           Remove
                         </button>
                       )}
+                    </div>
+                    <div className="mt-2">
+                      <label className="inline-flex items-center justify-center rounded-xl bg-forest-600 hover:bg-forest-700 text-cream-50 px-3 py-2 font-semibold cursor-pointer transition">
+                        {logoUploading ? "Uploading..." : "Upload logo"}
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                          className="hidden"
+                          disabled={logoUploading}
+                          onChange={(event) => {
+                            void handleLogoUpload(event.currentTarget.files?.[0]);
+                            event.currentTarget.value = "";
+                          }}
+                        />
+                      </label>
+                      <p className="mt-1 text-[10px] text-ink-400">
+                        Logo files are stored in the public app-assets bucket for non-sensitive branding assets.
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -994,21 +1033,12 @@ export default function OrganizationSettingsForm({
                     <li>Using organizations do not own or claim ownership of Carer Vista Pro or the underlying platform.</li>
                     <li>Organization is fully responsible for having appropriate copyright and usage rights to upload and display its logo.</li>
                     <li>Carer Vista Pro remains the sole platform and software provider.</li>
+                    <li>Powered by Carer Vista Pro remains present in help, legal, footer, and platform identity areas.</li>
                     <li>Application store and PWA installer identity remains Carer Vista Pro unless separately and explicitly configured.</li>
                   </ul>
                 </div>
               </div>
             )}
-            
-            <div className="flex justify-end pt-3">
-              <button
-                type="button"
-                onClick={() => setPlanAllowsCustomBranding(false)}
-                className="text-[10px] text-terracotta-600 bg-terracotta-50/30 hover:bg-terracotta-50 border border-terracotta-200/50 px-3 py-1.5 rounded-xl transition"
-              >
-                🔒 Simulate Subscription Downgrade
-              </button>
-            </div>
           </div>
         )}
       </section>

@@ -303,7 +303,9 @@ export default async function HelpPage() {
             Manage your credentials, offline standalone experience, and notifications in <strong>Account & Settings</strong> and the <strong>Me</strong> tab:
           </p>
           <ul className="text-sm text-ink-750 space-y-1.5 list-disc pl-5">
-            <li><strong>Theme & Color Schemes:</strong> Customize the look of the app shell, buttons, navigation, and active states. Choose from <em>System default</em>, <em>Carer Vista Pro default</em>, <em>Teal</em>, <em>Blue</em>, <em>Green</em>, <em>Purple</em>, <em>Rose</em>, or the highly readable <em>High contrast</em> scheme. Organization custom branding takes precedence but personal accents are preserved.</li>
+            <li><strong>Appearance:</strong> All users can open <strong>Me → Appearance</strong> or <strong>Account & Settings → Appearance</strong> to change color theme, font size, reduce motion, increase contrast, and larger button preferences. These personal accessibility settings are not paid features.</li>
+            <li><strong>Theme & Color Schemes:</strong> Choose from <em>System default</em>, <em>Carer Vista Pro default</em>, <em>Teal</em>, <em>Blue</em>, <em>Green</em>, <em>Purple</em>, <em>Rose</em>, or the highly readable <em>High contrast</em> scheme. Organization custom branding takes precedence where appropriate, but personal accessibility choices remain available.</li>
+            <li><strong>Font Size:</strong> Choose <em>Standard</em>, <em>Large</em>, or <em>Extra large</em>. Cards and buttons expand naturally on mobile.</li>
             <li><strong>Spanish Language:</strong> Toggle between English and Spanish seamlessly under <strong>Me &rarr; Language</strong>. This translates the dashboard, client detail sheets, task categories, PRN options, invoices, and summaries.</li>
               <li><strong>PWA Installation Controls:</strong> Control progressive web app banner prompts. You can choose <em>Install app</em>, <em>Not now</em>, <em>Don't show for 24 hours</em> (remind tomorrow), or <em>Don't show again</em>. A manual <em>Install app</em> button is also available in Settings.</li>
             <li><strong>Notification Sounds & Volume:</strong> Toggle audio alerts and adjust playback volume using the slider (suggested default is 80%). Use the <em>Play test sound</em> button to test browser autoplay compatibility.</li>
@@ -316,9 +318,9 @@ export default async function HelpPage() {
             Organizations can customize their platform experience and access advanced operational tools depending on their active subscription tier:
           </p>
           <ul className="text-sm text-ink-750 space-y-1.5 list-disc pl-5">
-            <li><strong>Organization Custom Branding:</strong> Upload your company logo, set your custom brand name, and personalize accent colors under <strong>Me → Organization Settings</strong>. Main headers, button styles, active nav, and accent panels will render in your organization's curated colors. Note: personal accessibility choices (like High Contrast mode) safely override custom styles for individual comfort.</li>
+            <li><strong>Organization Custom Branding:</strong> Authorized organization admins can upload a company logo, set a custom brand name, and personalize accent colors under <strong>Me → Organization Branding</strong> if the organization plan includes it. Personal color theme, font size, high contrast, reduce motion, and larger buttons remain free for all users.</li>
             <li><strong>Standard vs. Premium Features:</strong> Basic accounts access standard shift scheduling, locations geofencing, and shift checklist logging. Paid plans unlock premium features, including advanced invoicing, custom year-end summaries, secure multi-client document workflows, complex holiday pay calculations, and advanced agency mode cancellation management.</li>
-            <li><strong>White-Label Limits:</strong> Custom branding alters theme color schemes and logos but does not transfer ownership of the underlying software. All footers, legal notifications, and help screens remain clearly powered by <em>Carer Vista Pro</em>.</li>
+            <li><strong>White-Label Limits:</strong> Custom branding alters organization logos and colors but does not transfer ownership of the underlying software. Footers, legal notifications, help screens, and platform identity remain clearly <em>Powered by Carer Vista Pro</em>.</li>
           </ul>
         </Section>
 

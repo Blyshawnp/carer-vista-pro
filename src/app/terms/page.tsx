@@ -95,6 +95,8 @@ export default function TermsPage() {
           <li>Using organizations do not own or claim ownership of Carer Vista Pro or the underlying platform.</li>
           <li>The organization is fully responsible for having appropriate copyright and usage rights to upload and display its logo.</li>
           <li>Carer Vista Pro remains the sole platform and software provider.</li>
+          <li>Custom organization branding may be available only on upgraded plans. Personal appearance and accessibility preferences are not paywalled.</li>
+          <li>Powered by Carer Vista Pro branding remains present in footer, help, about, legal, and platform identity areas.</li>
           <li>Application store and PWA installer identity remains Carer Vista Pro unless separately and explicitly configured.</li>
         </ul>
       </Section>
