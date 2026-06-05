@@ -1,6 +1,5 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import {
   ClockIcon,
@@ -873,32 +872,6 @@ export default async function ShiftDetailPage({
       </section>
 
       <section className="mt-4 grid gap-2">
-        <Link
-          href="/emergency"
-          className="flex items-center justify-between bg-white hover:bg-red-50 px-5 py-4 rounded-2xl shadow-soft transition"
-        >
-          <span className="flex items-center gap-3">
-            <span className="w-10 h-10 grid place-items-center shrink-0">
-              <Image
-                src="/icons/emergency.png"
-                alt=""
-                width={36}
-                height={36}
-                className="object-contain"
-              />
-            </span>
-            <span>
-              <span className="block font-medium text-ink-900">
-                Emergency information
-              </span>
-              <span className="block text-xs text-ink-500">
-                Contacts, hospital, physician, medical devices, and safety info
-              </span>
-            </span>
-          </span>
-          <ArrowRightIcon size={16} className="text-ink-300" />
-        </Link>
-
         {shift.client_id && (canEdit || isAssignedCaregiver) && (
           <Link
             href={`/schedule/${id}/home-access`}
