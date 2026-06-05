@@ -223,32 +223,52 @@ export default function NewShiftForm({
     }
 
     if (createdShifts && selectedApplicableTemplates.length > 0) {
-      const taskRows = createdShifts.flatMap((shift) =>
-        selectedApplicableTemplates.map((template, index) => ({
-          shift_id: shift.id,
-          template_id: template.id,
-          task_name: template.task_name,
-          description: template.description,
-          is_optional: template.is_optional,
-          is_prn: template.is_prn,
-          importance: template.importance,
-          time_mode: template.time_mode,
-          time_of_day: template.time_of_day,
-          scheduled_time: template.scheduled_time,
-          sort_order: template.sort_order ?? (index + 1) * 10,
-          allow_repeat: template.allow_repeat,
-          category: template.category,
-        }))
-      );
-
-      const { error: taskError } = await supabase
+      // Clean up any automatically created todos (from DB triggers) to prevent missing metadata rows
+      const createdShiftIds = createdShifts.map((s) => s.id);
+      const { data: existingTodos } = await supabase
         .from("shift_todos")
-        .insert(taskRows);
+        .select("id")
+        .in("shift_id", createdShiftIds);
 
-      if (taskError) {
-        setError(`Shift was created, but tasks could not be added: ${taskError.message}`);
-        setSubmitting(false);
-        return;
+      if (existingTodos && existingTodos.length > 0) {
+        await supabase
+          .from("shift_todos")
+          .delete()
+          .in("id", existingTodos.map((t) => t.id));
+      }
+
+      // Now insert all selected templates with complete timing and other metadata
+      const taskRows: any[] = [];
+      for (const shift of createdShifts) {
+        selectedApplicableTemplates.forEach((template, index) => {
+          taskRows.push({
+            shift_id: shift.id,
+            template_id: template.id,
+            task_name: template.task_name,
+            description: template.description,
+            is_optional: template.is_optional,
+            is_prn: template.is_prn,
+            importance: template.importance,
+            time_mode: template.time_mode,
+            time_of_day: template.time_of_day,
+            scheduled_time: template.scheduled_time,
+            sort_order: template.sort_order ?? (index + 1) * 10,
+            allow_repeat: template.allow_repeat,
+            category: template.category,
+          });
+        });
+      }
+
+      if (taskRows.length > 0) {
+        const { error: taskError } = await supabase
+          .from("shift_todos")
+          .insert(taskRows);
+
+        if (taskError) {
+          setError(`Shift was created, but tasks could not be added: ${taskError.message}`);
+          setSubmitting(false);
+          return;
+        }
       }
     }
 
