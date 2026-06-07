@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { getUserSetupState } from "@/lib/setup-state";
 import SetupWizard from "./setup-wizard";
 
 export const dynamic = "force-dynamic";
@@ -13,25 +13,12 @@ export default async function SetupPage() {
 
   if (!user) redirect("/login");
 
-  const admin = createAdminClient();
-  const { data: profile } = await admin
-    .from("profiles")
-    .select("organization_id")
-    .eq("id", user.id)
-    .maybeSingle<{
-      organization_id: string | null;
-    }>();
-
-  if (profile?.organization_id) {
-    const { data: organization } = await admin
-      .from("organizations")
-      .select("onboarding_complete")
-      .eq("id", profile.organization_id)
-      .maybeSingle<{ onboarding_complete: boolean | null }>();
-
-    if (organization?.onboarding_complete !== false) {
-      redirect("/home");
-    }
+  const setupState = await getUserSetupState(user.id, "/setup");
+  if (setupState.status === "setup_complete") {
+    redirect("/home");
+  }
+  if (setupState.status === "error") {
+    return <SetupStateError />;
   }
 
   const defaultName =
@@ -40,4 +27,16 @@ export default async function SetupPage() {
       : "";
 
   return <SetupWizard defaultName={defaultName} email={user.email ?? ""} />;
+}
+
+function SetupStateError() {
+  return (
+    <main className="min-h-dvh bg-cream-100 px-5 py-10 flex items-center justify-center">
+      <section className="w-full max-w-md rounded-2xl border border-terracotta-500/20 bg-white p-5 shadow-soft">
+        <p className="text-sm font-semibold text-ink-900">
+          We could not load your setup status. Please refresh or contact support.
+        </p>
+      </section>
+    </main>
+  );
 }

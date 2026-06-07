@@ -11,6 +11,7 @@ import PwaHealthCheck from "@/components/pwa-health-check";
 import OnboardingTutorial from "@/components/onboarding-tutorial";
 import type { Role } from "@/lib/db-types";
 import type { Lang } from "@/lib/i18n";
+import { getUserSetupState } from "@/lib/setup-state";
 
 type ProfileWithOrg = {
   id: string;
@@ -76,6 +77,14 @@ export default async function AppLayout({
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  const setupState = await getUserSetupState(user.id, "(app)");
+  if (setupState.status === "error") {
+    return <SetupStateError />;
+  }
+  if (setupState.status !== "setup_complete") {
+    redirect(setupState.redirectTo ?? "/setup");
+  }
+
   const { data: profile } = await supabase
     .from("profiles")
     .select(
@@ -83,10 +92,6 @@ export default async function AppLayout({
     )
     .eq("id", user.id)
     .single<ProfileWithOrg>();
-
-  if (!profile?.organization_id || profile.organizations?.onboarding_complete === false) {
-    redirect("/setup");
-  }
 
   const lang: Lang = profile?.language === "es" ? "es" : "en";
 
@@ -260,4 +265,16 @@ export default async function AppLayout({
 function normalizeRows<T>(value: T[] | T | null | undefined): T[] {
   if (Array.isArray(value)) return value;
   return value ? [value] : [];
+}
+
+function SetupStateError() {
+  return (
+    <main className="min-h-dvh bg-cream-100 px-5 py-10 flex items-center justify-center">
+      <section className="w-full max-w-md rounded-2xl border border-terracotta-500/20 bg-white p-5 shadow-soft">
+        <p className="text-sm font-semibold text-ink-900">
+          We could not load your setup status. Please refresh or contact support.
+        </p>
+      </section>
+    </main>
+  );
 }

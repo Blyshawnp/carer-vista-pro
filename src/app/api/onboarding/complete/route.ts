@@ -77,7 +77,25 @@ export async function POST(request: Request) {
       throw ownedOrgError;
     }
 
-    let organizationId = existingProfile?.organization_id ?? ownedOrg?.id ?? null;
+    let profileOrganizationId = existingProfile?.organization_id ?? null;
+    if (profileOrganizationId) {
+      const { data: profileOrganization, error: profileOrganizationError } =
+        await admin
+          .from("organizations")
+          .select("id")
+          .eq("id", profileOrganizationId)
+          .maybeSingle<{ id: string }>();
+
+      if (profileOrganizationError) {
+        throw profileOrganizationError;
+      }
+
+      if (!profileOrganization) {
+        profileOrganizationId = null;
+      }
+    }
+
+    let organizationId = profileOrganizationId ?? ownedOrg?.id ?? null;
 
     if (!organizationId) {
       const { data: insertedOrg, error: insertOrgError } = await admin
