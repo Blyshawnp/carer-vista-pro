@@ -36,7 +36,7 @@ export default function BottomNav({
   return (
     <nav
       aria-label="Primary"
-      className="fixed bottom-0 left-0 right-0 z-30 pb-[env(safe-area-inset-bottom)]"
+      className="fixed bottom-0 left-0 right-0 z-30 pb-[env(safe-area-inset-bottom)] box-border w-auto max-w-full"
     >
       <div className="mx-auto max-w-2xl px-3 pb-3">
         <div

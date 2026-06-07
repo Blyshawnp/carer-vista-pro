@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
 export const PWA_INSTALL_NEVER_SHOW_KEY = "carer-vista-pro:pwa-install-never-show";
 export const PWA_INSTALL_DISMISS_UNTIL_KEY = "carer-vista-pro:pwa-install-dismissed-until";
@@ -33,9 +34,24 @@ function isStandalone(): boolean {
   return window.matchMedia("(display-mode: standalone)").matches;
 }
 
-function isPromptSuppressed(): boolean {
+function isPushPromptEligible(): boolean {
+  if (typeof window === "undefined" || !("Notification" in window)) return false;
+  if (Notification.permission !== "default") return false;
+  try {
+    const raw = localStorage.getItem("caregiver-push-prompt");
+    if (!raw) return true;
+    const days = (Date.now() - Number(raw)) / 86_400_000;
+    return days >= 7; // snooze days is 7
+  } catch {
+    return false;
+  }
+}
+
+function isPromptSuppressed(pathname?: string | null): boolean {
   if (typeof window === "undefined") return true;
   try {
+    if (isStandalone()) return true;
+
     const neverShow =
       localStorage.getItem(PWA_INSTALL_NEVER_SHOW_KEY) ??
       localStorage.getItem(LEGACY_PWA_INSTALL_NEVER_SHOW_KEY);
@@ -52,13 +68,27 @@ function isPromptSuppressed(): boolean {
       if (!isNaN(until) && Date.now() < until) return true;
     }
 
-    // Avoid prompting repeatedly on every single page load
+    // Do not show on notifications page
+    if (
+      pathname === "/me/notifications" || 
+      pathname === "/notifications" ||
+      pathname?.endsWith("/notifications")
+    ) {
+      return true;
+    }
+
+    // Do not show if push prompt is active or eligible to show
+    if (isPushPromptEligible()) return true;
+
+    const isPushPromptActive = document.body?.innerHTML?.includes("Get important alerts");
+    if (isPushPromptActive) return true;
+
+    // Avoid prompting repeatedly on every page load
     const lastPrompt =
       localStorage.getItem(PWA_INSTALL_LAST_PROMPTED_KEY) ??
       localStorage.getItem(LEGACY_PWA_INSTALL_LAST_PROMPTED_KEY);
     if (lastPrompt) {
       const last = parseInt(lastPrompt, 10);
-      // Wait at least 15 minutes between page load auto-prompts
       if (!isNaN(last) && Date.now() - last < 900_000) return true;
     }
 
@@ -69,41 +99,63 @@ function isPromptSuppressed(): boolean {
 }
 
 export default function InstallPrompt() {
+  const pathname = usePathname();
   const [platform, setPlatform] = useState<Platform>("unsupported");
   const [show, setShow] = useState(false);
   const [showIosSheet, setShowIosSheet] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [pushDismissed, setPushDismissed] = useState(0);
 
+  // Register beforeinstallprompt globally once on mount
   useEffect(() => {
     const p = detectPlatform();
     setPlatform(p);
-
-    if (isStandalone()) return;
-    if (isPromptSuppressed()) return;
-
-    if (p === "ios") {
-      const t = setTimeout(() => {
-        setShow(true);
-        try {
-          localStorage.setItem(PWA_INSTALL_LAST_PROMPTED_KEY, String(Date.now()));
-        } catch {}
-      }, 5000);
-      return () => clearTimeout(t);
-    }
 
     if (p === "android" || p === "desktop") {
       const handler = (e: Event) => {
         e.preventDefault();
         setDeferredPrompt(e as BeforeInstallPromptEvent);
-        setShow(true);
-        try {
-          localStorage.setItem(PWA_INSTALL_LAST_PROMPTED_KEY, String(Date.now()));
-        } catch {}
       };
       window.addEventListener("beforeinstallprompt", handler);
       return () => window.removeEventListener("beforeinstallprompt", handler);
     }
   }, []);
+
+  // Listen for push permission prompt dismissal
+  useEffect(() => {
+    const handlePushDismissed = () => {
+      setPushDismissed((prev) => prev + 1);
+    };
+    window.addEventListener("push-prompt-dismissed", handlePushDismissed);
+    return () => window.removeEventListener("push-prompt-dismissed", handlePushDismissed);
+  }, []);
+
+  // Handle display logic based on pathname, platform, deferred prompt, and suppression state
+  useEffect(() => {
+    if (isStandalone() || isPromptSuppressed(pathname)) {
+      setShow(false);
+      return;
+    }
+
+    // Delay slightly (2 seconds) after page load
+    const t = setTimeout(() => {
+      if (isPromptSuppressed(pathname)) return;
+
+      if (platform === "ios") {
+        setShow(true);
+        try {
+          localStorage.setItem(PWA_INSTALL_LAST_PROMPTED_KEY, String(Date.now()));
+        } catch {}
+      } else if (deferredPrompt) {
+        setShow(true);
+        try {
+          localStorage.setItem(PWA_INSTALL_LAST_PROMPTED_KEY, String(Date.now()));
+        } catch {}
+      }
+    }, 2000);
+
+    return () => clearTimeout(t);
+  }, [pathname, platform, deferredPrompt, pushDismissed]);
 
   function handleNotNow() {
     setShow(false);

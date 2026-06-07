@@ -40,6 +40,10 @@ export default function AppHeader({
   brandAccentColor?: string | null;
 }) {
   const firstName = getFirstName(fullName);
+  const showName = firstName && firstName.toLowerCase() !== "there";
+  const greetingText = showName 
+    ? `${t("header.welcome", lang)}, ` 
+    : t("header.welcomeBack", lang);
   const [emergencyIconFailed, setEmergencyIconFailed] = useState(false);
   const emergencyLabel = t("header.emergencyInfo", lang);
   const profileLabel = t("header.profile", lang);
@@ -58,13 +62,15 @@ export default function AppHeader({
           />
           <div className="mt-1 flex items-center gap-2 min-w-0">
             <h1 className="font-display text-4xl text-ink-900 mb-1.5">
-              {t("header.welcome", lang)},{" "}
-              <span
-                className="text-navy-600 font-bold"
-                style={{ color: enableCustomBranding && brandPrimaryColor ? brandPrimaryColor : undefined }}
-              >
-                {firstName}
-              </span>
+              {greetingText}
+              {showName && (
+                <span
+                  className="text-navy-600 font-bold"
+                  style={{ color: enableCustomBranding && brandPrimaryColor ? brandPrimaryColor : undefined }}
+                >
+                  {firstName}
+                </span>
+              )}
             </h1>
             {orgName && (
               <>

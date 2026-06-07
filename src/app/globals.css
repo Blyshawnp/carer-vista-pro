@@ -9,6 +9,8 @@
     -webkit-tap-highlight-color: transparent;
     /* Prevent iOS pull-to-refresh on the body so it feels app-like */
     overscroll-behavior-y: contain;
+    max-width: 100%;
+    overflow-x: hidden;
   }
   body {
     @apply bg-cream-100 text-ink-900 font-sans antialiased;
@@ -19,6 +21,8 @@
     overscroll-behavior-x: contain;
     /* Improve touch responsiveness */
     touch-action: manipulation;
+    max-width: 100%;
+    overflow-x: hidden;
   }
   h1, h2, h3, h4 {
     @apply font-display tracking-normal;
