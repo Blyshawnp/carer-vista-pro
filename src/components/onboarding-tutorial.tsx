@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getSafeIntroVideoEmbedUrl } from "@/lib/intro-video";
@@ -19,17 +19,25 @@ export default function OnboardingTutorial({
   introVideoUrl,
   introVideoEnabled,
   showIntroVideoOnFirstLogin,
+  userId,
 }: {
   role: TutorialRole;
   completed: boolean;
   introVideoUrl: string | null;
   introVideoEnabled: boolean;
   showIntroVideoOnFirstLogin: boolean;
+  userId?: string;
 }) {
   const router = useRouter();
-  const [open, setOpen] = useState(!completed);
+  const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(0);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const localCompleted = userId ? localStorage.getItem(`completed_tutorial_${userId}`) === "true" : false;
+    setOpen(!completed && !localCompleted);
+  }, [completed, userId]);
+
   const embedUrl =
     introVideoEnabled && showIntroVideoOnFirstLogin
       ? getSafeIntroVideoEmbedUrl(introVideoUrl)
@@ -41,6 +49,9 @@ export default function OnboardingTutorial({
 
   async function finish(skipped: boolean) {
     setSaving(true);
+    if (userId) {
+      localStorage.setItem(`completed_tutorial_${userId}`, "true");
+    }
     await fetch("/api/tutorial/complete", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

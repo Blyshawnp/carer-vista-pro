@@ -277,6 +277,7 @@ export default async function HomePage() {
       <OnboardingChecklist
         role={profile.role}
         dismissed={!!profile.onboarding_checklist_dismissed}
+        userId={profile.id}
       />
       <HomeContent
         role={profile.role}

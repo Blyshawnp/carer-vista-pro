@@ -29,7 +29,10 @@ async function updateTutorialState(request: Request) {
   if (typeof payload.completed === "boolean") {
     update.tutorial_completed = payload.completed;
     update.tutorial_completed_at = payload.completed ? new Date().toISOString() : null;
-    if (!payload.completed) update.tutorial_skipped_at = null;
+    if (!payload.completed) {
+      update.tutorial_skipped_at = null;
+      update.onboarding_checklist_dismissed = false;
+    }
   } else if (typeof payload.skipped === "boolean") {
     update.tutorial_completed = true;
     update.tutorial_completed_at = new Date().toISOString();

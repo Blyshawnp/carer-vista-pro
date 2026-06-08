@@ -30,6 +30,7 @@ export default function ScheduleView({
 }) {
   const router = useRouter();
   const [view, setView] = useState<View>("list");
+  const [actionsOpen, setActionsOpen] = useState(false);
   const [now, setNow] = useState(() => new Date());
 
   const [isMultiSelectMode, setIsMultiSelectMode] = useState(false);
@@ -80,95 +81,216 @@ export default function ScheduleView({
           <p className="text-ink-500 text-sm">
             {shifts.length} shift{shifts.length === 1 ? "" : "s"} · {archiveMode ? "archive" : "active schedule"}
           </p>
-          <div className="flex gap-2 mt-2 flex-wrap">
+          <div className="flex gap-2 mt-2 flex-wrap items-center">
             <Link
               href="/schedule"
-              className={`text-xs hover:underline ${!archiveMode ? "text-forest-700 font-medium" : "text-forest-600"}`}
+              className={`text-xs hover:underline ${!archiveMode ? "text-forest-700 font-semibold" : "text-forest-600"}`}
             >
               Active
             </Link>
+            <span className="text-ink-300 text-xs">|</span>
             <Link
               href="/schedule?view=archive"
-              className={`text-xs hover:underline ${archiveMode ? "text-forest-700 font-medium" : "text-forest-600"}`}
+              className={`text-xs hover:underline ${archiveMode ? "text-forest-700 font-semibold" : "text-forest-600"}`}
             >
               Archive
             </Link>
-            {isBulkAllowed && (
-              <button
-                onClick={() => {
-                  setIsMultiSelectMode(!isMultiSelectMode);
-                  setSelectedShiftIds(new Set());
-                }}
-                className={`text-xs font-medium hover:underline ${
-                  isMultiSelectMode ? "text-terracotta-600" : "text-forest-600"
-                }`}
-              >
-                {isMultiSelectMode ? "Exit multi-select" : "Bulk actions"}
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={exportAllMyShifts}
-              className="text-xs text-forest-600 font-medium hover:underline"
-            >
-              Export all my shifts
-            </button>
           </div>
-          <div className="flex gap-3 mt-2.5 flex-wrap items-center">
+
+          {/* Desktop actions view */}
+          <div className="hidden sm:block">
+            <div className="flex gap-2 mt-2 flex-wrap">
+              {isBulkAllowed && (
+                <button
+                  onClick={() => {
+                    setIsMultiSelectMode(!isMultiSelectMode);
+                    setSelectedShiftIds(new Set());
+                  }}
+                  className={`text-xs font-medium hover:underline ${
+                    isMultiSelectMode ? "text-terracotta-600" : "text-forest-600"
+                  }`}
+                >
+                  {isMultiSelectMode ? "Exit multi-select" : "Bulk actions"}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={exportAllMyShifts}
+                className="text-xs text-forest-600 font-medium hover:underline"
+              >
+                Export all my shifts
+              </button>
+            </div>
+            <div className="flex gap-3 mt-2.5 flex-wrap items-center">
+              {canCreateShifts && (
+                <>
+                  <Link
+                    href="/schedule/new"
+                    className="text-xs text-forest-600 hover:underline font-semibold"
+                  >
+                    New shift
+                  </Link>
+                  {role === "admin" && (
+                    <Link
+                      href="/schedule/recurring"
+                      className="text-xs text-forest-600 hover:underline"
+                    >
+                      Recurring templates
+                    </Link>
+                  )}
+                  <Link
+                    href="/schedule/proposals"
+                    className="text-xs text-forest-600 hover:underline"
+                  >
+                    Shift proposals
+                  </Link>
+                  <Link
+                    href="/schedule/shift-types"
+                    className="text-xs text-forest-600 hover:underline"
+                  >
+                    Shift types
+                  </Link>
+                  {role === "admin" && (
+                    <Link
+                      href="/schedule/trades"
+                      className="text-xs text-forest-600 hover:underline"
+                    >
+                      Shift trades
+                    </Link>
+                  )}
+                </>
+              )}
+              {canRequestShifts && (
+                <Link
+                  href="/schedule/requests/new"
+                  className="text-xs text-forest-700 hover:underline font-semibold bg-forest-100/70 px-2 py-0.5 rounded-lg"
+                >
+                  Request care coverage
+                </Link>
+              )}
+              {(role === "admin" || canRequestShifts) && (
+                <Link
+                  href="/schedule/requests"
+                  className="text-xs text-forest-600 hover:underline font-medium"
+                >
+                  {role === "admin" ? "Manage coverage requests" : "My coverage requests"}
+                </Link>
+              )}
+            </div>
+          </div>
+
+          {/* Mobile actions view */}
+          <div className="flex sm:hidden gap-3 mt-2.5 items-center relative">
             {canCreateShifts && (
-              <>
-                <Link
-                  href="/schedule/new"
-                  className="text-xs text-forest-600 hover:underline font-semibold"
-                >
-                  New shift
-                </Link>
-                {role === "admin" && (
-                  <Link
-                    href="/schedule/recurring"
-                    className="text-xs text-forest-600 hover:underline"
-                  >
-                    Recurring templates
-                  </Link>
-                )}
-                <Link
-                  href="/schedule/proposals"
-                  className="text-xs text-forest-600 hover:underline"
-                >
-                  Shift proposals
-                </Link>
-                <Link
-                  href="/schedule/shift-types"
-                  className="text-xs text-forest-600 hover:underline"
-                >
-                  Shift types
-                </Link>
-                {role === "admin" && (
-                  <Link
-                    href="/schedule/trades"
-                    className="text-xs text-forest-600 hover:underline"
-                  >
-                    Shift trades
-                  </Link>
-                )}
-              </>
+              <Link
+                href="/schedule/new"
+                className="text-xs bg-forest-600 text-cream-50 px-3 py-1.5 rounded-xl hover:bg-forest-700 font-semibold transition"
+              >
+                New shift
+              </Link>
             )}
-            {canRequestShifts && (
+            {canRequestShifts && !canCreateShifts && (
               <Link
                 href="/schedule/requests/new"
-                className="text-xs text-forest-700 hover:underline font-semibold bg-forest-100/70 px-2 py-0.5 rounded-lg"
+                className="text-xs bg-forest-600 text-cream-50 px-3 py-1.5 rounded-xl hover:bg-forest-700 font-semibold transition"
               >
-                Request care coverage
+                Request care
               </Link>
             )}
-            {(role === "admin" || canRequestShifts) && (
-              <Link
-                href="/schedule/requests"
-                className="text-xs text-forest-600 hover:underline font-medium"
+            
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setActionsOpen(!actionsOpen)}
+                className="text-xs bg-cream-200 text-ink-700 px-3 py-1.5 rounded-xl font-medium hover:bg-cream-300 transition flex items-center gap-1"
               >
-                {role === "admin" ? "Manage coverage requests" : "My coverage requests"}
-              </Link>
-            )}
+                More actions <span className="text-[8px] transform duration-150 inline-block">{actionsOpen ? "▲" : "▼"}</span>
+              </button>
+              
+              {actionsOpen && (
+                <>
+                  <div className="fixed inset-0 z-30" onClick={() => setActionsOpen(false)} />
+                  <div className="absolute left-0 mt-1 w-52 rounded-2xl bg-white border border-cream-200 shadow-soft py-1.5 z-40 text-sm">
+                    {isBulkAllowed && (
+                      <button
+                        onClick={() => {
+                          setIsMultiSelectMode(!isMultiSelectMode);
+                          setSelectedShiftIds(new Set());
+                          setActionsOpen(false);
+                        }}
+                        className="w-full text-left px-4 py-2 hover:bg-cream-50 text-xs font-semibold text-forest-700"
+                      >
+                        {isMultiSelectMode ? "Exit multi-select" : "Bulk actions"}
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        exportAllMyShifts();
+                        setActionsOpen(false);
+                      }}
+                      className="w-full text-left px-4 py-2 hover:bg-cream-50 text-xs font-medium text-forest-700"
+                    >
+                      Export all my shifts
+                    </button>
+                    {canCreateShifts && (
+                      <>
+                        {role === "admin" && (
+                          <Link
+                            href="/schedule/recurring"
+                            onClick={() => setActionsOpen(false)}
+                            className="block w-full text-left px-4 py-2 hover:bg-cream-50 text-xs text-forest-600"
+                          >
+                            Recurring templates
+                          </Link>
+                        )}
+                        <Link
+                          href="/schedule/proposals"
+                          onClick={() => setActionsOpen(false)}
+                          className="block w-full text-left px-4 py-2 hover:bg-cream-50 text-xs text-forest-600"
+                        >
+                          Shift proposals
+                        </Link>
+                        <Link
+                          href="/schedule/shift-types"
+                          onClick={() => setActionsOpen(false)}
+                          className="block w-full text-left px-4 py-2 hover:bg-cream-50 text-xs text-forest-600"
+                        >
+                          Shift types
+                        </Link>
+                        {role === "admin" && (
+                          <Link
+                            href="/schedule/trades"
+                            onClick={() => setActionsOpen(false)}
+                            className="block w-full text-left px-4 py-2 hover:bg-cream-50 text-xs text-forest-600"
+                          >
+                            Shift trades
+                          </Link>
+                        )}
+                      </>
+                    )}
+                    {canRequestShifts && (
+                      <Link
+                        href="/schedule/requests/new"
+                        onClick={() => setActionsOpen(false)}
+                        className="block w-full text-left px-4 py-2 hover:bg-cream-50 text-xs text-forest-600"
+                      >
+                        Request care coverage
+                      </Link>
+                    )}
+                    {(role === "admin" || canRequestShifts) && (
+                      <Link
+                        href="/schedule/requests"
+                        onClick={() => setActionsOpen(false)}
+                        className="block w-full text-left px-4 py-2 hover:bg-cream-50 text-xs text-forest-600 font-medium"
+                      >
+                        {role === "admin" ? "Manage coverage requests" : "My coverage requests"}
+                      </Link>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
 

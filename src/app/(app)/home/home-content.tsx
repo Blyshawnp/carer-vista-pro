@@ -9,6 +9,7 @@ import {
   ArrowRightIcon,
   CalendarIcon,
   MessageIcon,
+  UserIcon,
 } from "@/components/icons";
 import type { ShiftRow } from "./page";
 import type { AssignedClient } from "./page";
@@ -163,9 +164,20 @@ export default function HomeContent({
       {/* Quick links */}
       <section className="grid grid-cols-2 gap-3 mt-5">
         <QuickLink href="/clients" label={clientsLabel} Icon={MapPinIcon} />
+        {role === "admin" && (
+          <QuickLink href="/team" label="Team" Icon={UserIcon} />
+        )}
         <QuickLink href="/schedule" label="Schedule" Icon={CalendarIcon} />
-        <QuickLink href="/tasks" label="Tasks" Icon={CheckSquareIcon} />
+        {(role === "caregiver" || role === "admin") && (
+          <QuickLink href="/tasks" label="Tasks" Icon={CheckSquareIcon} />
+        )}
+        {(role === "admin" || role === "client") && (
+          <QuickLink href="/payroll" label="Invoices & Payroll" Icon={UserIcon} />
+        )}
         <QuickLink href="/messages" label="Messages" Icon={MessageIcon} />
+        {role === "family" && (
+          <QuickLink href="/feedback/new" label="Feedback" Icon={UserIcon} />
+        )}
       </section>
 
       {/* Upcoming list */}

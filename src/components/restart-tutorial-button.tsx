@@ -3,12 +3,16 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function RestartTutorialButton() {
+export default function RestartTutorialButton({ userId }: { userId?: string }) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
 
   async function restart() {
     setSaving(true);
+    if (userId) {
+      localStorage.removeItem(`completed_tutorial_${userId}`);
+      localStorage.removeItem(`dismissed_checklist_${userId}`);
+    }
     await fetch("/api/tutorial/complete", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },

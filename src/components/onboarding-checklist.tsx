@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 type ChecklistRole = "admin" | "client" | "caregiver" | "family" | string;
@@ -9,19 +9,29 @@ type ChecklistRole = "admin" | "client" | "caregiver" | "family" | string;
 export default function OnboardingChecklist({
   role,
   dismissed,
+  userId,
 }: {
   role: ChecklistRole;
   dismissed: boolean;
+  userId?: string;
 }) {
   const router = useRouter();
-  const [hidden, setHidden] = useState(dismissed);
+  const [hidden, setHidden] = useState(true);
   const [saving, setSaving] = useState(false);
   const items = itemsForRole(role);
+
+  useEffect(() => {
+    const localDismissed = userId ? localStorage.getItem(`dismissed_checklist_${userId}`) === "true" : false;
+    setHidden(dismissed || localDismissed);
+  }, [dismissed, userId]);
 
   if (hidden) return null;
 
   async function dismiss() {
     setSaving(true);
+    if (userId) {
+      localStorage.setItem(`dismissed_checklist_${userId}`, "true");
+    }
     await fetch("/api/tutorial/complete", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },

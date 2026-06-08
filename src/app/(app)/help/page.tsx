@@ -167,7 +167,7 @@ export default async function HelpPage() {
             <p>
               New users see a role-aware first-time tutorial after setup. It can be skipped and restarted from this Help page.
             </p>
-            <RestartTutorialButton />
+            <RestartTutorialButton userId={user.id} />
             {introVideoUrl && (
               <div className="aspect-video overflow-hidden rounded-2xl bg-cream-100 border border-cream-200">
                 <iframe

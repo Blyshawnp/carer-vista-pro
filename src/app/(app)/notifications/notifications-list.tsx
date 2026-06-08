@@ -196,14 +196,14 @@ export default function NotificationsList({
               <div className="flex-1 min-w-0 pr-6">
                 <div className="flex items-baseline justify-between gap-2 mb-0.5">
                   <p className="font-medium text-ink-900 truncate">
-                    {n.title}
+                    {formatStringCurrency(n.title)}
                   </p>
                   <span className="text-[10px] text-ink-500 shrink-0">
                     {timeAgo(new Date(n.created_at))}
                   </span>
                 </div>
                 {n.body && (
-                  <p className="text-sm text-ink-500 line-clamp-2">{n.body}</p>
+                  <p className="text-sm text-ink-500 line-clamp-2">{formatStringCurrency(n.body)}</p>
                 )}
               </div>
               {n.link && (
@@ -225,6 +225,18 @@ export default function NotificationsList({
       </ul>
     </div>
   );
+}
+
+function formatStringCurrency(text: string | null | undefined): string | null {
+  if (!text) return null;
+  return text.replace(/\$(\d+(?:\.\d+)?)/g, (match, p1) => {
+    const num = parseFloat(p1);
+    if (isNaN(num)) return match;
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(num);
+  });
 }
 
 function timeAgo(d: Date) {

@@ -212,7 +212,7 @@ export default async function AppLayout({
       )}
 
       <AppHeader
-        fullName={profile?.full_name ?? "There"}
+        fullName={profile?.full_name || user.user_metadata?.full_name || ""}
         orgName={profile?.organizations?.name ?? ""}
         avatarUrl={profile?.avatar_url ?? null}
         avatarColor={profile?.avatar_color ?? null}
@@ -257,6 +257,7 @@ export default async function AppLayout({
         introVideoUrl={profile?.organizations?.intro_video_url ?? null}
         introVideoEnabled={!!profile?.organizations?.intro_video_enabled}
         showIntroVideoOnFirstLogin={!!profile?.organizations?.show_intro_video_on_first_login}
+        userId={profile?.id}
       />
     </div>
   );

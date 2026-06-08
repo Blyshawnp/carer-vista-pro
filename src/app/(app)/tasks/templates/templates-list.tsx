@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { PlusIcon } from "@/components/icons";
+import { PlusIcon, TrashIcon } from "@/components/icons";
 import {
   type TaskCategory,
   type TaskCategoryOption,
@@ -389,16 +389,16 @@ export default function TemplatesList({
         <p className="text-xs uppercase tracking-[0.18em] text-ink-500">
           Task categories
         </p>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2">
           <input
             value={newCategoryLabel}
             onChange={(e) => setNewCategoryLabel(e.target.value)}
             placeholder="Add category"
-            className="flex-1 px-3 py-2 bg-cream-50 border border-cream-200 rounded-xl text-sm focus:outline-none focus:border-forest-500"
+            className="flex-1 px-3 py-2 bg-cream-50 border border-cream-200 rounded-xl text-sm focus:outline-none focus:border-forest-500 w-full"
           />
           <button
             type="submit"
-            className="bg-forest-600 text-cream-50 px-3 py-2 rounded-xl text-sm font-medium"
+            className="bg-forest-600 text-cream-50 px-3 py-2 rounded-xl text-sm font-medium w-full sm:w-auto whitespace-nowrap"
           >
             Add
           </button>
@@ -1233,17 +1233,17 @@ function CategoryEditor({
   }
 
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-1.5 sm:gap-2 items-center">
       <input
         value={label}
         onChange={(e) => setLabel(e.target.value)}
-        className="flex-1 px-3 py-2 bg-cream-50 border border-cream-200 rounded-xl text-sm focus:outline-none focus:border-forest-500"
+        className="flex-1 min-w-0 px-3 py-2 bg-cream-50 border border-cream-200 rounded-xl text-sm focus:outline-none focus:border-forest-500"
       />
       <button
         type="button"
         onClick={save}
         disabled={saving || !label.trim() || label === category.label}
-        className="bg-cream-200 text-ink-700 px-3 py-2 rounded-xl text-xs font-medium disabled:opacity-50"
+        className="bg-cream-200 text-ink-700 px-2.5 py-2 sm:px-3 sm:py-2 rounded-xl text-xs font-medium disabled:opacity-50 whitespace-nowrap"
       >
         {saving ? "Saving" : "Rename"}
       </button>
@@ -1251,9 +1251,11 @@ function CategoryEditor({
         <button
           type="button"
           onClick={() => setDeleting(true)}
-          className="bg-terracotta-400/10 text-terracotta-700 hover:bg-terracotta-400/20 px-3 py-2 rounded-xl text-xs font-medium"
+          aria-label="Delete category"
+          className="bg-terracotta-400/10 text-terracotta-700 hover:bg-terracotta-400/20 p-2.5 sm:px-3 sm:py-2 rounded-xl text-xs font-medium flex items-center justify-center min-w-[38px] shrink-0"
         >
-          Delete
+          <TrashIcon size={16} className="sm:hidden" />
+          <span className="hidden sm:inline">Delete</span>
         </button>
       )}
     </div>
