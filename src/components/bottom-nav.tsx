@@ -84,45 +84,6 @@ export default function BottomNav({
 }
 
 function getTabs(role: Role, lang: Lang): NavItem[] {
-  const commonCareTabs: NavItem[] = [
-    {
-      href: "/home",
-      label: t("nav.home", lang),
-      Icon: HomeIcon,
-      key: "home",
-    },
-    {
-      href: "/clients",
-      label: role === "family" ? t("nav.family", lang) : t("nav.clients", lang),
-      Icon: GridIcon,
-      key: "clients",
-    },
-    {
-      href: "/schedule",
-      label: t("nav.schedule", lang),
-      Icon: CalendarIcon,
-      key: "schedule",
-    },
-    {
-      href: "/messages",
-      label: t("nav.messages", lang),
-      Icon: MessageIcon,
-      key: "messages",
-    },
-    {
-      href: "/notifications",
-      label: t("nav.notifications", lang),
-      Icon: BellIcon,
-      key: "notifications",
-    },
-    {
-      href: "/me",
-      label: t("nav.me", lang),
-      Icon: UserIcon,
-      key: "me",
-    },
-  ];
-
   switch (role) {
     case "admin":
       return [
@@ -163,7 +124,86 @@ function getTabs(role: Role, lang: Lang): NavItem[] {
           key: "me",
         },
       ];
+    case "caregiver":
+      return [
+        {
+          href: "/home",
+          label: t("nav.home", lang),
+          Icon: HomeIcon,
+          key: "home",
+        },
+        {
+          href: "/clients",
+          label: t("nav.clients", lang),
+          Icon: GridIcon,
+          key: "clients",
+        },
+        {
+          href: "/schedule",
+          label: t("nav.schedule", lang),
+          Icon: CalendarIcon,
+          key: "schedule",
+        },
+        {
+          href: "/messages",
+          label: t("nav.messages", lang),
+          Icon: MessageIcon,
+          key: "messages",
+        },
+        {
+          href: "/notifications",
+          label: t("nav.notifications", lang),
+          Icon: BellIcon,
+          key: "notifications",
+        },
+        {
+          href: "/me",
+          label: t("nav.me", lang),
+          Icon: ListIcon,
+          key: "me",
+        },
+      ];
+    case "client":
+    case "family":
+      return [
+        {
+          href: "/home",
+          label: t("nav.home", lang),
+          Icon: HomeIcon,
+          key: "home",
+        },
+        {
+          href: "/team",
+          label: lang === "es" ? "Círculo" : "Care Circle",
+          Icon: UserIcon,
+          key: "team",
+        },
+        {
+          href: "/schedule",
+          label: t("nav.schedule", lang),
+          Icon: CalendarIcon,
+          key: "schedule",
+        },
+        {
+          href: "/messages",
+          label: t("nav.messages", lang),
+          Icon: MessageIcon,
+          key: "messages",
+        },
+        {
+          href: "/notifications",
+          label: t("nav.notifications", lang),
+          Icon: BellIcon,
+          key: "notifications",
+        },
+        {
+          href: "/me",
+          label: t("nav.me", lang),
+          Icon: ListIcon,
+          key: "me",
+        },
+      ];
     default:
-      return commonCareTabs;
+      return [];
   }
 }

@@ -267,7 +267,7 @@ export default function NotificationSettings({
         localStorage.setItem("pwa_last_test_push_result", "success");
         localStorage.removeItem("pwa_last_test_push_provider_status");
         setTestMessage(
-          `Test push accepted by browser push service (${d?.diagnostics?.delivered ?? 1} delivered). If it does not appear, check OS/browser notification settings, battery optimization, or Focus/Do Not Disturb.`
+          `Test push dispatched to browser push service. If it does not appear, check OS/browser notification settings, battery optimization, or Focus/Do Not Disturb.`
         );
       } else {
         const errCode = d?.code || "unknown_error";
@@ -321,7 +321,7 @@ export default function NotificationSettings({
         localStorage.setItem("pwa_last_test_push_result", "success");
         localStorage.removeItem("pwa_last_test_push_provider_status");
         setTestMessage(
-          `Subscription refreshed and test push accepted (${testData?.diagnostics?.delivered ?? 1} delivered).`
+          `Subscription refreshed and test push dispatched to browser push service.`
         );
       } else {
         const errCode = testData?.code || "unknown_error";
@@ -597,48 +597,57 @@ export default function NotificationSettings({
         {error && <p className="text-xs text-terracotta-600 mb-3">{error}</p>}
         {testMessage && <p className="text-xs text-ink-700 font-semibold mb-3">{testMessage}</p>}
 
-        <div className="bg-white/70 border border-cream-200 rounded-2xl p-4 text-xs text-ink-600 mb-4">
-          <p className="font-semibold text-ink-800 mb-2">Notification diagnostics</p>
-          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5">
-            <Diag label="Browser permission" value={diagnostics.browserPermission} />
-            <Diag label="Service worker registered" value={diagnostics.serviceWorkerRegistered ? "Yes" : "No"} />
-            <Diag label="Service worker active" value={diagnostics.serviceWorkerActive ? "Yes" : "No"} />
-            <Diag label="Browser push subscription exists" value={diagnostics.browserSubscriptionExists ? "Yes" : "No"} />
-            <Diag label="Browser endpoint present" value={diagnostics.subscriptionEndpointPresent ? "Yes" : "No"} />
-            <Diag label="Saved server subscription exists" value={diagnostics.subscriptionSaved ? "Yes" : "No"} />
-            <Diag label="Saved server subscription active" value={diagnostics.subscriptionActive ? "Yes" : "No"} />
-            <Diag label="Canonical active column" value={diagnostics.activeColumn || "Not reported"} />
-            <Diag label="Raw is_active value" value={diagnostics.rawIsActive === null ? "Not present" : diagnostics.rawIsActive ? "true" : "false"} />
-            <Diag label="Raw active value" value={diagnostics.rawActive === null ? "Not present" : diagnostics.rawActive ? "true" : "false"} />
-            <Diag label="Status value" value={diagnostics.statusValue || "Not present"} />
-            <Diag label="Selected subscription row" value={diagnostics.selectedSubscriptionId || "Not selected"} />
-            <Diag label="Device ID" value={diagnostics.deviceId || "Not available"} />
-            <Diag label="Endpoint match" value={diagnostics.endpointMatch === null ? "Not checked" : diagnostics.endpointMatch ? "Yes" : "No"} />
-            <Diag label="Subscription keys present" value={diagnostics.subscriptionKeysPresent ? "Yes" : "No"} />
-            <Diag label="Subscription keys match current browser subscription" value={diagnostics.subscriptionKeysMatch === null ? "Not checked" : diagnostics.subscriptionKeysMatch ? "Yes" : "No"} />
-            <Diag label="VAPID key match" value={diagnostics.vapidKeyMatch ? "Yes" : "No"} />
-            <Diag label="App public key fingerprint" value={diagnostics.currentAppPublicKeyFingerprint || "Not configured"} />
-            <Diag label="Saved subscription fingerprint" value={diagnostics.savedSubscriptionFingerprint || "Not saved"} />
-            <Diag label="Saved fingerprint status" value={diagnostics.savedSubscriptionFingerprintStatus || "Not checked"} />
-            <Diag label="Server sender fingerprint" value={diagnostics.serverSenderPublicKeyFingerprint || "Not configured"} />
-            <Diag label="Server private key configured" value={diagnostics.serverPrivateKeyConfigured ? "Yes" : "No"} />
-            <Diag label="VAPID subject configured" value={diagnostics.vapidSubjectConfigured ? "Yes" : "No"} />
-            <Diag label="Server VAPID key pair valid" value={diagnostics.serverKeyPairValid ? "Yes" : "No"} />
-            <Diag label="Server VAPID error" value={diagnostics.serverVapidError || "None"} />
-            <Diag
-              label="Last subscription update"
-              value={diagnostics.lastSubscriptionUpdate ? new Date(diagnostics.lastSubscriptionUpdate).toLocaleString() : "Not recorded"}
-            />
-            <Diag label="Last test push result" value={diagnostics.lastTestPushResult || "Not run"} />
-            <Diag label="Last provider status" value={diagnostics.lastTestProviderStatus || "Not recorded"} />
-            <Diag label="Platform/browser" value={`${diagnostics.platform} · ${diagnostics.browser.slice(0, 42)}`} />
-            <Diag label="Installed PWA mode" value={diagnostics.installedPwa ? "Yes" : "No"} />
-          </dl>
-          <p className="mt-3 text-[11px] text-ink-500">
-            If a test is accepted but does not appear, check OS notification permission, Focus or Do Not Disturb,
-            Android battery optimization, expired subscriptions, and whether iPhone/iPad users opened the installed Home Screen app.
-          </p>
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs text-amber-800 mb-4">
+          ⚠️ <strong>Note:</strong> Public push notifications are currently in a testing phase. Once the private app&apos;s no-payload wake strategy is fully verified, it will be ported to the public app. Background pushes may not deliver reliably in this version.
         </div>
+
+        <details className="group bg-white/70 border border-cream-200 rounded-2xl p-4 text-xs text-ink-600 mb-4">
+          <summary className="cursor-pointer font-semibold text-ink-800 list-none flex justify-between items-center select-none">
+            <span>Notification diagnostics</span>
+            <span className="text-ink-400 group-open:rotate-180 transition-transform duration-200">▼</span>
+          </summary>
+          <div className="mt-3">
+            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5">
+              <Diag label="Browser permission" value={diagnostics.browserPermission} />
+              <Diag label="Service worker registered" value={diagnostics.serviceWorkerRegistered ? "Yes" : "No"} />
+              <Diag label="Service worker active" value={diagnostics.serviceWorkerActive ? "Yes" : "No"} />
+              <Diag label="Browser push subscription exists" value={diagnostics.browserSubscriptionExists ? "Yes" : "No"} />
+              <Diag label="Browser endpoint present" value={diagnostics.subscriptionEndpointPresent ? "Yes" : "No"} />
+              <Diag label="Saved server subscription exists" value={diagnostics.subscriptionSaved ? "Yes" : "No"} />
+              <Diag label="Saved server subscription active" value={diagnostics.subscriptionActive ? "Yes" : "No"} />
+              <Diag label="Canonical active column" value={diagnostics.activeColumn || "Not reported"} />
+              <Diag label="Raw is_active value" value={diagnostics.rawIsActive === null ? "Not present" : diagnostics.rawIsActive ? "true" : "false"} />
+              <Diag label="Raw active value" value={diagnostics.rawActive === null ? "Not present" : diagnostics.rawActive ? "true" : "false"} />
+              <Diag label="Status value" value={diagnostics.statusValue || "Not present"} />
+              <Diag label="Selected subscription row" value={diagnostics.selectedSubscriptionId || "Not selected"} />
+              <Diag label="Device ID" value={diagnostics.deviceId || "Not available"} />
+              <Diag label="Endpoint match" value={diagnostics.endpointMatch === null ? "Not checked" : diagnostics.endpointMatch ? "Yes" : "No"} />
+              <Diag label="Subscription keys present" value={diagnostics.subscriptionKeysPresent ? "Yes" : "No"} />
+              <Diag label="Subscription keys match current browser subscription" value={diagnostics.subscriptionKeysMatch === null ? "Not checked" : diagnostics.subscriptionKeysMatch ? "Yes" : "No"} />
+              <Diag label="VAPID key match" value={diagnostics.vapidKeyMatch ? "Yes" : "No"} />
+              <Diag label="App public key fingerprint" value={diagnostics.currentAppPublicKeyFingerprint || "Not configured"} />
+              <Diag label="Saved subscription fingerprint" value={diagnostics.savedSubscriptionFingerprint || "Not saved"} />
+              <Diag label="Saved fingerprint status" value={diagnostics.savedSubscriptionFingerprintStatus || "Not checked"} />
+              <Diag label="Server sender fingerprint" value={diagnostics.serverSenderPublicKeyFingerprint || "Not configured"} />
+              <Diag label="Server private key configured" value={diagnostics.serverPrivateKeyConfigured ? "Yes" : "No"} />
+              <Diag label="VAPID subject configured" value={diagnostics.vapidSubjectConfigured ? "Yes" : "No"} />
+              <Diag label="Server VAPID key pair valid" value={diagnostics.serverKeyPairValid ? "Yes" : "No"} />
+              <Diag label="Server VAPID error" value={diagnostics.serverVapidError || "None"} />
+              <Diag
+                label="Last subscription update"
+                value={diagnostics.lastSubscriptionUpdate ? new Date(diagnostics.lastSubscriptionUpdate).toLocaleString() : "Not recorded"}
+              />
+              <Diag label="Last test push result" value={diagnostics.lastTestPushResult || "Not run"} />
+              <Diag label="Last provider status" value={diagnostics.lastTestProviderStatus || "Not recorded"} />
+              <Diag label="Platform/browser" value={`${diagnostics.platform} · ${diagnostics.browser.slice(0, 42)}`} />
+              <Diag label="Installed PWA mode" value={diagnostics.installedPwa ? "Yes" : "No"} />
+            </dl>
+            <p className="mt-3 text-[11px] text-ink-500">
+              If a test is dispatched but does not appear, check OS notification permission, Focus or Do Not Disturb,
+              Android battery optimization, expired subscriptions, and whether iPhone/iPad users opened the installed Home Screen app.
+            </p>
+          </div>
+        </details>
 
         {!supported ? (
           <div className="bg-cream-50 p-4 rounded-2xl text-sm text-ink-700">

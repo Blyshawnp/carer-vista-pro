@@ -12,6 +12,8 @@ export default function RestartTutorialButton({ userId }: { userId?: string }) {
     if (userId) {
       localStorage.removeItem(`completed_tutorial_${userId}`);
       localStorage.removeItem(`dismissed_checklist_${userId}`);
+      sessionStorage.removeItem(`completed_tutorial_session_${userId}`);
+      sessionStorage.removeItem(`dismissed_checklist_session_${userId}`);
     }
     await fetch("/api/tutorial/complete", {
       method: "PATCH",

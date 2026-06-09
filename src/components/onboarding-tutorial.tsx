@@ -35,7 +35,8 @@ export default function OnboardingTutorial({
 
   useEffect(() => {
     const localCompleted = userId ? localStorage.getItem(`completed_tutorial_${userId}`) === "true" : false;
-    setOpen(!completed && !localCompleted);
+    const sessionCompleted = userId ? sessionStorage.getItem(`completed_tutorial_session_${userId}`) === "true" : false;
+    setOpen(!completed && !localCompleted && !sessionCompleted);
   }, [completed, userId]);
 
   const embedUrl =
@@ -46,6 +47,28 @@ export default function OnboardingTutorial({
   const current = slides[index];
 
   if (!open || !current) return null;
+
+  async function dismiss() {
+    if (userId) {
+      sessionStorage.setItem(`completed_tutorial_session_${userId}`, "true");
+    }
+    setOpen(false);
+  }
+
+  async function dontShowAgain() {
+    setSaving(true);
+    if (userId) {
+      localStorage.setItem(`completed_tutorial_${userId}`, "true");
+    }
+    await fetch("/api/tutorial/complete", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ skipped: true }),
+    }).catch(() => null);
+    setOpen(false);
+    setSaving(false);
+    router.refresh();
+  }
 
   async function finish(skipped: boolean) {
     setSaving(true);
@@ -101,14 +124,24 @@ export default function OnboardingTutorial({
         </ul>
 
         <div className="flex items-center justify-between pt-2">
-          <button
-            type="button"
-            disabled={saving}
-            onClick={() => finish(true)}
-            className="text-sm font-semibold text-ink-500 hover:text-ink-800"
-          >
-            Skip
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              disabled={saving}
+              onClick={dismiss}
+              className="text-xs font-semibold text-ink-500 hover:text-ink-850"
+            >
+              Dismiss
+            </button>
+            <button
+              type="button"
+              disabled={saving}
+              onClick={dontShowAgain}
+              className="text-xs font-semibold text-forest-700 hover:text-forest-900"
+            >
+              Don't show again
+            </button>
+          </div>
           <div className="flex items-center gap-2">
             {index > 0 && (
               <button

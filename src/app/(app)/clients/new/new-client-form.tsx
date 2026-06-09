@@ -33,6 +33,12 @@ export default function NewClientForm() {
   const [saving, setSaving] = useState(false);
   const [locating, setLocating] = useState(false);
 
+  // Invitation state
+  const [createdClientId, setCreatedClientId] = useState<string | null>(null);
+  const [clientEmail, setClientEmail] = useState("");
+  const [inviting, setInviting] = useState(false);
+  const [inviteError, setInviteError] = useState<string | null>(null);
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
@@ -72,8 +78,93 @@ export default function NewClientForm() {
       return;
     }
 
-    router.push(`/clients/${result.id}/home-info`);
-    router.refresh();
+    setCreatedClientId(result.id);
+  }
+
+  async function sendEmailInvite() {
+    if (!clientEmail.trim()) {
+      setInviteError("Email is required to send an invitation.");
+      return;
+    }
+    setInviting(true);
+    setInviteError(null);
+
+    try {
+      const response = await fetch("/api/invitations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName: fullName.trim(),
+          email: clientEmail.trim(),
+          role: "client",
+          clientIds: [createdClientId],
+        }),
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        setInviteError(result.error ?? "Could not send invitation.");
+        setInviting(false);
+        return;
+      }
+
+      router.push(`/clients/${createdClientId}/home-info`);
+      router.refresh();
+    } catch {
+      setInviteError("Could not send invitation.");
+      setInviting(false);
+    }
+  }
+
+  if (createdClientId) {
+    return (
+      <div className="bg-white rounded-3xl shadow-soft p-6 grain-overlay space-y-5">
+        <div>
+          <h2 className="font-display text-xl text-ink-900 mb-2">
+            Client added successfully!
+          </h2>
+          <p className="text-ink-500 text-sm">
+            Would you like to invite <strong>{fullName}</strong> to create an account and log in?
+          </p>
+        </div>
+
+        <div className="space-y-4">
+          <label className="block">
+            <span className="block text-xs font-medium text-ink-700 mb-1.5 tracking-wide uppercase">
+              Client's Email Address
+            </span>
+            <input
+              type="email"
+              value={clientEmail}
+              onChange={(e) => setClientEmail(e.target.value)}
+              className={inputCls}
+              placeholder="client@example.com"
+            />
+          </label>
+
+          {inviteError && <p className="text-xs text-terracotta-600">{inviteError}</p>}
+
+          <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            <button
+              type="button"
+              disabled={inviting}
+              onClick={sendEmailInvite}
+              className="flex-1 bg-forest-600 hover:bg-forest-700 text-cream-50 py-3 rounded-2xl text-sm font-medium transition disabled:opacity-50"
+            >
+              {inviting ? "Sending invite..." : "Invite by email"}
+            </button>
+            <button
+              type="button"
+              disabled={inviting}
+              onClick={() => router.push(`/clients/${createdClientId}/home-info`)}
+              className="flex-1 bg-cream-100 hover:bg-cream-200 text-ink-700 py-3 rounded-2xl text-sm font-medium transition"
+            >
+              Not now / Skip
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

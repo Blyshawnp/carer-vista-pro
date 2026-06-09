@@ -55,7 +55,11 @@ export default async function AcceptInvitePage({
       <ErrorScreen message="This invitation has expired. Ask the admin to send a new one." />
     );
 
-  return <AcceptInviteForm invitation={invite} token={token} />;
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  return <AcceptInviteForm invitation={invite} token={token} currentUser={user} />;
 }
 
 function ErrorScreen({

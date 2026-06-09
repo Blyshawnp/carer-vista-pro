@@ -6,6 +6,7 @@ import { buildBrowserAppUrl } from "@/lib/app-url";
 import { createClient } from "@/lib/supabase/client";
 import { getFirstName } from "@/lib/name";
 import { mapAuthErrorMessage } from "@/lib/auth-errors";
+import type { User } from "@supabase/supabase-js";
 
 type Invitation = {
   id: string;
@@ -20,9 +21,11 @@ type Invitation = {
 export default function AcceptInviteForm({
   invitation,
   token,
+  currentUser = null,
 }: {
   invitation: Invitation;
   token: string;
+  currentUser?: User | null;
 }) {
   const router = useRouter();
   const [mode, setMode] = useState<"signup" | "signin">("signup");
@@ -116,6 +119,39 @@ export default function AcceptInviteForm({
     router.refresh();
   }
 
+  async function handleAcceptExisting(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setSubmitting(true);
+    const supabase = createClient();
+
+    const { data: accepted, error: acceptError } = await supabase.rpc(
+      "accept_invitation",
+      {
+        invitation_token: token,
+        invited_phone: phone.trim() || null,
+      }
+    );
+
+    if (acceptError || accepted === false) {
+      setError(
+        acceptError?.message ??
+          "Could not finalize this invitation. Contact your admin."
+      );
+      setSubmitting(false);
+      return;
+    }
+
+    router.push("/home");
+    router.refresh();
+  }
+
+  async function handleSignOut() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.refresh();
+  }
+
   const orgName = invitation.organization_name ?? "the team";
   const roleCopy: Record<string, string> = {
     admin: "administrator",
@@ -123,6 +159,79 @@ export default function AcceptInviteForm({
     caregiver: "caregiver",
     family: "family member",
   };
+
+  if (currentUser) {
+    return (
+      <main className="min-h-dvh flex items-center justify-center px-5 py-10 bg-cream-100 relative overflow-hidden">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-32 -left-20 w-96 h-96 rounded-full bg-terracotta-400/20 blur-3xl"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -bottom-32 -right-20 w-96 h-96 rounded-full bg-forest-400/15 blur-3xl"
+        />
+
+        <div className="relative w-full max-w-sm">
+          <div className="text-center mb-6">
+            <p className="text-xs uppercase tracking-[0.18em] text-ink-500 mb-2">
+              Accept Invitation
+            </p>
+            <h1 className="font-display text-3xl text-ink-900 mb-1">
+              Welcome,{" "}
+              <span className="italic text-forest-600">
+                {getFirstName(invitation.full_name)}
+              </span>
+            </h1>
+            <p className="text-ink-500 text-sm">
+              You are signed in as <strong className="text-ink-800">{currentUser.email}</strong>.
+            </p>
+            <p className="text-ink-500 text-xs mt-1">
+              Join {orgName} as a {roleCopy[invitation.role]}
+            </p>
+          </div>
+
+          <form
+            onSubmit={handleAcceptExisting}
+            className="bg-white/95 backdrop-blur rounded-3xl shadow-soft p-6 grain-overlay"
+          >
+            <div className="space-y-4 relative">
+              <Field
+                label="Phone (optional)"
+                type="tel"
+                value={phone}
+                onChange={setPhone}
+                placeholder="Phone number"
+                autoComplete="tel"
+              />
+
+              {error && (
+                <div className="text-sm text-terracotta-600 bg-terracotta-400/10 border border-terracotta-400/20 px-3 py-2.5 rounded-xl">
+                  {error}
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full bg-forest-600 hover:bg-forest-700 text-cream-50 py-3 rounded-2xl font-medium tracking-wide transition disabled:opacity-60 shadow-soft active:scale-[0.99]"
+              >
+                {submitting ? "Accepting..." : "Accept Invitation"}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="w-full text-center text-xs text-ink-500 hover:underline mt-2"
+              >
+                Sign in with a different account
+              </button>
+            </div>
+          </form>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-dvh flex items-center justify-center px-5 py-10 bg-cream-100 relative overflow-hidden">

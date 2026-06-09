@@ -97,94 +97,12 @@ export default function ScheduleView({
             </Link>
           </div>
 
-          {/* Desktop actions view */}
-          <div className="hidden sm:block">
-            <div className="flex gap-2 mt-2 flex-wrap">
-              {isBulkAllowed && (
-                <button
-                  onClick={() => {
-                    setIsMultiSelectMode(!isMultiSelectMode);
-                    setSelectedShiftIds(new Set());
-                  }}
-                  className={`text-xs font-medium hover:underline ${
-                    isMultiSelectMode ? "text-terracotta-600" : "text-forest-600"
-                  }`}
-                >
-                  {isMultiSelectMode ? "Exit multi-select" : "Bulk actions"}
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={exportAllMyShifts}
-                className="text-xs text-forest-600 font-medium hover:underline"
-              >
-                Export all my shifts
-              </button>
-            </div>
-            <div className="flex gap-3 mt-2.5 flex-wrap items-center">
-              {canCreateShifts && (
-                <>
-                  <Link
-                    href="/schedule/new"
-                    className="text-xs text-forest-600 hover:underline font-semibold"
-                  >
-                    New shift
-                  </Link>
-                  {role === "admin" && (
-                    <Link
-                      href="/schedule/recurring"
-                      className="text-xs text-forest-600 hover:underline"
-                    >
-                      Recurring templates
-                    </Link>
-                  )}
-                  <Link
-                    href="/schedule/proposals"
-                    className="text-xs text-forest-600 hover:underline"
-                  >
-                    Shift proposals
-                  </Link>
-                  <Link
-                    href="/schedule/shift-types"
-                    className="text-xs text-forest-600 hover:underline"
-                  >
-                    Shift types
-                  </Link>
-                  {role === "admin" && (
-                    <Link
-                      href="/schedule/trades"
-                      className="text-xs text-forest-600 hover:underline"
-                    >
-                      Shift trades
-                    </Link>
-                  )}
-                </>
-              )}
-              {canRequestShifts && (
-                <Link
-                  href="/schedule/requests/new"
-                  className="text-xs text-forest-700 hover:underline font-semibold bg-forest-100/70 px-2 py-0.5 rounded-lg"
-                >
-                  Request care coverage
-                </Link>
-              )}
-              {(role === "admin" || canRequestShifts) && (
-                <Link
-                  href="/schedule/requests"
-                  className="text-xs text-forest-600 hover:underline font-medium"
-                >
-                  {role === "admin" ? "Manage coverage requests" : "My coverage requests"}
-                </Link>
-              )}
-            </div>
-          </div>
-
-          {/* Mobile actions view */}
-          <div className="flex sm:hidden gap-3 mt-2.5 items-center relative">
+          {/* Actions Menu */}
+          <div className="flex gap-3 mt-2.5 items-center relative">
             {canCreateShifts && (
               <Link
                 href="/schedule/new"
-                className="text-xs bg-forest-600 text-cream-50 px-3 py-1.5 rounded-xl hover:bg-forest-700 font-semibold transition"
+                className="text-xs bg-forest-600 text-cream-50 px-3 py-1.5 rounded-xl hover:bg-forest-700 font-semibold transition shadow-soft shrink-0"
               >
                 New shift
               </Link>
@@ -192,7 +110,7 @@ export default function ScheduleView({
             {canRequestShifts && !canCreateShifts && (
               <Link
                 href="/schedule/requests/new"
-                className="text-xs bg-forest-600 text-cream-50 px-3 py-1.5 rounded-xl hover:bg-forest-700 font-semibold transition"
+                className="text-xs bg-forest-600 text-cream-50 px-3 py-1.5 rounded-xl hover:bg-forest-700 font-semibold transition shadow-soft shrink-0"
               >
                 Request care
               </Link>
@@ -202,7 +120,7 @@ export default function ScheduleView({
               <button
                 type="button"
                 onClick={() => setActionsOpen(!actionsOpen)}
-                className="text-xs bg-cream-200 text-ink-700 px-3 py-1.5 rounded-xl font-medium hover:bg-cream-300 transition flex items-center gap-1"
+                className="text-xs bg-cream-200 text-ink-700 px-3 py-1.5 rounded-xl font-medium hover:bg-cream-300 transition flex items-center gap-1 shrink-0"
               >
                 More actions <span className="text-[8px] transform duration-150 inline-block">{actionsOpen ? "▲" : "▼"}</span>
               </button>
@@ -229,7 +147,7 @@ export default function ScheduleView({
                         exportAllMyShifts();
                         setActionsOpen(false);
                       }}
-                      className="w-full text-left px-4 py-2 hover:bg-cream-50 text-xs font-medium text-forest-700"
+                      className="w-full text-left px-4 py-2 hover:bg-cream-50 text-xs font-medium text-forest-750"
                     >
                       Export all my shifts
                     </button>

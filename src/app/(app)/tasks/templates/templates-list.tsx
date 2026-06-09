@@ -1033,10 +1033,17 @@ function TemplateRow({
           <TemplateBadge label={`#${template.sort_order}`} />
         </div>
       </div>
-      <div className="flex gap-1 shrink-0">
+      <div className="flex gap-1.5 shrink-0 items-center">
         <button onClick={onEdit} className="text-xs text-forest-600 hover:underline">Edit</button>
         <span className="text-ink-300">·</span>
-        <button onClick={onDelete} className="text-xs text-terracotta-600 hover:underline">Delete</button>
+        <button
+          onClick={onDelete}
+          className="text-xs text-terracotta-600 hover:underline flex items-center justify-center"
+          aria-label="Delete"
+        >
+          <TrashIcon size={14} className="sm:hidden" />
+          <span className="hidden sm:inline">Delete</span>
+        </button>
       </div>
     </div>
   );
@@ -1233,31 +1240,33 @@ function CategoryEditor({
   }
 
   return (
-    <div className="flex gap-1.5 sm:gap-2 items-center">
+    <div className="flex flex-wrap sm:flex-nowrap gap-1.5 sm:gap-2 items-center w-full">
       <input
         value={label}
         onChange={(e) => setLabel(e.target.value)}
-        className="flex-1 min-w-0 px-3 py-2 bg-cream-50 border border-cream-200 rounded-xl text-sm focus:outline-none focus:border-forest-500"
+        className="flex-1 min-w-[140px] px-3 py-2 bg-cream-50 border border-cream-200 rounded-xl text-sm focus:outline-none focus:border-forest-500 w-full"
       />
-      <button
-        type="button"
-        onClick={save}
-        disabled={saving || !label.trim() || label === category.label}
-        className="bg-cream-200 text-ink-700 px-2.5 py-2 sm:px-3 sm:py-2 rounded-xl text-xs font-medium disabled:opacity-50 whitespace-nowrap"
-      >
-        {saving ? "Saving" : "Rename"}
-      </button>
-      {category.key !== "other" && (
+      <div className="flex gap-1.5 items-center shrink-0">
         <button
           type="button"
-          onClick={() => setDeleting(true)}
-          aria-label="Delete category"
-          className="bg-terracotta-400/10 text-terracotta-700 hover:bg-terracotta-400/20 p-2.5 sm:px-3 sm:py-2 rounded-xl text-xs font-medium flex items-center justify-center min-w-[38px] shrink-0"
+          onClick={save}
+          disabled={saving || !label.trim() || label === category.label}
+          className="bg-cream-200 text-ink-700 px-2.5 py-2 rounded-xl text-xs font-medium disabled:opacity-50 whitespace-nowrap"
         >
-          <TrashIcon size={16} className="sm:hidden" />
-          <span className="hidden sm:inline">Delete</span>
+          {saving ? "Saving" : "Rename"}
         </button>
-      )}
+        {category.key !== "other" && (
+          <button
+            type="button"
+            onClick={() => setDeleting(true)}
+            aria-label="Delete category"
+            className="bg-terracotta-400/10 text-terracotta-700 hover:bg-terracotta-400/20 p-2.5 rounded-xl text-xs font-medium flex items-center justify-center min-w-[38px] shrink-0"
+          >
+            <TrashIcon size={16} className="sm:hidden" />
+            <span className="hidden sm:inline">Delete</span>
+          </button>
+        )}
+      </div>
     </div>
   );
 }

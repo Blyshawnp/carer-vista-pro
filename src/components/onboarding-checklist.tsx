@@ -22,12 +22,20 @@ export default function OnboardingChecklist({
 
   useEffect(() => {
     const localDismissed = userId ? localStorage.getItem(`dismissed_checklist_${userId}`) === "true" : false;
-    setHidden(dismissed || localDismissed);
+    const sessionDismissed = userId ? sessionStorage.getItem(`dismissed_checklist_session_${userId}`) === "true" : false;
+    setHidden(dismissed || localDismissed || sessionDismissed);
   }, [dismissed, userId]);
 
   if (hidden) return null;
 
   async function dismiss() {
+    if (userId) {
+      sessionStorage.setItem(`dismissed_checklist_session_${userId}`, "true");
+    }
+    setHidden(true);
+  }
+
+  async function dontShowAgain() {
     setSaving(true);
     if (userId) {
       localStorage.setItem(`dismissed_checklist_${userId}`, "true");
@@ -52,14 +60,24 @@ export default function OnboardingChecklist({
             </p>
             <h2 className="font-display text-xl text-ink-900">Recommended next steps</h2>
           </div>
-          <button
-            type="button"
-            onClick={dismiss}
-            disabled={saving}
-            className="text-xs font-semibold text-ink-500 hover:text-ink-800 disabled:opacity-60"
-          >
-            Dismiss
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={dismiss}
+              disabled={saving}
+              className="text-xs font-semibold text-ink-500 hover:text-ink-800 disabled:opacity-60"
+            >
+              Dismiss
+            </button>
+            <button
+              type="button"
+              onClick={dontShowAgain}
+              disabled={saving}
+              className="text-xs font-semibold text-forest-700 hover:text-forest-900 disabled:opacity-60"
+            >
+              Don't show again
+            </button>
+          </div>
         </div>
         <ul className="grid gap-2 text-sm text-ink-700">
           {items.map((item) => (

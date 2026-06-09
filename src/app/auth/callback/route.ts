@@ -14,13 +14,16 @@ export async function GET(request: Request) {
       data: { user },
     } = await supabase.auth.getUser();
 
-    const setupState = await getUserSetupState(user?.id, "/auth/callback");
-    if (setupState.status === "unauthenticated") {
-      next = "/login";
-    } else if (setupState.status === "setup_complete") {
-      next = "/home";
-    } else if (setupState.status !== "error") {
-      next = "/setup";
+    const isDefaultNext = next === "/home" || next === "/setup" || next === "/login" || next === "";
+    if (isDefaultNext) {
+      const setupState = await getUserSetupState(user?.id, "/auth/callback");
+      if (setupState.status === "unauthenticated") {
+        next = "/login";
+      } else if (setupState.status === "setup_complete") {
+        next = "/home";
+      } else if (setupState.status !== "error") {
+        next = "/setup";
+      }
     }
   }
 

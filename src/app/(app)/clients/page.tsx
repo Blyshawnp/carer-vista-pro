@@ -19,6 +19,10 @@ export default async function ClientsPage() {
 
   if (!profile) redirect("/me");
 
+  if (profile.role === "client" || profile.role === "family") {
+    redirect("/team");
+  }
+
   // Fetch organization settings to check mode
   const { data: org } = await supabase
     .from("organizations")
@@ -26,22 +30,11 @@ export default async function ClientsPage() {
     .eq("id", profile.organization_id)
     .single();
 
-  const isPersonalFamily = org?.organization_mode === "personal_family";
-  const isClientDirected = org?.organization_mode === "client_directed_care";
-  const allowClientAdmin = org?.allow_client_admin_for_personal_use;
-
-  const canManage = profile.role === "admin" || 
-    (profile.role === "client" && (
-      (isPersonalFamily && allowClientAdmin) || 
-      isClientDirected
-    ));
-  const pageTitle = profile.role === "family" ? "Family" : "Clients";
-  const pageSubtitle =
-    profile.role === "family"
-      ? "Linked family members and care recipients connected to you"
-      : canManage
-        ? "Care recipients in this care circle"
-        : "Clients and care recipients connected to you";
+  const canManage = profile.role === "admin";
+  const pageTitle = "Clients";
+  const pageSubtitle = canManage
+    ? "Care recipients in this care circle"
+    : "Clients and care recipients connected to you";
 
   const { data: clients } = await supabase
     .from("clients")
@@ -56,7 +49,7 @@ export default async function ClientsPage() {
           href="/me"
           className="text-sm text-forest-600 hover:underline mb-2 inline-block"
         >
-          {profile.role === "family" ? "← Back to family" : "← Back"}
+          ← Back
         </Link>
         <div className="flex items-start justify-between gap-3">
           <div>

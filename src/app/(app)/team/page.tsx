@@ -63,26 +63,124 @@ export default async function TeamPage() {
 
   const isAllowed = profile?.role === "admin" || profile?.is_owner || (profile?.role === "client" && canClientManage);
 
+  // Read-only Care Circle view for non-admins (Caregivers, Clients, Family)
   if (!profile || !isAllowed) {
+    // 1. Get assignments of current user
+    const { data: myAssignments } = await supabase
+      .from("client_user_assignments")
+      .select("client_id")
+      .eq("user_id", user.id)
+      .eq("is_active", true);
+
+    const clientIds = (myAssignments ?? []).map((a) => a.client_id);
+    let myClients: { id: string; full_name: string }[] = [];
+    let circleMembers: TeamMember[] = [];
+
+    if (clientIds.length > 0) {
+      // 2. Fetch client details
+      const { data: clientDetails } = await supabase
+        .from("clients")
+        .select("id, full_name")
+        .in("id", clientIds)
+        .order("full_name");
+      myClients = clientDetails ?? [];
+
+      // 3. Fetch all active assignments for these clients
+      const { data: relatedAssignments } = await supabase
+        .from("client_user_assignments")
+        .select("user_id, relationship_role")
+        .in("client_id", clientIds)
+        .eq("is_active", true);
+
+      const relatedUserIds = Array.from(
+        new Set((relatedAssignments ?? []).map((a) => a.user_id))
+      );
+
+      if (relatedUserIds.length > 0) {
+        // 4. Fetch profiles for these users
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select(
+            "id, full_name, email, username, has_real_email, role, is_active, avatar_url, avatar_color"
+          )
+          .in("id", relatedUserIds)
+          .order("full_name");
+
+        circleMembers = (profiles ?? []).map((p) => ({
+          ...(p as TeamMember),
+          shift_count: 0,
+          current_rate: null,
+        }));
+      }
+    }
+
     return (
-      <main className="px-5 py-10 max-w-2xl mx-auto">
-        <div className="bg-white rounded-3xl p-8 shadow-soft text-center">
-          <h1 className="font-display text-2xl mb-2">Admin only</h1>
-          <p className="text-ink-500 text-sm mb-5">
-            Only administrators can manage the team.
-          </p>
+      <main className="px-5 py-6 max-w-2xl mx-auto">
+        <header className="mb-6">
           <Link
             href="/me"
-            className="inline-block bg-forest-600 hover:bg-forest-700 text-cream-50 px-5 py-2.5 rounded-2xl text-sm font-medium transition"
+            className="text-sm text-forest-600 hover:underline mb-2 inline-block"
           >
-            Back
+            ← Back
           </Link>
-        </div>
+          <h1 className="font-display text-3xl text-ink-900 leading-tight">
+            Care Circle
+          </h1>
+          <p className="text-ink-500 text-sm">
+            People connected to your care circle
+          </p>
+        </header>
+
+        {/* Clients/Care Recipients */}
+        {myClients.length > 0 && (
+          <section className="mb-6">
+            <h2 className="text-xs uppercase tracking-[0.18em] text-ink-500 mb-2 px-1">
+              Care Recipients
+            </h2>
+            <ul className="space-y-2">
+              {myClients.map((c) => (
+                <li key={c.id} className="flex items-center gap-3 bg-white rounded-2xl p-4 shadow-soft">
+                  <span className="w-10 h-10 rounded-full grid place-items-center font-display text-sm bg-forest-100 text-forest-700 shrink-0">
+                    {c.full_name[0]?.toUpperCase()}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-ink-900 truncate">{c.full_name}</p>
+                    <p className="text-xs text-ink-500">Care recipient</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {/* Other Members */}
+        <section>
+          <h2 className="text-xs uppercase tracking-[0.18em] text-ink-500 mb-2 px-1">
+            Members & Caregivers
+          </h2>
+          {circleMembers.length === 0 ? (
+            <div className="bg-white rounded-3xl p-8 shadow-soft text-center grain-overlay">
+              <p className="text-ink-500 text-sm">No members in your care circle yet.</p>
+            </div>
+          ) : (
+            <ul className="space-y-2">
+              {circleMembers.map((p) => (
+                <li key={p.id} className="flex items-center gap-3 bg-white rounded-2xl p-4 shadow-soft">
+                  <UserAvatar person={p} size="sm" />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-ink-900 truncate">{p.full_name}</p>
+                    <p className="text-xs text-ink-500 capitalize">{p.role}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
       </main>
     );
   }
 
-  // Fetch all profiles in org
+  // Fetch all profiles in org for admin view
   const { data: peopleRaw } = await supabase
     .from("profiles")
     .select("id, full_name, email, username, has_real_email, role, is_active, avatar_url, avatar_color")

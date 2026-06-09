@@ -81,6 +81,34 @@ export default async function HelpPage() {
           )}
         </Section>
 
+        <Section title="Account roles & workspace modes">
+          <p className="text-sm text-ink-700 mb-2">
+            Carer Vista Pro supports four distinct roles tailored to different responsibilities:
+          </p>
+          <ul className="text-sm text-ink-700 space-y-1.5 list-disc pl-5 mb-3">
+            <li><strong>Admin:</strong> Full control over the workspace. Can invite admins, caregivers, family, and clients, manage all clients, edit schedules, adjust payroll, and configure settings.</li>
+            <li><strong>Caregiver:</strong> Focused view. Can only see their assigned clients, schedules, shifts, and relevant team members, but cannot manage organization-wide settings.</li>
+            <li><strong>Client:</strong> Client-centric view. Can see their own care profile, scheduled shifts, assigned caregivers, and connected family members.</li>
+            <li><strong>Family:</strong> Supportive view. Can see the linked client profile(s), caregivers, and other family members, plus view schedule logs.</li>
+          </ul>
+          <p className="text-sm text-ink-700 mb-2">
+            The app adapts navigation depending on your active <strong>workspace mode</strong>:
+          </p>
+          <ul className="text-sm text-ink-700 space-y-1.5 list-disc pl-5">
+            <li><strong>Family / Personal workspace:</strong> Focused on a single care circle. The navigation emphasizes <em>Care Circle / Team</em> instead of a global Clients tab.</li>
+            <li><strong>Agency / Organization workspace:</strong> Designed for corporate teams. Admins and Caregivers see the <em>Clients</em> tab (with Caregivers restricted to their assigned clients only). Clients and Family users do not see the global Clients tab and instead see their own <em>Care Circle</em>.</li>
+          </ul>
+        </Section>
+
+        <Section title="Invites & client setup">
+          <ul className="text-sm text-ink-700 space-y-1.5 list-disc pl-5">
+            <li><strong>Adding a Client:</strong> Admins can add a client record only (to keep track of care logs without giving them a login account), or add a client and invite them to create a login credentials account.</li>
+            <li><strong>Inviting Team Members:</strong> Admins can invite new caregivers, clients, or family members. Inviting a client or family member links them to a specific client record.</li>
+            <li><strong>Accepting an Invitation:</strong> The invited person receives an invite link. Upon clicking it, they sign up/log in, and the system automatically matches their email to assign their role, organization membership, and client access scope.</li>
+            <li><strong>Existing Users:</strong> If you invite an email that already has an account, they will automatically gain membership and access to the new organization upon their next login.</li>
+          </ul>
+        </Section>
+
         <Section title="Check-in and check-out">
           <p className="text-sm text-ink-700 mb-2">
             Check-in uses your phone's location to confirm you're at the
@@ -167,7 +195,9 @@ export default async function HelpPage() {
             <p>
               New users see a role-aware first-time tutorial after setup. It can be skipped and restarted from this Help page.
             </p>
-            <RestartTutorialButton userId={user.id} />
+            <div className="flex flex-wrap gap-2 items-center">
+              <RestartTutorialButton userId={user.id} />
+            </div>
             {introVideoUrl && (
               <div className="aspect-video overflow-hidden rounded-2xl bg-cream-100 border border-cream-200">
                 <iframe
@@ -183,7 +213,10 @@ export default async function HelpPage() {
               Admins can add an optional YouTube or Vimeo intro video from Account & Settings. Keep it under two minutes when possible. If no valid video is configured, the tutorial and Help page skip the video area without showing a broken player.
             </p>
             <p>
-              The dashboard checklist suggests setup steps such as adding clients, documents, notifications, app install, and first-shift review. You can dismiss it when it is no longer useful.
+              <strong>Dashboard Checklist:</strong> The dashboard checklist suggests setup steps such as adding clients, documents, notifications, app install, and first-shift review.
+            </p>
+            <p>
+              You can dismiss the checklist by clicking the dismiss/close button. To permanently hide it across all devices and sessions, click <strong>&quot;Don&apos;t show again&quot;</strong>. To show the checklist or tutorial again, click the button above.
             </p>
           </div>
         </Section>

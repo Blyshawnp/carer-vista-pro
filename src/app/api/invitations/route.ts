@@ -11,6 +11,7 @@ type CreateInvitationRequest = {
   email?: string | null;
   role?: Role;
   hourlyRate?: number | null;
+  clientIds?: string[];
 };
 
 type ActorProfile = {
@@ -54,6 +55,8 @@ export async function POST(request: Request) {
     const email = normalizeEmail(payload.email);
     const role = payload.role;
     const hourlyRate = normalizeHourlyRate(payload.hourlyRate);
+    const clientIds = Array.from(new Set(payload.clientIds ?? []));
+    const clientId = clientIds.length > 0 ? clientIds[0] : null;
 
     if (!fullName) {
       return NextResponse.json({ error: "Full name is required." }, { status: 400 });
@@ -82,6 +85,8 @@ export async function POST(request: Request) {
         created_by: actor.id,
         caregiver_hourly_rate: role === "caregiver" ? hourlyRate : null,
         status: "pending",
+        client_id: clientId,
+        client_ids: clientIds.length > 0 ? clientIds : null,
       })
       .select("id, token, email, full_name, role, expires_at, organization_id")
       .single<{
