@@ -1,24 +1,18 @@
 /**
  * Pay calculation helpers.
  *
- * Round-up rule: every dollar amount we display rounds UP to the nearest
- * $0.25. The unrounded math is preserved in the database and used for
- * accurate totals. Only the displayed/paid number is rounded.
- *
- * Examples:
- *   roundUpToQuarter(127.17) === 127.25
- *   roundUpToQuarter(127.01) === 127.25
- *   roundUpToQuarter(127.25) === 127.25
- *   roundUpToQuarter(127.26) === 127.50
- *   roundUpToQuarter(0)      === 0
+ * In the public app, we do not round up pay to the nearest $0.25.
+ * We perform exact currency formatting. To maintain compatibility with components
+ * that call roundUpToQuarter (e.g. for hours or amounts), this function returns the
+ * exact amount rounded to 2 decimal places.
  */
 export function roundUpToQuarter(amount: number): number {
   if (!isFinite(amount) || amount <= 0) return 0;
-  return Math.ceil(amount * 4) / 4;
+  return Math.round(amount * 100) / 100;
 }
 
 /**
- * Format a dollar amount for display, always rounded UP to $0.25.
+ * Format a dollar amount for display.
  */
 export function formatPay(amount: number): string {
   return formatCurrency(roundUpToQuarter(amount));

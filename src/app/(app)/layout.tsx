@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import BottomNav from "@/components/bottom-nav";
+import BottomNav, { type OrgMode } from "@/components/bottom-nav";
 import AppHeader from "@/components/app-header";
 import ShiftWatcher, {
   type ActiveWatch,
@@ -30,6 +30,7 @@ type ProfileWithOrg = {
   organizations: {
     name: string;
     onboarding_complete: boolean | null;
+    organization_mode: string | null;
     intro_video_url: string | null;
     intro_video_enabled: boolean | null;
     show_intro_video_on_first_login: boolean | null;
@@ -88,7 +89,7 @@ export default async function AppLayout({
   const { data: profile } = await supabase
     .from("profiles")
     .select(
-      "id, full_name, role, organization_id, language, avatar_url, avatar_color, theme_preference, font_size_preference, reduce_motion, increase_contrast, larger_buttons, tutorial_completed, organizations(name, onboarding_complete, intro_video_url, intro_video_enabled, show_intro_video_on_first_login, enable_custom_branding, custom_logo_url, brand_primary_color, brand_accent_color, custom_brand_name, plan_allows_custom_branding)"
+      "id, full_name, role, organization_id, language, avatar_url, avatar_color, theme_preference, font_size_preference, reduce_motion, increase_contrast, larger_buttons, tutorial_completed, organizations(name, onboarding_complete, organization_mode, intro_video_url, intro_video_enabled, show_intro_video_on_first_login, enable_custom_branding, custom_logo_url, brand_primary_color, brand_accent_color, custom_brand_name, plan_allows_custom_branding)"
     )
     .eq("id", user.id)
     .single<ProfileWithOrg>();
@@ -245,6 +246,7 @@ export default async function AppLayout({
 
       <BottomNav
         role={profile?.role ?? "caregiver"}
+        orgMode={(profile?.organizations?.organization_mode as OrgMode) ?? null}
         unreadMessages={unreadMessages}
         lang={lang}
       />

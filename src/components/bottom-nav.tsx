@@ -10,9 +10,18 @@ import {
   ListIcon,
   MessageIcon,
   UserIcon,
+  UsersIcon,
+  HeartIcon,
 } from "./icons";
 import { t, type Lang } from "@/lib/i18n";
 import type { Role } from "@/lib/db-types";
+
+export type OrgMode =
+  | "personal_family"
+  | "agency_company"
+  | "solo_caregiver"
+  | "client_directed_care"
+  | null;
 
 type NavItem = {
   href: string;
@@ -23,15 +32,17 @@ type NavItem = {
 
 export default function BottomNav({
   role,
+  orgMode = null,
   unreadMessages = 0,
   lang = "en",
 }: {
   role: Role;
+  orgMode?: OrgMode;
   unreadMessages?: number;
   lang?: Lang;
 }) {
   const pathname = usePathname();
-  const tabs = getTabs(role, lang);
+  const tabs = getTabs(role, orgMode, lang);
 
   return (
     <nav
@@ -83,7 +94,31 @@ export default function BottomNav({
   );
 }
 
-function getTabs(role: Role, lang: Lang): NavItem[] {
+/**
+ * Determines which bottom-nav tabs to show based on the user's role
+ * and the organization mode (agency/company vs personal/family etc.).
+ *
+ * Rules:
+ * ─────────────────────────────────────────────────────────────────────
+ * Admin / Agency Admin:
+ *   Home · Clients · Team · Schedule · Alerts · Me
+ *
+ * Caregiver:
+ *   Home · Clients (labelled "Clients") · Schedule · Messages · Alerts · Me
+ *
+ * Client / Family (personal_family, solo_caregiver, client_directed_care):
+ *   Home · Care Circle · Schedule · Messages · Alerts · Me
+ *
+ * Client / Family (agency_company):
+ *   Home · Care Circle · Schedule · Messages · Alerts · Me
+ *   (No global Clients tab — they only see their care circle)
+ *
+ * In all modes, Client and Family never see the global "Clients" list.
+ * ─────────────────────────────────────────────────────────────────────
+ */
+function getTabs(role: Role, orgMode: OrgMode, lang: Lang): NavItem[] {
+  const isAgency = orgMode === "agency_company";
+
   switch (role) {
     case "admin":
       return [
@@ -102,7 +137,7 @@ function getTabs(role: Role, lang: Lang): NavItem[] {
         {
           href: "/team",
           label: t("nav.team", lang),
-          Icon: UserIcon,
+          Icon: UsersIcon,
           key: "team",
         },
         {
@@ -124,6 +159,7 @@ function getTabs(role: Role, lang: Lang): NavItem[] {
           key: "me",
         },
       ];
+
     case "caregiver":
       return [
         {
@@ -163,6 +199,7 @@ function getTabs(role: Role, lang: Lang): NavItem[] {
           key: "me",
         },
       ];
+
     case "client":
     case "family":
       return [
@@ -174,8 +211,8 @@ function getTabs(role: Role, lang: Lang): NavItem[] {
         },
         {
           href: "/team",
-          label: lang === "es" ? "Círculo" : "Care Circle",
-          Icon: UserIcon,
+          label: t("nav.careCircle", lang),
+          Icon: HeartIcon,
           key: "team",
         },
         {
@@ -203,6 +240,7 @@ function getTabs(role: Role, lang: Lang): NavItem[] {
           key: "me",
         },
       ];
+
     default:
       return [];
   }
